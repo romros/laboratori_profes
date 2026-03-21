@@ -1,6 +1,6 @@
 # Estat del projecte (operatiu)
 
-**Darrera actualització:** 2026-03-23
+**Darrera actualització:** 2026-03-25
 
 Només **estat i verificació**. Normativa: **`AGENTS_ARQUITECTURA.md`**. Ordre de lectura: **`llm.txt`**.
 
@@ -8,7 +8,7 @@ Només **estat i verificació**. Normativa: **`AGENTS_ARQUITECTURA.md`**. Ordre 
 
 ## Fase
 
-**Foundations + govern documental** — frontend canònic `apps/frontend`, **validació canònica via Docker** (`frontend-check`), manifest `llm.txt`. **Feature 0 (template-inference):** contracte `feasibility-definition.md` + **nucli executable** (Zod, `validateTemplateDraft`, `templateDraftNormalizer`, fixtures, tests) + `llmTemplateAnalyzer` (fonts injectables: `mockTemplateDraftSource`, `simpleRuleBasedDraftSource`, **`llmTemplateDraftSourceStub`** — seam explícit per futur adapter LLM via `simulateLlmDraftFromText`, avui local i determinista, **sense integració real a cap model**); normalizer → validator; la decisió és sempre del validator. Sense PDF, sense UI.
+**Foundations + govern documental** — frontend canònic `apps/frontend`, **validació canònica via Docker** (`frontend-check`), manifest `llm.txt`. **Feature 0 (template-inference):** contracte `feasibility-definition.md` + **nucli executable** (Zod, `validateTemplateDraft`, `templateDraftNormalizer`, fixtures, tests) + `llmTemplateAnalyzer` (fonts injectables, **`llmTemplateDraftSourceStub`**) + **contracte d’integració** `Feature0AnalysisRequest` / `Feature0AnalysisResponse` (`contracts/feature0AnalysisContract.ts`) i **handler stub local** `handleFeature0AnalysisStub` (`server/feature0AnalysisStubHandler.ts`, sense HTTP extern ni model real — punt on s’encaixarà futur backend). Normalizer → validator; la decisió és sempre del validator. Sense PDF, sense UI de producte.
 
 ---
 
@@ -24,7 +24,7 @@ Només **estat i verificació**. Normativa: **`AGENTS_ARQUITECTURA.md`**. Ordre 
 | Manifest agents | `llm.txt` (índex raw). |
 | Push (aquest entorn) | Remote `git@github.com-laboratori:romros/laboratori_profes.git`; `ssh -T git@github.com-laboratori` OK. **Altres màquines:** calen credencials/SSH pròpies (no depèn d’aquest fitxer). |
 | Legacy | `legacy/figma-prototype/` mogut; **no oficial** (veure `llm.txt` § Legacy). |
-| Feasibility template-inference | Doc + codi domini | Doc: `docs/features/template-inference/feasibility-definition.md`. Codi: `src/domain/template-inference/`, `validateTemplateDraft.ts`, `templateDraftNormalizer.ts`, `templateDraftSource.ts`, `mockTemplateDraftSource.ts`, `simpleRuleBasedDraftSource.ts`, `llmTemplateDraftSourceStub.ts`, `llmTemplateAnalyzer.ts`, fixtures, tests `tests/unit/template-inference/`. |
+| Feasibility template-inference | Doc + codi domini | Doc: `docs/features/template-inference/feasibility-definition.md`. Codi: `src/domain/template-inference/`, `features/template-inference/contracts/`, `server/feature0AnalysisStubHandler.ts`, serveis (`validateTemplateDraft`, normalizer, fonts, `llmTemplateAnalyzer`), fixtures, tests `tests/unit/template-inference/` i `tests/integration/template-inference/`. |
 | Verificar frontend / Feature 0 | `./scripts/run_frontend.sh test` · `typecheck` · `lint` · `build` (o `./test.sh` …); **sempre** dins `frontend-check`. |
 
 ---
