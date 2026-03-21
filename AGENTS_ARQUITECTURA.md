@@ -15,6 +15,7 @@
 2. **Capes obligatòries** sota `apps/frontend/src/`: `app/` · `domain/` · `features/` · `infrastructure/` · `shared/`. No inventis una sisena capa sense decisió de PM.
 3. **Feature 0 (template-inference)** té **nucli executable** pactat: schemas + validator pur + tests (veure `docs/ESTAT.md`). No afegeixis LLM, PDF ni flux de producte nou fora de tasca PM; el validator ha de seguir `feasibility-definition.md` (fail-closed).
 4. **Roadmap / “subprojectes”** són **planificació**, no carpetes d’arrel alternatives. El codi viu en aquest monorepo i aquestes capes.
+5. **Git — branca única:** el treball i la integració són sobre **`main`**. No s’utilitzen branques de feature com a flux per defecte; tot el que es valida i es publica ha d’acabar a **`main`** (evita desajustos entre “fet” i remot). Dubte o excepció → **PM**.
 
 ---
 
@@ -61,7 +62,7 @@ Import il·legítim → **atura’t** i escala al PM.
 
 ## 5) Spike → feature canònica
 
-Spike aïllat (branca / `experimental/` / tasca); graduació = complir aquest document, contractes a `domain/`, externs a `infrastructure/`, proves. Sense spike orfe.
+Spike aïllat (`experimental/` o abast mínim reversible a **`main`**); sense branques paral·leles com a norma. Graduació = complir aquest document, contractes a `domain/`, externs a `infrastructure/`, proves. Sense spike orfe.
 
 ---
 
