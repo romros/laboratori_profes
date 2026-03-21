@@ -1,25 +1,25 @@
 import { normalizeTemplateDraft } from '@/features/template-inference/services/templateDraftNormalizer'
+import type { TemplateDraftSource } from '@/features/template-inference/services/templateDraftSource'
 import {
   validateTemplateDraft,
   type ValidateTemplateDraftResult,
 } from '@/features/template-inference/services/validateTemplateDraft'
 
-import { goBasicExam } from '../../../../fixtures/template-inference/go-basic'
 import { minimalValidTemplate } from '../../../../fixtures/template-inference/minimal-template'
 
 /**
- * Scaffold sense crides externes: simula l’output d’un LLM amb un draft fix (cas go-basic).
- * El paràmetre `text` s’ignora (reservat per futures tasques d’adapter).
- * El draft passa per `normalizeTemplateDraft` abans del validator.
+ * Pipeline: font → rawDraft → normalizer → validator.
+ * L’origen del draft ve exclusivament de `source`; aquest mòdul no decideix mock vs futur LLM.
  */
-export function analyzeExamText(input: { text: string }): {
+export async function analyzeExamText(
+  input: { text: string },
+  source: TemplateDraftSource,
+): Promise<{
   rawDraft: unknown
   normalizedDraft: unknown
   validated: ValidateTemplateDraftResult
-} {
-  void input.text
-
-  const rawDraft: unknown = structuredClone(goBasicExam)
+}> {
+  const rawDraft = await Promise.resolve(source.getDraft(input))
   const normalizedDraft = normalizeTemplateDraft(rawDraft)
 
   const validated = validateTemplateDraft({
