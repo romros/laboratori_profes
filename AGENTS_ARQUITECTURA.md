@@ -25,7 +25,7 @@
 |------|-----|----------|
 | **`app/`** | Orquestració UI: composició, rutes, shell, estils globals d’app, entrada. | Lògica de negoci, regles de domini, crides directes a APIs externes si poden anar a `infrastructure/`. |
 | **`domain/`** | **Únic lloc** per contractes compartits: tipus, schemas (p. ex. Zod), errors de domini reutilitzables entre features. | UI, React, `fetch`, SDKs de tercers. |
-| **`features/<nom>/`** | Vertical per funcionalitat. Reserves inicials: `template-inference`, `preprocessing`, `privacy`. | “Tipus globals”; si és compartit entre features → `domain/`. |
+| **`features/<nom>/`** | Vertical per funcionalitat. Reserves inicials: `template-inference`, `question-answer-extraction` (examen alumne, OCR; veure `docs/features/question-answer-extraction/`), `preprocessing`, `privacy`. | “Tipus globals”; si és compartit entre features → `domain/`. |
 | **`infrastructure/`** | **Porta d’entrada** a llibreries externes, HTTP, emmagatzematge, adaptadors. | Regles de negoci no purament tècniques → `domain` o `features`. |
 | **`shared/`** | Helpers **sense negoci** (format, id, utils). | Tipus o regles de producte → `domain/` o `features/`. |
 
