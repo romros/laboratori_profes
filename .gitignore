@@ -7,3 +7,6 @@ dist
 .DS_Store
 coverage
 .vite
+
+# Dades locals (exàmens, PDFs amb informació sensible) — no publicables
+/data/
