@@ -19,4 +19,4 @@
 
 ## Normativa de codi (quan toqui implementar)
 
-`AGENTS_ARQUITECTURA.md`: contractes a `domain/`, OCR i rasteritzacio a `infrastructure/`, pipeline a `features/question-answer-extraction/` (o nom acordat en tasca).
+`AGENTS_ARQUITECTURA.md`: contractes a `domain/`, OCR i rasterització a `infrastructure/`, pipeline a `features/question-answer-extraction/` (o nom acordat en tasca).
