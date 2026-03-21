@@ -1,6 +1,6 @@
 # Estat del projecte (operatiu)
 
-**Darrera actualització:** 2026-03-26
+**Darrera actualització:** 2026-03-27
 
 Només **estat i verificació**. Normativa: **`AGENTS_ARQUITECTURA.md`**. Ordre de lectura: **`llm.txt`**.
 
@@ -8,7 +8,7 @@ Només **estat i verificació**. Normativa: **`AGENTS_ARQUITECTURA.md`**. Ordre 
 
 ## Fase
 
-**Foundations + govern documental** — frontend canònic `apps/frontend`, **validació canònica via Docker** (`frontend-check`), manifest `llm.txt`. **Feature 0 (template-inference):** contracte `feasibility-definition.md` + **nucli executable** (Zod, `validateTemplateDraft`, `templateDraftNormalizer`, fixtures, tests) + `llmTemplateAnalyzer` (fonts injectables, **`llmTemplateDraftSourceStub`**) + **contracte d’integració** + **handler** `handleFeature0AnalysisStub` + **flux end-to-end demo**: POST local **`/api/feature0/analysis`** (middleware Vite, només **`vite dev` / `vite preview`**; el build estàtic / nginx **no** inclou aquesta API) + client **`analyzeFeature0`** (`client/feature0AnalysisClient.ts`) + pantalla tècnica **`/demo/feature0`** (`ui/Feature0DemoPage.tsx`). Sense backend extern, sense model real, sense PDF. La UI de demo només mostra resultats del validator.
+**Foundations + govern documental** — frontend canònic `apps/frontend`, **validació canònica via Docker** (`frontend-check`), manifest `llm.txt`. **Feature 0 (template-inference):** contracte `feasibility-definition.md` + **nucli executable** (Zod, `validateTemplateDraft`, `templateDraftNormalizer`, fixtures, tests) + `llmTemplateAnalyzer` (fonts: stub determinista, **`createLlmTemplateDraftSource`** amb crida **servidor** a API compatible OpenAI via `fetch`, sense SDK) + **contracte** + handlers stub / **LLM** (`handleFeature0AnalysisStub`, `handleFeature0AnalysisLlm`) + POST **`/api/feature0/analysis`** (stub) i **`/api/feature0/analysis/llm`** (model; **sense clau → HTTP 503**). Tot el middleware només en **`vite dev` / `vite preview`** (nginx build estàtic sense aquestes APIs). Client `analyzeFeature0` / **`analyzeFeature0WithLlm`**; demo **`/demo/feature0`**. Config: veure **`.env.example`** (`FEATURE0_OPENAI_API_KEY` o `OPENAI_API_KEY`, etc.). Integració inicial, **no** robusta per producció; cap crida al model des del navegador. Sense PDF.
 
 ---
 
@@ -17,7 +17,7 @@ Només **estat i verificació**. Normativa: **`AGENTS_ARQUITECTURA.md`**. Ordre 
 | Què | Com |
 |-----|-----|
 | Git (flux) | Branca única **`main`**: treball i push a **`main`** (normativa: `AGENTS_ARQUITECTURA.md` §1). |
-| Frontend canònic | `apps/frontend/`; `npm run dev` arrenca Vite (arrel repo). Demo Feature 0: **`/demo/feature0`** (cal dev o `vite preview`; veure POST stub a la fase). |
+| Frontend canònic | `apps/frontend/`; `npm run dev` arrenca Vite. Demo **`/demo/feature0`**: stub + botó model (env al servidor). |
 | Qualitat (canònic) | `./scripts/run_frontend.sh lint` · `typecheck` · `test` · `build` (o `./lint.sh` …) — tot dins `frontend-check` (Docker). `npm` al host només opcional per `dev`. |
 | CI | `.github/workflows/ci.yml`: `docker compose run --rm frontend-check sh -c "npm ci && npm run lint && …"` (mateix contenidor que local). |
 | Docker | `docker compose up --build` → servei **frontend** (nginx). Validació: servei **frontend-check** (veure `docker-compose.yml`). |
@@ -31,10 +31,10 @@ Només **estat i verificació**. Normativa: **`AGENTS_ARQUITECTURA.md`**. Ordre 
 
 ## Falta
 
-- **Integració** Feature 0 següent: analitzador LLM, parsing PDF, UI — només quan ho demani una tasca PM. Backend / OCR / PDF.js fora d’aquesta fase si no es demana.
+- **Producte** Feature 0 següent: parsing PDF, OCR, UI final, backend dedicat fora del middleware Vite — segons tasca PM.
 
 ---
 
 ## Següent pas
 
-**Integració** Feature 0: analitzador LLM, parsing PDF, UI — només amb tasca PM; validació prèvia sempre amb `./scripts/run_frontend.sh …` (Docker).
+**Producte** Feature 0: PDF / flux complet — amb tasca PM; validació amb `./scripts/run_frontend.sh …` (Docker).

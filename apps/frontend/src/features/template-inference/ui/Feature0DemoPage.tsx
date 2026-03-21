@@ -1,6 +1,9 @@
 import { useCallback, useState } from 'react'
 
-import { analyzeFeature0 } from '@/features/template-inference/client/feature0AnalysisClient'
+import {
+  analyzeFeature0,
+  analyzeFeature0WithLlm,
+} from '@/features/template-inference/client/feature0AnalysisClient'
 import type { Feature0AnalysisResponse } from '@/features/template-inference/contracts/feature0AnalysisContract'
 
 type Props = {
@@ -12,12 +15,12 @@ type Props = {
  */
 export function Feature0DemoPage({ onBack }: Props) {
   const [text, setText] = useState('1234567890 text de prova')
-  const [loading, setLoading] = useState(false)
+  const [loading, setLoading] = useState<'stub' | 'llm' | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [result, setResult] = useState<Feature0AnalysisResponse | null>(null)
 
-  const run = useCallback(async () => {
-    setLoading(true)
+  const runStub = useCallback(async () => {
+    setLoading('stub')
     setError(null)
     setResult(null)
     try {
@@ -26,7 +29,21 @@ export function Feature0DemoPage({ onBack }: Props) {
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e))
     } finally {
-      setLoading(false)
+      setLoading(null)
+    }
+  }, [text])
+
+  const runLlm = useCallback(async () => {
+    setLoading('llm')
+    setError(null)
+    setResult(null)
+    try {
+      const res = await analyzeFeature0WithLlm(text)
+      setResult(res)
+    } catch (e) {
+      setError(e instanceof Error ? e.message : String(e))
+    } finally {
+      setLoading(null)
     }
   }, [text])
 
@@ -36,10 +53,11 @@ export function Feature0DemoPage({ onBack }: Props) {
         <button type="button" onClick={onBack} className="feature0-demo__back">
           ← Tornar
         </button>
-        <h1>Feature 0 — demo (stub local)</h1>
+        <h1>Feature 0 — demo</h1>
         <p className="feature0-demo__hint">
-          Route POST <code>/api/feature0/analysis</code> només en dev / <code>vite preview</code>.
-          Sense model real.
+          <code>/api/feature0/analysis</code> stub determinista ·{' '}
+          <code>/api/feature0/analysis/llm</code> model al servidor (cal clau d’API a env). Només
+          dev / <code>vite preview</code>.
         </p>
       </header>
 
@@ -55,9 +73,24 @@ export function Feature0DemoPage({ onBack }: Props) {
         spellCheck={false}
       />
 
-      <button type="button" className="feature0-demo__btn" onClick={run} disabled={loading}>
-        {loading ? 'Analitzant…' : 'Analitzar'}
-      </button>
+      <div className="feature0-demo__actions">
+        <button
+          type="button"
+          className="feature0-demo__btn"
+          onClick={runStub}
+          disabled={loading !== null}
+        >
+          {loading === 'stub' ? 'Analitzant…' : 'Analitzar (stub)'}
+        </button>
+        <button
+          type="button"
+          className="feature0-demo__btn feature0-demo__btn--secondary"
+          onClick={runLlm}
+          disabled={loading !== null}
+        >
+          {loading === 'llm' ? 'Model…' : 'Analitzar (model)'}
+        </button>
+      </div>
 
       {error ? (
         <p className="feature0-demo__error" role="alert">

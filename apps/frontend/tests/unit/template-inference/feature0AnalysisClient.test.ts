@@ -1,6 +1,9 @@
 import { describe, expect, it, vi, afterEach } from 'vitest'
 
-import { analyzeFeature0 } from '../../../src/features/template-inference/client/feature0AnalysisClient'
+import {
+  analyzeFeature0,
+  analyzeFeature0WithLlm,
+} from '../../../src/features/template-inference/client/feature0AnalysisClient'
 
 describe('analyzeFeature0', () => {
   afterEach(() => {
@@ -75,5 +78,24 @@ describe('analyzeFeature0', () => {
       'http://localhost:5173/api/feature0/analysis',
       expect.any(Object),
     )
+  })
+
+  it('analyzeFeature0WithLlm usa ruta /llm', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(
+        async () =>
+          new Response(
+            JSON.stringify({
+              rawDraft: {},
+              normalizedDraft: { proposed_limitations: [] },
+              validated: { ok: false, decision: 'no_apte', reasons: [] },
+            }),
+            { status: 200 },
+          ),
+      ),
+    )
+    await analyzeFeature0WithLlm('1234567890 z')
+    expect(fetch).toHaveBeenCalledWith('/api/feature0/analysis/llm', expect.any(Object))
   })
 })

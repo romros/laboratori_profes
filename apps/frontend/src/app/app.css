@@ -81,6 +81,18 @@ body {
   cursor: not-allowed;
 }
 
+.feature0-demo__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.feature0-demo__btn--secondary {
+  background: #f1f5f9;
+  color: #0f172a;
+  border-color: #94a3b8;
+}
+
 .feature0-demo__error {
   margin-top: 1rem;
   color: #b91c1c;

@@ -1,13 +1,32 @@
+import type { IncomingMessage, ServerResponse } from 'node:http'
+
 import type { Connect, Plugin } from 'vite'
 
 import { executeFeature0AnalysisFromJsonBody } from '../src/features/template-inference/server/feature0AnalysisHttpRoute'
+import { executeFeature0AnalysisLlmFromJsonBody } from '../src/features/template-inference/server/feature0AnalysisLlmHttpRoute'
 
-const PATH = '/api/feature0/analysis'
+const PATH_STUB = '/api/feature0/analysis'
+const PATH_LLM = '/api/feature0/analysis/llm'
+
+function readBody(req: IncomingMessage): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const chunks: Buffer[] = []
+    req.on('data', (chunk: Buffer) => chunks.push(chunk))
+    req.on('end', () => resolve(Buffer.concat(chunks).toString('utf8')))
+    req.on('error', reject)
+  })
+}
+
+function sendJson(res: ServerResponse, status: number, payload: unknown): void {
+  res.setHeader('Content-Type', 'application/json; charset=utf-8')
+  res.statusCode = status
+  res.end(JSON.stringify(payload))
+}
 
 function feature0AnalysisMiddleware(): Connect.NextHandleFunction {
   return (req, res, next) => {
     const url = req.url?.split('?')[0]
-    if (url !== PATH) {
+    if (url !== PATH_STUB && url !== PATH_LLM) {
       next()
       return
     }
@@ -17,31 +36,29 @@ function feature0AnalysisMiddleware(): Connect.NextHandleFunction {
       res.end()
       return
     }
-    const chunks: Buffer[] = []
-    req.on('data', (chunk: Buffer) => chunks.push(chunk))
-    req.on('end', () => {
-      void (async () => {
-        try {
-          const raw = Buffer.concat(chunks).toString('utf8')
+
+    void (async () => {
+      try {
+        const raw = await readBody(req)
+        if (url === PATH_STUB) {
           const out = await executeFeature0AnalysisFromJsonBody(raw)
-          res.setHeader('Content-Type', 'application/json; charset=utf-8')
-          res.statusCode = out.ok ? 200 : out.status
-          res.end(JSON.stringify(out.ok ? out.body : out.body))
-        } catch {
-          res.statusCode = 500
-          res.setHeader('Content-Type', 'application/json; charset=utf-8')
-          res.end(JSON.stringify({ error: 'Error intern del stub' }))
+          sendJson(res, out.ok ? 200 : out.status, out.ok ? out.body : out.body)
+          return
         }
-      })()
-    })
+        const outLlm = await executeFeature0AnalysisLlmFromJsonBody(raw)
+        sendJson(res, outLlm.ok ? 200 : outLlm.status, outLlm.ok ? outLlm.body : outLlm.body)
+      } catch {
+        sendJson(res, 500, { error: 'Error intern del servidor Feature 0' })
+      }
+    })()
   }
 }
 
-/** POST local alineat amb `Feature0AnalysisResponse` (només dev / `vite preview`, sense backend extern). */
+/** POST locals: stub determinista + ruta LLM real (servidor Node, sense clau al navegador). */
 export function feature0AnalysisApiPlugin(): Plugin {
   const mw = feature0AnalysisMiddleware()
   return {
-    name: 'feature0-analysis-api-stub',
+    name: 'feature0-analysis-api',
     configureServer(server) {
       server.middlewares.use(mw)
     },
