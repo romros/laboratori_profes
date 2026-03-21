@@ -2,6 +2,7 @@ import { describe, expect, it, vi, afterEach } from 'vitest'
 
 import {
   analyzeFeature0,
+  analyzeFeature0FromPdf,
   analyzeFeature0WithLlm,
 } from '../../../src/features/template-inference/client/feature0AnalysisClient'
 
@@ -97,5 +98,35 @@ describe('analyzeFeature0', () => {
     )
     await analyzeFeature0WithLlm('1234567890 z')
     expect(fetch).toHaveBeenCalledWith('/api/feature0/analysis/llm', expect.any(Object))
+  })
+
+  it('analyzeFeature0FromPdf envia multipart sense Content-Type manual', async () => {
+    const payload = {
+      status: 'ok' as const,
+      answer_regions: [{ question_id: '1', page: 1, bbox: { x: 0.1, y: 0.2, w: 0.5, h: 0.1 } }],
+      debug: { rawDraft: {}, normalizedDraft: {} },
+    }
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(
+        async () =>
+          new Response(JSON.stringify(payload), {
+            status: 200,
+            headers: { 'Content-Type': 'application/json' },
+          }),
+      ),
+    )
+
+    const file = new File([new Uint8Array([1, 2, 3])], 'prova.pdf', { type: 'application/pdf' })
+    await analyzeFeature0FromPdf(file)
+    expect(fetch).toHaveBeenCalledWith(
+      '/api/feature0/analysis/pdf',
+      expect.objectContaining({
+        method: 'POST',
+        body: expect.any(FormData),
+      }),
+    )
+    const init = (fetch as ReturnType<typeof vi.fn>).mock.calls[0][1] as RequestInit
+    expect(init.headers).toBeUndefined()
   })
 })

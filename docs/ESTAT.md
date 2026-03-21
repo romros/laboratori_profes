@@ -1,6 +1,6 @@
 # Estat del projecte (operatiu)
 
-**Darrera actualització:** 2025-03-22
+**Darrera actualització:** 2026-03-21
 
 Només **estat i verificació**. Normativa: **`AGENTS_ARQUITECTURA.md`**. Ordre de lectura: **`llm.txt`**.
 
@@ -8,7 +8,7 @@ Només **estat i verificació**. Normativa: **`AGENTS_ARQUITECTURA.md`**. Ordre 
 
 ## Fase
 
-**Foundations + govern documental** — frontend canònic `apps/frontend`, **validació canònica via Docker** (`frontend-check`), manifest `llm.txt`. **Feature 0 (template-inference):** pivot a **viabilitat de plantilla per extracció de regions de resposta** — domini `template_feasibility.schema.ts` (`AnswerRegion`: `question_id`, `page`, `bbox` normalitzat), **`validateTemplateFeasibility`**, `templateDraftNormalizer`, `llmTemplateAnalyzer`, fonts stub / **`createLlmTemplateDraftSource`** (servidor, `fetch`, sense SDK). Resposta d’èxit: **`status: 'ok' | 'ko'`**, `reasons` si `ko`, **`answer_regions`** si `ok`; camp opcional **`debug`** (`rawDraft`, `normalizedDraft`) per demo. Handlers stub / LLM + POST **`/api/feature0/analysis`** i **`/api/feature0/analysis/llm`** (**sense clau → HTTP 503**). Middleware només **`vite dev` / `vite preview`**. Client `analyzeFeature0` / **`analyzeFeature0WithLlm`**; demo **`/demo/feature0`**. Entrada actual: text placeholder (PDF en tasca separada). Doc històric: `feasibility-definition.md` (nota d’alineació al pivot). **Casos canònics:** `fixtures/template-inference/` + **`feature0CanonicalCases.test.ts`**. Sense OCR, sense crops reals sobre alumnes, sense classificació text|mixed|blank en aquesta fase.
+**Foundations + govern documental** — frontend canònic `apps/frontend`, **validació canònica via Docker** (`frontend-check`), manifest `llm.txt`. **Feature 0 (template-inference):** pivot a **viabilitat de plantilla per extracció de regions de resposta** — domini `template_feasibility.schema.ts` (`AnswerRegion`: `question_id`, `page`, `bbox` normalitzat), **`validateTemplateFeasibility`**, `templateDraftNormalizer`, `llmTemplateAnalyzer`, fonts stub / **`createLlmTemplateDraftSource`** (servidor, `fetch`, sense SDK). Resposta d’èxit: **`status: 'ok' | 'ko'`**, `reasons` si `ko`, **`answer_regions`** si `ok`; camp opcional **`debug`** (`rawDraft`, `normalizedDraft`) per demo. Handlers stub / LLM + POST **`/api/feature0/analysis`** i **`/api/feature0/analysis/llm`** (**sense clau → HTTP 503**). **PDF (text embegut, sense OCR):** **`/api/feature0/analysis/pdf`** i **`/api/feature0/analysis/pdf/llm`** (multipart camp **`file`**). Client **`analyzeFeature0FromPdf`**. Demo **`/demo/feature0`**: text + pujada PDF. **Stub PDF:** si el **nom del fitxer** suggereix document de solució (`looksLikeSolutionPdfFilename`), es força draft `prompt_answer_regions_not_separable` (fail-closed per a crop); la ruta **PDF LLM** no usa aquesta heurística (el model veu el text extret). **Fixtures PDF reals** (còpia dels de `data/`): `tests/fixtures/template-inference/pdf/`. Doc històric: `feasibility-definition.md` (nota d’alineació al pivot). **Casos canònics:** `fixtures/template-inference/` + **`feature0CanonicalCases.test.ts`** + **`feature0PdfRealFixtures.test.ts`**. Sense OCR, sense crops reals sobre alumnes, sense classificació text|mixed|blank en aquesta fase.
 
 ---
 
@@ -31,10 +31,10 @@ Només **estat i verificació**. Normativa: **`AGENTS_ARQUITECTURA.md`**. Ordre 
 
 ## Falta
 
-- **Producte** Feature 0 següent: **PDF real** de plantilla, geometria en coordenades de pàgina, backend fora de Vite — segons tasca PM (la lògica `ok/ko` + regions ja està al domini actual).
+- **Producte** Feature 0 següent: geometria en coordenades de pàgina reals, backend fora de Vite — la lògica `ok/ko` + pipeline PDF mínim (text embegut) ja són al domini i a la demo.
 
 ---
 
 ## Següent pas
 
-**Producte** Feature 0: integració **PDF** + pipeline sobre el contracte `answer_regions` — amb tasca PM; validació amb `./scripts/run_frontend.sh …` (Docker).
+**Producte** Feature 0: coordenades reals / layout — després del flux PDF+stub/LLM actual; validació amb `./scripts/run_frontend.sh …` (Docker).

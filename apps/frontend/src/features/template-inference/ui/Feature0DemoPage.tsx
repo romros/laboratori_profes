@@ -2,6 +2,7 @@ import { useCallback, useState } from 'react'
 
 import {
   analyzeFeature0,
+  analyzeFeature0FromPdf,
   analyzeFeature0WithLlm,
 } from '@/features/template-inference/client/feature0AnalysisClient'
 import type { Feature0AnalysisResponse } from '@/features/template-inference/contracts/feature0AnalysisContract'
@@ -15,7 +16,8 @@ type Props = {
  */
 export function Feature0DemoPage({ onBack }: Props) {
   const [text, setText] = useState('1234567890 text de prova')
-  const [loading, setLoading] = useState<'stub' | 'llm' | null>(null)
+  const [pdfFile, setPdfFile] = useState<File | null>(null)
+  const [loading, setLoading] = useState<'stub' | 'llm' | 'pdfStub' | 'pdfLlm' | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [result, setResult] = useState<Feature0AnalysisResponse | null>(null)
 
@@ -47,6 +49,42 @@ export function Feature0DemoPage({ onBack }: Props) {
     }
   }, [text])
 
+  const runPdfStub = useCallback(async () => {
+    if (!pdfFile) {
+      setError('Selecciona un fitxer PDF.')
+      return
+    }
+    setLoading('pdfStub')
+    setError(null)
+    setResult(null)
+    try {
+      const res = await analyzeFeature0FromPdf(pdfFile)
+      setResult(res)
+    } catch (e) {
+      setError(e instanceof Error ? e.message : String(e))
+    } finally {
+      setLoading(null)
+    }
+  }, [pdfFile])
+
+  const runPdfLlm = useCallback(async () => {
+    if (!pdfFile) {
+      setError('Selecciona un fitxer PDF.')
+      return
+    }
+    setLoading('pdfLlm')
+    setError(null)
+    setResult(null)
+    try {
+      const res = await analyzeFeature0FromPdf(pdfFile, { llm: true })
+      setResult(res)
+    } catch (e) {
+      setError(e instanceof Error ? e.message : String(e))
+    } finally {
+      setLoading(null)
+    }
+  }, [pdfFile])
+
   return (
     <main className="feature0-demo">
       <header className="feature0-demo__header">
@@ -57,12 +95,47 @@ export function Feature0DemoPage({ onBack }: Props) {
         <p className="feature0-demo__hint">
           Viabilitat de plantilla per <strong>regions de resposta</strong> (crops futurs).{' '}
           <code>/api/feature0/analysis</code> stub · <code>/api/feature0/analysis/llm</code> model
-          al servidor (cal clau a env). Només dev / <code>vite preview</code>.
+          al servidor (cal clau a env). PDF: <code>/api/feature0/analysis/pdf</code> i{' '}
+          <code>/pdf/llm</code> (multipart <code>file</code>). Només dev / <code>vite preview</code>
+          .
         </p>
       </header>
 
+      <label className="feature0-demo__label" htmlFor="feature0-pdf">
+        PDF de plantilla (text embegut; sense OCR)
+      </label>
+      <input
+        id="feature0-pdf"
+        className="feature0-demo__file"
+        type="file"
+        accept="application/pdf"
+        onChange={(e) => {
+          const f = e.target.files?.[0] ?? null
+          setPdfFile(f)
+        }}
+      />
+
+      <div className="feature0-demo__actions">
+        <button
+          type="button"
+          className="feature0-demo__btn"
+          onClick={runPdfStub}
+          disabled={loading !== null}
+        >
+          {loading === 'pdfStub' ? 'Analitzant…' : 'Analitzar PDF (stub)'}
+        </button>
+        <button
+          type="button"
+          className="feature0-demo__btn feature0-demo__btn--secondary"
+          onClick={runPdfLlm}
+          disabled={loading !== null}
+        >
+          {loading === 'pdfLlm' ? 'Model…' : 'Analitzar PDF (model)'}
+        </button>
+      </div>
+
       <label className="feature0-demo__label" htmlFor="feature0-text">
-        Text de la plantilla (placeholder fins a PDF)
+        Text de la plantilla (mateix pipeline que abans)
       </label>
       <textarea
         id="feature0-text"
@@ -80,7 +153,7 @@ export function Feature0DemoPage({ onBack }: Props) {
           onClick={runStub}
           disabled={loading !== null}
         >
-          {loading === 'stub' ? 'Analitzant…' : 'Analitzar (stub)'}
+          {loading === 'stub' ? 'Analitzant…' : 'Analitzar text (stub)'}
         </button>
         <button
           type="button"
@@ -88,7 +161,7 @@ export function Feature0DemoPage({ onBack }: Props) {
           onClick={runLlm}
           disabled={loading !== null}
         >
-          {loading === 'llm' ? 'Model…' : 'Analitzar (model)'}
+          {loading === 'llm' ? 'Model…' : 'Analitzar text (model)'}
         </button>
       </div>
 
