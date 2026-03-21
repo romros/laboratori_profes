@@ -8,7 +8,7 @@ Només **estat i verificació**. Normativa: **`AGENTS_ARQUITECTURA.md`**. Ordre 
 
 ## Fase
 
-**Foundations + govern documental** — frontend canònic `apps/frontend`, **validació canònica via Docker** (`frontend-check`), manifest `llm.txt`. **Feature 0 (template-inference):** contracte `feasibility-definition.md` + **nucli executable** (Zod, `validateTemplateDraft`, fixtures, tests) + **scaffold** `llmTemplateAnalyzer` (output mockejat go-basic, sense API); sense LLM real, sense PDF, sense UI.
+**Foundations + govern documental** — frontend canònic `apps/frontend`, **validació canònica via Docker** (`frontend-check`), manifest `llm.txt`. **Feature 0 (template-inference):** contracte `feasibility-definition.md` + **nucli executable** (Zod, `validateTemplateDraft`, `templateDraftNormalizer`, fixtures, tests) + `llmTemplateAnalyzer` (mock go-basic → normalizer → validator); sense LLM real, sense PDF, sense UI.
 
 ---
 
@@ -23,7 +23,7 @@ Només **estat i verificació**. Normativa: **`AGENTS_ARQUITECTURA.md`**. Ordre 
 | Manifest agents | `llm.txt` (índex raw). |
 | Push (aquest entorn) | Remote `git@github.com-laboratori:romros/laboratori_profes.git`; `ssh -T git@github.com-laboratori` OK. **Altres màquines:** calen credencials/SSH pròpies (no depèn d’aquest fitxer). |
 | Legacy | `legacy/figma-prototype/` mogut; **no oficial** (veure `llm.txt` § Legacy). |
-| Feasibility template-inference | Doc + codi domini | Doc: `docs/features/template-inference/feasibility-definition.md`. Codi: `src/domain/template-inference/`, `validateTemplateDraft.ts`, `llmTemplateAnalyzer.ts` (mock), fixtures, tests `tests/unit/template-inference/`. |
+| Feasibility template-inference | Doc + codi domini | Doc: `docs/features/template-inference/feasibility-definition.md`. Codi: `src/domain/template-inference/`, `validateTemplateDraft.ts`, `templateDraftNormalizer.ts`, `llmTemplateAnalyzer.ts` (mock), fixtures, tests `tests/unit/template-inference/`. |
 | Verificar frontend / Feature 0 | `./scripts/run_frontend.sh test` · `typecheck` · `lint` · `build` (o `./test.sh` …); **sempre** dins `frontend-check`. |
 
 ---
