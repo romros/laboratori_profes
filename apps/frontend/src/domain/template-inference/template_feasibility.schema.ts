@@ -29,10 +29,6 @@ export const templateFeasibilityDraftSchema = z.object({
 
 export type TemplateFeasibilityDraft = z.infer<typeof templateFeasibilityDraftSchema>
 
-export const templateFeasibilityStatusSchema = z.enum(['ok', 'ko'])
-
-export type TemplateFeasibilityStatus = z.infer<typeof templateFeasibilityStatusSchema>
-
 /** Sortida de producte Feature 0 (plantilla → viabilitat d’extracció de regions). */
 export type TemplateFeasibilityResult =
   | { status: 'ok'; answer_regions: AnswerRegion[] }

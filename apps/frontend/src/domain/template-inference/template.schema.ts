@@ -31,6 +31,3 @@ export const regionSchema = z
   })
 
 export type Region = z.infer<typeof regionSchema>
-
-/** @deprecated Reemplaçat per `regionSchema` / `AnswerRegion` (Feature 0 pivot). */
-export const normalizedBBoxSchema = regionSchema
