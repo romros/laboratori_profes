@@ -1,0 +1,13 @@
+services:
+  frontend:
+    restart: unless-stopped
+    build:
+      context: .
+      dockerfile: apps/frontend/Dockerfile
+    environment:
+      # Inclou la IP pública al cert autofirmat (SAN); sense això https://IP pot donar error de nom
+      - PROFES_TLS_SAN_IP=${PROFES_TLS_SAN_IP:-}
+    ports:
+      # 8080 sol estar ocupat (p. ex. sqcli). Des de casa: http://IP:9088 o https://IP:9443
+      - "${PROFES_HTTP_PORT:-9088}:80"
+      - "${PROFES_HTTPS_PORT:-9443}:443"

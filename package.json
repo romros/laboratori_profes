@@ -1,0 +1,15 @@
+{
+  "name": "profes",
+  "private": true,
+  "workspaces": ["apps/*"],
+  "scripts": {
+    "dev": "npm run dev -w @profes/frontend",
+    "build": "npm run build -w @profes/frontend",
+    "test": "npm run test -w @profes/frontend",
+    "lint": "npm run lint -w @profes/frontend",
+    "typecheck": "npm run typecheck -w @profes/frontend"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
