@@ -1,19 +1,19 @@
 # Contracte de feasibility — template-inference (Feature 0)
 
-**Versió:** 1.0 · **Àmbit:** decisió **go / no-go** abans de schemas, validators o integració LLM.  
-**Filosofia:** **fail-closed** (davant dubte → no apte o amb limitacions explícites) i **minimització de dades** (només el necessari per la plantilla i la correcció).
+**Versió:** 1.1 · **Àmbit:** decisió **go / no-go** abans de schemas, validators o integració LLM.  
+**Filosofia:** **fail-closed** (dubte o conflicte → **`no_apte`**) i **minimització de dades**.
 
 ---
 
 ## 1) Definició operativa: «seminanonimitzable»
 
-En aquest producte, un examen és **seminanonimitzable** si es compleix **tot** el següent:
+Un examen és **seminanonimitzable** només si es compleix **tot** el següent:
 
-1. **Estructura repetible:** les pàgines tenen un **layout estable** (mateixes zones per a enunciats i respostes entre alumnes o entre versions del mateix examen), de manera que una **plantilla** pot referenciar coordenades o blocs sense dependre d’interpretar cada còpia com un cas únic.
-2. **Respostes avaluables sense text lliure com a eix principal:** la puntuació prevista es basa en **opcions tancades** (p. ex. marcatge, caselles, graella) o en blocs on el contingut a avaluar està **delimitat** (àrea coneguda), no en assaigs extensos sense delimitació.
-3. **Separació operativa identitat / correcció:** les dades identificatives de l’estudiant (nom, DNI, número d’alumne, etc.) poden **localitzar-se en zones concretes** o excloure’s del flux d’inferència de plantilla **sense** que la resta de l’examen sigui majoritàriament text lliure barrejat amb enunciats.
+1. **Layout estable:** mateixes zones d’enunciats i respostes entre còpies; la plantilla pot referenciar blocs sense tractar cada còpia com un cas únic.
+2. **Avaluació sobre regions delimitables:** la **major part de l’avaluació** (vegeu §3) es fa sobre ítems amb **regió delimitable** — tancada (OM, graella, caselles) o **un requadre fix i únic** per ítem.
+3. **Identitat fora de la resposta:** les dades identificatives estan en **zones separades** de les respostes avaluables (vegeu §4).
 
-Si **falta** algun punt → l’examen **no** és seminanonimitzable en sentit estricte; vegeu §3 i §4 per classificar-lo com `no_apte` o `apte_amb_limitacions`.
+Si falla qualsevol punt → no és seminanonimitzable en sentit estricte; classifiqueu amb §3–§6.
 
 ---
 
@@ -21,63 +21,90 @@ Si **falta** algun punt → l’examen **no** és seminanonimitzable en sentit e
 
 | Codi | Nom | Significat |
 |------|-----|------------|
-| **`apte`** | GO | El pipeline de template-inference pot executar-se amb criteris normals; expectativa de resultat fiable sense advertències estructurals majors. |
-| **`apte_amb_limitacions`** | GO parcial | El processament és permès **només** si l’usuari accepta limitacions documentades (p. ex. parts no automatitzables, revisió manual obligatòria en seccions concretes). |
-| **`no_apte`** | NO-GO | No s’ha d’iniciar inferència automàtica de plantilla com a camí principal; cal canvi de format, redisseny de l’examen o flux manual fora d’aquest feature. |
+| **`apte`** | GO | Pipeline estàndard; sense conflictes ni dubte. |
+| **`apte_amb_limitacions`** | GO parcial | Només si §5 es compleix **al complet**. |
+| **`no_apte`** | NO-GO | Rebutjar inferència automàtica com a camí principal. |
 
 ---
 
-## 3) Criteris d’`apte` (totes s’han de complir)
+## 3) `apte` — predomini operatiu (regions delimitables)
 
-- Layout **fix** o quasi fix entre còpies (mateix nombre de seccions, mateix ordre, mateixes àrees de resposta).
-- **Predomini clar** (en nombre d’ítems i en pes de la nota previst) de **respostes tancades** o de camps **delimitats**; el text lliure sense caixa pròpia és **minoritari** i **no** és el nucli de l’avaluació.
-- Les dades personals ocupen **zones identificables** (capçalera, quadre reservat) o poden **ometre’s** del document processat sense trencar la lectura de la resta de respostes.
-- No hi ha **dependència** de contingut generat a mà diferent per cada alumne dins la mateixa àrea de resposta (p. ex. enunciats únics per estudiant dins la mateixa casella de resposta).
+**Regla de comptatge:** classifiqueu cada ítem avaluable com **`d`** (té regió delimitable a plantilla: tancat o requadre fix propi) o **`n`** (text lliure sense caixa pròpia, o regió compartida amb identificació, o no assignable a coordenades estables).
 
----
+**Per obtenir `apte` cal tot això:**
 
-## 4) Criteris d’`no_apte` (qualsevol és suficient)
+1. **`#d > #n`** (estricte: més ítems delimitables que no delimitables).
+2. Si es coneix el **pes** de cada ítem a la nota: la suma de pesos dels **`n`** ha de ser **estrictament inferior** a la suma de pesos dels **`d`**. Si **no** es coneix el pes: només (1).
+3. **Cap** ítem `n` és **crític** per al negoci del flux: aquí “crític” vol dir *única peça* sense la qual no té sentit el pipeline (p. ex. un sol desenvolupament lliure que concentra tota la nota). Un sol ítem `n` que concentra la major part de la nota → **`no_apte`** (cas mixt no apte).
 
-- Predomini de **text lliure** sense delimitació per pregunta (assaig, composició, problemes oberts sense caselles).
-- Layout **diferent** per alumne o **aleatorització** de preguntes sense mapa estable a plantilla.
-- Respostes **barrejades** amb enunciats en el mateix flux sense zones fixes (p. ex. fulls escanejats sense estructura, marges amb anotacions manuals com a part de la resposta vàlida).
-- **Impossibilitat** d’isolar identificadors sense llegir gran part del cos (p. ex. nom escrit a mà dins cada resposta).
-- **Dubte raonable** sobre si es compleix §1 (definició) → es tracta com **`no_apte`** fins que el PM o una tasca explícita reclassifiqui el cas.
+**Cas mixt (resum):** si la part **no estructurada / no delimitable** és **majoritària** en nombre d’ítems **o** en pes de nota **o** és l’**únic nucli** avaluable → **`no_apte`**, no `apte`.
+
+Resta de requisits `apte` (sense canvi de sentit): layout fix entre còpies; sense enunciats únics per alumne dins la mateixa casella de resposta.
 
 ---
 
-## 5) Criteris d’`apte_amb_limitacions`
+## 4) Separació identitat / resposta (regla dura)
 
-Es fa servir quan **no** és `apte` però tampoc cau en tots els motius de `no_apte` de manera que impedeixi qualsevol ús. Indicadors típics:
+**`no_apte`** si es compleix **qualsevol**:
 
-- Barreja clara: **part tancada estructurada** + **una o poques** preguntes obertes delimitades (àrea fixa per pregunta).
-- Capçalera amb dades personals **situada** però una secció amb text lliure **limitada** i etiquetada.
-- Qualsevol cas on el revisor pugui llistar **fins a 3 limitacions concretes** (p. ex. «pregunta 5 només revisió humana», «ignorar pàgina 2 si escaneig duplicat»).
+- Identificació (nom, DNI, número, signatura identificable) **dins** la mateixa regió que la resposta avaluable, **o** a la mateixa línia/bloc de resposta, **o** de manera que llegir la resposta exigeixi llegir la identificació en el mateix fragment.
+- Identificació **reutilitzada** com a part del contingut a corregir (p. ex. “signa aquí” dins l’àrea de nota).
 
-**Obligació:** les limitacions s’han de **enumerar** abans de continuar; sense llista explícita → classificar com `no_apte`.
-
----
-
-## 6) Regles de decisió (ordre d’aplicació)
-
-1. Si es compleix **§3 al complet** → **`apte`**.
-2. Si es compleix **qualsevol punt de §4** → **`no_apte`** (tret que una tasca de PM defineixi una excepció escrita).
-3. Si **no** és `apte` i **no** és `no_apte` segons §4, però hi ha **§5** amb limitacions enumerables → **`apte_amb_limitacions`**.
-4. Si després d’aplicar 1–3 el cas queda **sense classe** → **`no_apte`** (fail-closed).
-5. **Minimització de dades:** en tots els casos, el disseny del flux ha d’**excloure** identificadors i fragments no necessaris per inferir la plantilla i mapejar respostes; si cal més dada del mínim → justificar en la tasca o document de limitacions.
+*En aquest contracte no s’accepta “es podrà separar amb IA” com a argument per evitar `no_apte`.*
 
 ---
 
-## 7) Exemples típics
+## 5) `apte_amb_limitacions` (molt restringit)
 
-1. **Full de respostes tipus test** amb graella OM/R, capçalera amb nom i assignatura → **`apte`**.
-2. **Examen d’oposició** amb 10 pàgines de desenvolupament lliure sense caixes → **`no_apte`**.
-3. **Parcial** amb 20 ítems tancats + 1 pregunta oberta en un requadre fix al final → **`apte_amb_limitacions`** (limitació: correcció manual de la pregunta oberta).
-4. **PDF generat** amb mateixa plantilla però ordre de preguntes aleatori entre alumnes sense clau de mapatge → **`no_apte`**.
-5. **Escaneig** amb enunciats impresos i respostes a llapis en marges no delimitats → **`no_apte`**.
+Només vàlid si **tot** això és cert:
+
+1. **Llista tancada** de **fins a 3** limitacions, cadascuna en **una frase** concreta (accionable).
+2. Cada limitació és d’aquest conjunt **permès** (compatible amb pipeline sense inferència oberta sobre tot el document):
+   - revisió humana obligatòria d’**un** requadre o ítem **ja delimitat**;
+   - **exclusió** d’una pàgina o secció **numerada** del processament automàtic;
+   - **desactivació** d’un ítem concret en el flux automàtic.
+3. **Cap** limitació del tipus “interpretar tot el full”, “decidir límits sobre la marxa” o equivalent.
+
+Si (1)–(3) fallen → **`no_apte`**, no `apte_amb_limitacions`.
 
 ---
 
-## 8) Fora d’abast d’aquest document
+## 6) `no_apte` — triggers i conflictes
 
-No defineix formats de fitxer, llindars numèrics implementables, prompts ni schemas Zod: només el **contracte conceptual** per al futur validator i polítiques d’IA alineades amb **fail-closed** i **minimització de dades**.
+**Triggers addicionals (qualsevol → `no_apte`):**
+
+- Text lliure sense caixa per pregunta com a forma principal de resposta.
+- Layout diferent per alumne o ordre aleatori sense mapa estable.
+- Respostes en marges no delimitats o barreja enunciat/resposta sense zones fixes.
+- Dubte raonable sobre §1–§3.
+
+**Resolució de conflictes:**
+
+- Si dues regles o dues lectures del mateix examen donen resultats **incompatibles** (p. ex. un camí diu `apte` i un altre `no_apte`) → **`no_apte`**.
+- Si després d’aplicar les regles ordades (§7) el cas **no** encaixa en `apte` ni en `apte_amb_limitacions` → **`no_apte`**.
+
+---
+
+## 7) Ordre d’aplicació (decisió)
+
+1. Comprovar **`no_apte`** per §4, §6 (triggers) i §3 (cas mixt majoritari / crític): si aplica → **`no_apte`**.
+2. Si no → comprovar **`apte`** (§3 complet + §1).
+3. Si no és `apte` però tampoc ha caigut en `no_apte` al pas 1 → comprovar **`apte_amb_limitacions`** (§5 complet); si falla → **`no_apte`**.
+
+**Minimització de dades:** excloure identificadors i fragments no necessaris per plantilla i mapatge; qualsevol dubte sobre necessitat → **`no_apte`** fins a criteri escrit de PM.
+
+---
+
+## 8) Exemples
+
+1. Graella OM/R + capçalera separada → **`apte`**.
+2. Deu pàgines de desenvolupament lliure sense caixes → **`no_apte`**.
+3. Graella estable a totes les pàgines rellevants; cal **excloure la pàgina 4** (duplicat d’escaneig); una sola limitació de tipus «exclusió de pàgina numerada» → **`apte_amb_limitacions`**.
+4. Nom escrit a mà dins cada resposta → **`no_apte`** (§4).
+5. Sis ítems `d` i vuit ítems `n` → **`no_apte`** (§3: `#d` no és major que `#n`).
+
+---
+
+## 9) Fora d’abast
+
+Formats de fitxer, implementació de comptadors, prompts i schemas: fora d’aquest document; aquest contracte ha de ser **executable** per un agent sense interpretació creativa.
