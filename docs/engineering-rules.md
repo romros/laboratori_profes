@@ -1,10 +1,9 @@
 # Regles d’enginyeria
 
-Complementen la **normativa obligatòria** d’`AGENTS_ARQUITECTURA.md` (capes, imports, policy, tancament de tasques).
+Complements **no duplicats** respecte a `AGENTS_ARQUITECTURA.md` (capes, imports, policy, DoD → allà).
 
-1. **TypeScript strict** al frontend; errors de tipus es resolen, no s’amaguen amb `any` sense motiu.
-2. **ESLint + Prettier** formen part del flux (`npm run lint` al workspace frontend).
-3. **Tests:** Vitest; afegeix proves per la lògica que introdueixis. El smoke mínim existent ha de continuar passant.
-4. **Capes i imports:** segueix la taula i la direcció d’imports d’`AGENTS_ARQUITECTURA.md`; evita cicles i dependències `features` ↔ `features` sense tasca explícita.
-5. **Dependències noves:** només si la tasca ho demana; versions amb manteniment actiu; justificar si són pesades.
-6. **CI:** ha de poder passar abans de declarar **`DONE`** (salvo excepció documentada amb PM).
+1. **TypeScript strict** al frontend; sense `any` sense motiu.
+2. **ESLint + Prettier** via `npm run lint` al workspace frontend.
+3. **Tests:** Vitest; cobreix la lògica que afegeixis; el smoke existent ha de passar.
+4. **Dependències noves:** només si la tasca ho demana; versions mantingudes; justificar pes.
+5. **CI** ha de passar abans de **`DONE`** (salvo excepció amb PM).

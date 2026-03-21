@@ -2,9 +2,9 @@
 
 Monorepo del **Laboratori Profes**: una sola base de codi, frontend oficial a **`apps/frontend`**.
 
-**Normativa per agents (obligatòria):** **`AGENTS_ARQUITECTURA.md`**. **Estat operatiu:** **`docs/ESTAT.md`**. Context arquitectònic: **`docs/architecture.md`**, **`docs/engineering-rules.md`**. Per models: **`llm.txt`** (URLs raw del repo).
+**Agents i models:** comença per **`llm.txt`** (índex jeràrquic i URLs raw). Després **`AGENTS_ARQUITECTURA.md`** (normativa) i **`docs/ESTAT.md`** (estat i verificació). Resum de disseny: **`docs/architecture.md`**; eines: **`docs/engineering-rules.md`**.
 
-El prototip exportat de Figma/Make viu a **`legacy/figma-prototype`** (no oficial).
+**`legacy/figma-prototype`** és històric i **no oficial**; no l’usis com a base de noves features.
 
 ## Requisits
 
