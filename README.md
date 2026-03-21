@@ -10,16 +10,33 @@ Monorepo del **Laboratori Profes**: una sola base de codi, frontend oficial a **
 
 - Node.js **≥ 20** (recomanat **22**, com a CI i Docker).
 
+## Validació canònica del frontend (Docker)
+
+La **font de veritat** per `test`, `typecheck`, `lint` i `build` és el contenidor **`frontend-check`** (Node 22), no el `npm` del host.
+
+Des de l’arrel del repo (cal Docker):
+
+```bash
+./scripts/run_frontend.sh test
+./scripts/run_frontend.sh typecheck
+./scripts/run_frontend.sh lint
+./scripts/run_frontend.sh build
+```
+
+Atajos equivalents: `./test.sh`, `./typecheck.sh`, `./lint.sh`, `./build.sh`.
+
+Cada execució fa `npm ci` dins el contenidor i després la comanda; les dependències es guarden en volums Docker (`node_modules_root`, `node_modules_apps_frontend`).
+
 ## Desenvolupament local
 
-Des de l’arrel del repo:
+Opcional al host (conveniència; **no** substitueix la validació Docker per tancar tasques):
 
 ```bash
 npm install
 npm run dev
 ```
 
-Altres scripts: `npm run build`, `test`, `lint`, `typecheck`.
+Altres scripts al host: `npm run build`, `test`, `lint`, `typecheck` — mateixes comandes que al contenidor, però la verificació oficial és la de la secció anterior.
 
 ## Visualitzar amb Docker
 

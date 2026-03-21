@@ -1,6 +1,6 @@
 # Estat del projecte (operatiu)
 
-**Darrera actualització:** 2026-03-21
+**Darrera actualització:** 2026-03-17
 
 Només **estat i verificació**. Normativa: **`AGENTS_ARQUITECTURA.md`**. Ordre de lectura: **`llm.txt`**.
 
@@ -8,7 +8,7 @@ Només **estat i verificació**. Normativa: **`AGENTS_ARQUITECTURA.md`**. Ordre 
 
 ## Fase
 
-**Foundations + govern documental** — frontend canònic `apps/frontend`, CI, Docker, manifest `llm.txt`. **Contracte de feasibility** (template-inference) definit en doc; **implementació Feature 0** encara no iniciada.
+**Foundations + govern documental** — frontend canònic `apps/frontend`, **validació canònica via Docker** (`frontend-check`), manifest `llm.txt`. **Feature 0 (template-inference):** contracte de feasibility en doc; implementació segons tasques PM (sense LLM / PDF / UI fins que es demani).
 
 ---
 
@@ -17,22 +17,23 @@ Només **estat i verificació**. Normativa: **`AGENTS_ARQUITECTURA.md`**. Ordre 
 | Què | Com |
 |-----|-----|
 | Frontend canònic | `apps/frontend/`; `npm run dev` arrenca Vite (arrel repo). |
-| Qualitat | `npm ci` (o `npm install`) → `npm run lint` · `typecheck` · `test` · `build`. |
-| CI | `.github/workflows/ci.yml` (mateixes comandes). |
-| Docker | `docker compose build` (context arrel, veure `docker-compose.yml`). |
+| Qualitat (canònic) | `./scripts/run_frontend.sh lint` · `typecheck` · `test` · `build` (o `./lint.sh` …) — tot dins `frontend-check` (Docker). `npm` al host només opcional per `dev`. |
+| CI | `.github/workflows/ci.yml`: `docker compose run --rm frontend-check sh -c "npm ci && npm run lint && …"` (mateix contenidor que local). |
+| Docker | `docker compose up --build` → servei **frontend** (nginx). Validació: servei **frontend-check** (veure `docker-compose.yml`). |
 | Manifest agents | `llm.txt` (índex raw). |
 | Push (aquest entorn) | Remote `git@github.com-laboratori:romros/laboratori_profes.git`; `ssh -T git@github.com-laboratori` OK. **Altres màquines:** calen credencials/SSH pròpies (no depèn d’aquest fitxer). |
 | Legacy | `legacy/figma-prototype/` mogut; **no oficial** (veure `llm.txt` § Legacy). |
-| Feasibility template-inference | Fet (només doc) | Llegir `docs/features/template-inference/feasibility-definition.md`; coherent amb fail-closed i categories `apte` / `apte_amb_limitacions` / `no_apte`. |
+| Feasibility template-inference | Doc commitejat | `docs/features/template-inference/feasibility-definition.md`. |
+| Verificar frontend (inclou Feature 0 quan hi hagi codi) | `./scripts/run_frontend.sh test` · `typecheck` · `lint` · `build` (o `./test.sh` …); **sempre** dins `frontend-check`; 0 xarxa; Node 22 al contenidor. |
 
 ---
 
 ## Falta
 
-- **Codi i schemas** Feature 0 (template-inference): validators, domini, integració segons tasca PM. Backend / OCR / PDF.js (fora d’aquesta fase si no es demana).
+- **Integració** Feature 0 següent: analitzador LLM, parsing PDF, UI — només quan ho demani una tasca PM. Backend / OCR / PDF.js fora d’aquesta fase si no es demana.
 
 ---
 
 ## Següent pas
 
-Tasca d’**implementació Feature 0** (schemas, validator, flux) alineada amb el contracte de feasibility. Sense lògica de producte nova salvo tasca escrita.
+Continuar **Feature 0** (schemas, validator, etc.) amb tasques explícites; validar sempre amb `./scripts/run_frontend.sh …` (Docker).

@@ -13,7 +13,7 @@
 
 1. **Una sola base de producte:** el frontend oficial és **`apps/frontend`**. **`legacy/figma-prototype`** és històric i **no oficial**; no hi afegeixis producte ni en copiïs patrons cap al canònic.
 2. **Capes obligatòries** sota `apps/frontend/src/`: `app/` · `domain/` · `features/` · `infrastructure/` · `shared/`. No inventis una sisena capa sense decisió de PM.
-3. **Feature 0 encara no existeix** com a implementació: cap lògica de negoci real nova fora del que digui una tasca explícita del PM.
+3. **Feature 0 (template-inference)** té **nucli executable** pactat: schemas + validator pur + tests (veure `docs/ESTAT.md`). No afegeixis LLM, PDF ni flux de producte nou fora de tasca PM; el validator ha de seguir `feasibility-definition.md` (fail-closed).
 4. **Roadmap / “subprojectes”** són **planificació**, no carpetes d’arrel alternatives. El codi viu en aquest monorepo i aquestes capes.
 
 ---
@@ -54,7 +54,7 @@ Import il·legítim → **atura’t** i escala al PM.
 ## 4) Testing i evidència
 
 - **Vitest**; `*.test.ts` o `src/__tests__/`.
-- **`DONE`** només amb evidència (p. ex. `test`, `lint`, `typecheck`, `build`) o excepció documentada amb PM.
+- **`DONE`** només amb evidència **dins Docker** (`./scripts/run_frontend.sh test|lint|typecheck|build`) o excepció documentada amb PM.
 - No trenquis el smoke sense cobertura equivalent acordada.
 
 ---
@@ -72,6 +72,11 @@ Spike aïllat (branca / `experimental/` / tasca); graduació = complir aquest do
 
 ---
 
-## 7) Scripts (arrel)
+## 7) Scripts i validació (arrel)
 
-`npm run dev` · `build` · `test` · `lint` · `typecheck` — workspace `@profes/frontend`.
+- **Desenvolupament (opcional al host):** `npm run dev` — workspace `@profes/frontend`.
+- **Validació oficial del frontend (obligatòria per tancar tasques):** dins **Docker**, no com a font de veritat el `npm` del host:
+  - `./scripts/run_frontend.sh test|typecheck|lint|build`
+  - o `./test.sh` · `./typecheck.sh` · `./lint.sh` · `./build.sh` (mateix contenidor `frontend-check`, Node 22).
+
+Cap tasca de frontend **`DONE`** sense haver passat les quatre comandes dins el contenidor (o excepció escrita amb PM). La CI usa el mateix servei `frontend-check`.
