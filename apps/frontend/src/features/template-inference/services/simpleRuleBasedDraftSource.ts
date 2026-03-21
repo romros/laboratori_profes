@@ -1,4 +1,4 @@
-import type { TemplateDraftSource } from '@/features/template-inference/services/templateDraftSource'
+import type { TemplateDraftSource } from './templateDraftSource'
 
 import { goBasicExam } from '../../../../fixtures/template-inference/go-basic'
 

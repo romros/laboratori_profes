@@ -2,9 +2,9 @@ import {
   type ExamFeasibilityDraft,
   examFeasibilityDraftSchema,
   type FeasibilityDecision,
-} from '@/domain/template-inference/exam_feasibility.schema'
-import { templateDraftSchema } from '@/domain/template-inference/template.schema'
-import { FEASIBILITY_MAX_LIMITATIONS } from '@/domain/template-inference/constants'
+} from '../../../domain/template-inference/exam_feasibility.schema'
+import { FEASIBILITY_MAX_LIMITATIONS } from '../../../domain/template-inference/constants'
+import { templateDraftSchema } from '../../../domain/template-inference/template.schema'
 
 export type SchemaIssue = { path: string; message: string }
 

@@ -14,3 +14,93 @@ body {
   margin: 3rem auto;
   padding: 0 1.25rem;
 }
+
+.app-shell__linkbtn {
+  margin-top: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  font: inherit;
+  cursor: pointer;
+  border: 1px solid #94a3b8;
+  border-radius: 6px;
+  background: #fff;
+}
+
+.feature0-demo {
+  max-width: 48rem;
+  margin: 2rem auto;
+  padding: 0 1.25rem 3rem;
+}
+
+.feature0-demo__header {
+  margin-bottom: 1.25rem;
+}
+
+.feature0-demo__back {
+  margin-bottom: 0.75rem;
+  padding: 0.35rem 0.6rem;
+  font: inherit;
+  cursor: pointer;
+  border: 1px solid #cbd5e1;
+  border-radius: 4px;
+  background: #fff;
+}
+
+.feature0-demo__hint {
+  font-size: 0.9rem;
+  color: #475569;
+}
+
+.feature0-demo__label {
+  display: block;
+  font-weight: 600;
+  margin-bottom: 0.35rem;
+}
+
+.feature0-demo__textarea {
+  width: 100%;
+  box-sizing: border-box;
+  font: inherit;
+  padding: 0.5rem;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  margin-bottom: 0.75rem;
+}
+
+.feature0-demo__btn {
+  padding: 0.5rem 1rem;
+  font: inherit;
+  cursor: pointer;
+  border: 1px solid #334155;
+  border-radius: 6px;
+  background: #1e293b;
+  color: #f8fafc;
+}
+
+.feature0-demo__btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.feature0-demo__error {
+  margin-top: 1rem;
+  color: #b91c1c;
+}
+
+.feature0-demo__result {
+  margin-top: 1.5rem;
+  padding-top: 1rem;
+  border-top: 1px solid #e2e8f0;
+}
+
+.feature0-demo__details {
+  margin-top: 0.75rem;
+}
+
+.feature0-demo__pre {
+  overflow: auto;
+  max-height: 14rem;
+  padding: 0.5rem;
+  font-size: 0.75rem;
+  background: #f1f5f9;
+  border-radius: 4px;
+}

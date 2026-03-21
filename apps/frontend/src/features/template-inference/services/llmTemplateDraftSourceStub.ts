@@ -1,6 +1,6 @@
-import type { TemplateDraftSource } from '@/features/template-inference/services/templateDraftSource'
+import type { TemplateDraftSource } from './templateDraftSource'
 
-import { simpleRuleBasedDraftSource } from '@/features/template-inference/services/simpleRuleBasedDraftSource'
+import { simpleRuleBasedDraftSource } from './simpleRuleBasedDraftSource'
 
 /**
  * Simulació local del futur adapter LLM: aquí s’ubicaria prompt, transport (p. ex. fetch) i parse a JSON.

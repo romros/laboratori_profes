@@ -1,9 +1,9 @@
 import {
   parseFeature0AnalysisRequest,
   type Feature0AnalysisResponse,
-} from '@/features/template-inference/contracts/feature0AnalysisContract'
-import { analyzeExamText } from '@/features/template-inference/services/llmTemplateAnalyzer'
-import { llmTemplateDraftSourceStub } from '@/features/template-inference/services/llmTemplateDraftSourceStub'
+} from '../contracts/feature0AnalysisContract'
+import { analyzeExamText } from '../services/llmTemplateAnalyzer'
+import { llmTemplateDraftSourceStub } from '../services/llmTemplateDraftSourceStub'
 
 /**
  * Handler stub local (sense HTTP extern ni model real).

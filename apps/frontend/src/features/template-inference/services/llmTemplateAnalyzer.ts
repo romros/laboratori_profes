@@ -1,9 +1,6 @@
-import { normalizeTemplateDraft } from '@/features/template-inference/services/templateDraftNormalizer'
-import type { TemplateDraftSource } from '@/features/template-inference/services/templateDraftSource'
-import {
-  validateTemplateDraft,
-  type ValidateTemplateDraftResult,
-} from '@/features/template-inference/services/validateTemplateDraft'
+import { normalizeTemplateDraft } from './templateDraftNormalizer'
+import type { TemplateDraftSource } from './templateDraftSource'
+import { validateTemplateDraft, type ValidateTemplateDraftResult } from './validateTemplateDraft'
 
 import { minimalValidTemplate } from '../../../../fixtures/template-inference/minimal-template'
 

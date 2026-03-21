@@ -1,4 +1,4 @@
-import type { ValidateTemplateDraftResult } from '@/features/template-inference/services/validateTemplateDraft'
+import type { ValidateTemplateDraftResult } from '../services/validateTemplateDraft'
 
 /**
  * Contracte d’integració Feature 0: frontera estable entre UI i futur backend.
