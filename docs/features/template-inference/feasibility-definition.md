@@ -1,5 +1,7 @@
 # Contracte de feasibility — template-inference (Feature 0)
 
+> **Nota de producte (2025):** el codi canònic de Feature 0 ha pivotat cap a **viabilitat de plantilla per regions de resposta** (`status: ok|ko`, `answer_regions`). Aquest document conserva el raonament històric go/no-go d’examen; el contracte executable viu a `src/domain/template-inference/template_feasibility.schema.ts` i `validateTemplateFeasibility`.
+
 **Versió:** 1.1 · **Àmbit:** decisió **go / no-go** abans de schemas, validators o integració LLM.  
 **Filosofia:** **fail-closed** (dubte o conflicte → **`no_apte`**) i **minimització de dades**.
 

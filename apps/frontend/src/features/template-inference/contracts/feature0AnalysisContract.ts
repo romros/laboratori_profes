@@ -1,17 +1,26 @@
-import type { ValidateTemplateDraftResult } from '../services/validateTemplateDraft'
+import type { TemplateFeasibilityResult } from '../../../domain/template-inference/template_feasibility.schema'
+
+import type { TemplateFeasibilityPipelineResult } from '../services/validateTemplateFeasibility'
 
 /**
- * Contracte d’integració Feature 0: frontera estable entre UI i futur backend.
- * El transport (fetch, route, etc.) vindrà després; el payload es manté igual.
+ * Contracte d’integració Feature 0: viabilitat de plantilla per extracció de regions de resposta.
  */
 export type Feature0AnalysisRequest = {
   text: string
 }
 
-export type Feature0AnalysisResponse = {
-  rawDraft: unknown
-  normalizedDraft: unknown
-  validated: ValidateTemplateDraftResult
+export type Feature0AnalysisResponse = TemplateFeasibilityResult & {
+  /** Opcional: payload brut + normalitzat (demo / depuració). */
+  debug?: { rawDraft: unknown; normalizedDraft: unknown }
+}
+
+export function packFeature0AnalysisResponse(
+  pipeline: TemplateFeasibilityPipelineResult,
+): Feature0AnalysisResponse {
+  return {
+    ...pipeline.result,
+    debug: { rawDraft: pipeline.rawDraft, normalizedDraft: pipeline.normalizedDraft },
+  }
 }
 
 /**

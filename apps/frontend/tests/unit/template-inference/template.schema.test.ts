@@ -1,29 +1,15 @@
 import { describe, expect, it } from 'vitest'
 
-import { templateDraftSchema } from '../../../src/domain/template-inference/template.schema'
+import { regionSchema } from '../../../src/domain/template-inference/template.schema'
 
-describe('templateDraftSchema', () => {
-  it('rebutja coordenades fora de 0..1', () => {
-    const r = templateDraftSchema.safeParse({
-      regions: [{ exercise_id: 'a', bbox: { x: 0, y: 0, w: 1.2, h: 0.1 } }],
-    })
-    expect(r.success).toBe(false)
+describe('regionSchema', () => {
+  it('accepta caixa dins del full', () => {
+    const r = regionSchema.safeParse({ x: 0.1, y: 0.2, w: 0.5, h: 0.3 })
+    expect(r.success).toBe(true)
   })
 
-  it('rebutja x+w > 1', () => {
-    const r = templateDraftSchema.safeParse({
-      regions: [{ exercise_id: 'a', bbox: { x: 0.6, y: 0, w: 0.5, h: 0.2 } }],
-    })
-    expect(r.success).toBe(false)
-  })
-
-  it('rebutja exercise_id duplicat', () => {
-    const r = templateDraftSchema.safeParse({
-      regions: [
-        { exercise_id: 'same', bbox: { x: 0, y: 0, w: 0.2, h: 0.2 } },
-        { exercise_id: 'same', bbox: { x: 0.3, y: 0, w: 0.2, h: 0.2 } },
-      ],
-    })
+  it('rebutja x+w>1', () => {
+    const r = regionSchema.safeParse({ x: 0.6, y: 0, w: 0.5, h: 0.1 })
     expect(r.success).toBe(false)
   })
 })

@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest'
 
-import { goBasicExam } from '../../../fixtures/template-inference/go-basic'
+import { CANONICAL_TEXT_REGRESSION_TWO_OPEN_ONLY } from '../../../fixtures/template-inference/feature0-canonical-text'
+import { templateClearViableDraft } from '../../../fixtures/template-inference/template-clear-viable'
+import { templateKoMixedPromptDraft } from '../../../fixtures/template-inference/template-ko-mixed-prompt'
 import { analyzeExamText } from '../../../src/features/template-inference/services/llmTemplateAnalyzer'
 import { llmTemplateDraftSourceStub } from '../../../src/features/template-inference/services/llmTemplateDraftSourceStub'
 import { mockTemplateDraftSource } from '../../../src/features/template-inference/services/mockTemplateDraftSource'
@@ -8,23 +10,17 @@ import { simpleRuleBasedDraftSource } from '../../../src/features/template-infer
 import type { TemplateDraftSource } from '../../../src/features/template-inference/services/templateDraftSource'
 
 describe('analyzeExamText', () => {
-  it('amb mockTemplateDraftSource retorna rawDraft, normalizedDraft i validated apte', async () => {
-    const { rawDraft, normalizedDraft, validated } = await analyzeExamText(
+  it('amb mockTemplateDraftSource retorna status ok i regions', async () => {
+    const { rawDraft, normalizedDraft, result } = await analyzeExamText(
       { text: 'mock exam body' },
       mockTemplateDraftSource,
     )
 
-    expect(rawDraft).toBeDefined()
-    expect(typeof rawDraft).toBe('object')
+    expect(rawDraft).toEqual(templateClearViableDraft)
     expect(normalizedDraft).toBeDefined()
-    expect(typeof normalizedDraft).toBe('object')
-    expect(Array.isArray((normalizedDraft as Record<string, unknown>).proposed_limitations)).toBe(
-      true,
-    )
-
-    expect(validated.ok).toBe(true)
-    if (validated.ok) {
-      expect(validated.decision).toBe('apte')
+    expect(result.status).toBe('ok')
+    if (result.status === 'ok') {
+      expect(result.answer_regions.length).toBeGreaterThan(0)
     }
   })
 
@@ -32,83 +28,85 @@ describe('analyzeExamText', () => {
     const marker = { kind: 'injected-marker' as const }
     const source: TemplateDraftSource = {
       getDraft() {
-        return { ...marker, proposed_limitations: [] }
+        return { ...marker, answer_regions: [] }
       },
     }
 
-    const { rawDraft, validated } = await analyzeExamText({ text: 'x' }, source)
+    const { rawDraft, result } = await analyzeExamText({ text: 'x' }, source)
 
     expect((rawDraft as Record<string, unknown>).kind).toBe('injected-marker')
-    expect(validated.ok).toBe(false)
+    expect(result.status).toBe('ko')
   })
 
   it('accepta font async (Promise<unknown>)', async () => {
     const source: TemplateDraftSource = {
       async getDraft() {
-        return { proposed_limitations: [] }
+        return { answer_regions: [] }
       },
     }
 
     const { rawDraft } = await analyzeExamText({ text: 'async' }, source)
-    expect(rawDraft).toEqual({ proposed_limitations: [] })
+    expect(rawDraft).toEqual({ answer_regions: [] })
   })
 
   describe('amb simpleRuleBasedDraftSource (pipeline text → draft → validator)', () => {
-    it('text curt → rawDraft buit i validated no_apte', async () => {
-      const { rawDraft, validated } = await analyzeExamText(
+    it('text curt → rawDraft buit i ko', async () => {
+      const { rawDraft, result } = await analyzeExamText(
         { text: 'curt' },
         simpleRuleBasedDraftSource,
       )
 
       expect(rawDraft).toEqual({})
-      expect(validated.ok).toBe(false)
-      if (!validated.ok) {
-        expect(validated.decision).toBe('no_apte')
-      }
+      expect(result.status).toBe('ko')
     })
 
-    it('text amb ??? → no_apte (dubte §6)', async () => {
-      const { rawDraft, validated } = await analyzeExamText(
+    it('text amb ??? → ko (barreja)', async () => {
+      const { rawDraft, result } = await analyzeExamText(
         { text: '1234567890 amb ???' },
         simpleRuleBasedDraftSource,
       )
 
-      expect((rawDraft as Record<string, unknown>).doubt_on_seminanonimitzable).toBe(true)
-      expect(validated.ok).toBe(false)
-      if (!validated.ok) {
-        expect(validated.decision).toBe('no_apte')
-        expect(validated.reasons.some((r) => r.includes('§6'))).toBe(true)
+      expect(rawDraft).toEqual(templateKoMixedPromptDraft)
+      expect(result.status).toBe('ko')
+      if (result.status === 'ko') {
+        expect(result.reasons.some((r) => r.includes('barrejats'))).toBe(true)
       }
     })
 
-    it('text vàlid → apte (go-basic)', async () => {
-      const { validated } = await analyzeExamText(
+    it('text vàlid → ok', async () => {
+      const { result } = await analyzeExamText(
         { text: '1234567890 examen sense ambigüitat' },
         simpleRuleBasedDraftSource,
       )
 
-      expect(validated.ok).toBe(true)
-      if (validated.ok) {
-        expect(validated.decision).toBe('apte')
+      expect(result.status).toBe('ok')
+      if (result.status === 'ok') {
+        expect(result.answer_regions).toHaveLength(2)
       }
     })
   })
 
-  describe('amb llmTemplateDraftSourceStub (seam LLM sense API)', () => {
-    it('analyzeExamText retorna rawDraft, normalizedDraft i validated coherents', async () => {
-      const { rawDraft, normalizedDraft, validated } = await analyzeExamText(
+  describe('amb llmTemplateDraftSourceStub', () => {
+    it('analyzeExamText retorna pipeline coherent', async () => {
+      const { rawDraft, normalizedDraft, result } = await analyzeExamText(
         { text: '1234567890 pipeline stub LLM' },
         llmTemplateDraftSourceStub,
       )
 
-      expect(rawDraft).toEqual(goBasicExam)
+      expect(rawDraft).toEqual(templateClearViableDraft)
       expect(typeof normalizedDraft).toBe('object')
-      expect(Array.isArray((normalizedDraft as Record<string, unknown>).proposed_limitations)).toBe(
-        true,
+      expect(result.status).toBe('ok')
+    })
+
+    it('regressió canonical: ko amb motiu de negoci (no patró tècnic cru)', async () => {
+      const { result } = await analyzeExamText(
+        { text: CANONICAL_TEXT_REGRESSION_TWO_OPEN_ONLY },
+        llmTemplateDraftSourceStub,
       )
-      expect(validated.ok).toBe(true)
-      if (validated.ok) {
-        expect(validated.decision).toBe('apte')
+      expect(result.status).toBe('ko')
+      if (result.status === 'ko') {
+        expect(result.reasons.join(' ')).not.toMatch(/String\(/)
+        expect(result.reasons.some((r) => r.length > 10)).toBe(true)
       }
     })
   })

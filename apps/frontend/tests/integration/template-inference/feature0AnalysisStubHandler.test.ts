@@ -1,12 +1,13 @@
 import { describe, expect, it } from 'vitest'
 
-import { goBasicExam } from '../../../fixtures/template-inference/go-basic'
+import { templateClearViableDraft } from '../../../fixtures/template-inference/template-clear-viable'
+import { templateKoMixedPromptDraft } from '../../../fixtures/template-inference/template-ko-mixed-prompt'
 import { parseFeature0AnalysisRequest } from '../../../src/features/template-inference/contracts/feature0AnalysisContract'
 import { handleFeature0AnalysisStub } from '../../../src/features/template-inference/server/feature0AnalysisStubHandler'
 
 describe('Feature 0 — contracte + handleFeature0AnalysisStub (stub local)', () => {
   describe('parseFeature0AnalysisRequest', () => {
-    it('accepta request vàlid', () => {
+    it('accepta request valid', () => {
       expect(parseFeature0AnalysisRequest({ text: 'hola' })).toEqual({ text: 'hola' })
     })
 
@@ -21,51 +22,46 @@ describe('Feature 0 — contracte + handleFeature0AnalysisStub (stub local)', ()
   })
 
   describe('handleFeature0AnalysisStub', () => {
-    it('retorna shape estable (rawDraft, normalizedDraft, validated)', async () => {
+    it('retorna status ok i debug', async () => {
       const res = await handleFeature0AnalysisStub({ text: '1234567890 examen stub' })
 
-      expect(Object.keys(res).sort()).toEqual(['normalizedDraft', 'rawDraft', 'validated'])
-      expect('ok' in res.validated).toBe(true)
+      expect(res.status).toBe('ok')
+      expect(res.debug?.rawDraft).toEqual(templateClearViableDraft)
+      expect(res.debug?.normalizedDraft).toBeDefined()
     })
 
-    it('text vàlid → validated apte', async () => {
-      const { validated } = await handleFeature0AnalysisStub({
-        text: '1234567890 examen vàlid',
+    it('text valid → status ok', async () => {
+      const res = await handleFeature0AnalysisStub({
+        text: '1234567890 examen valid',
       })
 
-      expect(validated.ok).toBe(true)
-      if (validated.ok) {
-        expect(validated.decision).toBe('apte')
+      expect(res.status).toBe('ok')
+    })
+
+    it('text curt → ko', async () => {
+      const res = await handleFeature0AnalysisStub({ text: 'curt' })
+
+      expect(res.debug?.rawDraft).toEqual({})
+      expect(res.status).toBe('ko')
+      if (res.status === 'ko') {
+        expect(res.reasons.length).toBeGreaterThan(0)
       }
     })
 
-    it('text curt → no_apte', async () => {
-      const { rawDraft, validated } = await handleFeature0AnalysisStub({ text: 'curt' })
-
-      expect(rawDraft).toEqual({})
-      expect(validated.ok).toBe(false)
-      if (!validated.ok) {
-        expect(validated.decision).toBe('no_apte')
-      }
-    })
-
-    it('text amb ??? → no_apte (dubte §6)', async () => {
-      const { rawDraft, validated } = await handleFeature0AnalysisStub({
+    it('text amb ??? → ko barreja', async () => {
+      const res = await handleFeature0AnalysisStub({
         text: '1234567890 amb ???',
       })
 
-      expect((rawDraft as Record<string, unknown>).doubt_on_seminanonimitzable).toBe(true)
-      expect(validated.ok).toBe(false)
-      if (!validated.ok) {
-        expect(validated.decision).toBe('no_apte')
-      }
+      expect(res.debug?.rawDraft).toEqual(templateKoMixedPromptDraft)
+      expect(res.status).toBe('ko')
     })
 
-    it('rawDraft coherent amb pipeline stub (go-basic quan apte)', async () => {
-      const { rawDraft } = await handleFeature0AnalysisStub({
-        text: '1234567890 sense ambigüitat',
+    it('debug rawDraft coherent quan ok', async () => {
+      const res = await handleFeature0AnalysisStub({
+        text: '1234567890 sense ambiguitat',
       })
-      expect(rawDraft).toEqual(goBasicExam)
+      expect(res.debug?.rawDraft).toEqual(templateClearViableDraft)
     })
   })
 })

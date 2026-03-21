@@ -1,13 +1,13 @@
-import type { TemplateDraftSource } from '@/features/template-inference/services/templateDraftSource'
+import type { TemplateDraftSource } from './templateDraftSource'
 
-import { goBasicExam } from '../../../../fixtures/template-inference/go-basic'
+import { templateClearViableDraft } from '../../../../fixtures/template-inference/template-clear-viable'
 
 /**
- * Font mock: retorna el fixture go-basic (sense interpretar `text`; reservat per futures adapters).
+ * Font mock: retorna plantilla viable fixa (sense interpretar `text`).
  */
 export const mockTemplateDraftSource: TemplateDraftSource = {
   getDraft(input: { text: string }): unknown {
     void input.text
-    return structuredClone(goBasicExam)
+    return structuredClone(templateClearViableDraft)
   },
 }

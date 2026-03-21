@@ -1,4 +1,4 @@
-import { buildFeature0ExamDraftPrompt } from './buildFeature0ExamDraftPrompt'
+import { buildTemplateFeasibilityPrompt } from './buildTemplateFeasibilityPrompt'
 import { extractJsonObjectFromModelText } from './extractJsonObjectFromModelText'
 import { callOpenAiCompatibleChat } from './openAiCompatibleChat'
 import type { TemplateDraftSource } from './templateDraftSource'
@@ -25,7 +25,7 @@ export function createLlmTemplateDraftSource(
 
   return {
     async getDraft({ text }): Promise<unknown> {
-      const userPrompt = buildFeature0ExamDraftPrompt(text)
+      const userPrompt = buildTemplateFeasibilityPrompt(text)
       const content = await callOpenAiCompatibleChat({
         apiKey: options.apiKey,
         baseUrl,

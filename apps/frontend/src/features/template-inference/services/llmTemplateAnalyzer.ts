@@ -1,28 +1,19 @@
 import { normalizeTemplateDraft } from './templateDraftNormalizer'
 import type { TemplateDraftSource } from './templateDraftSource'
-import { validateTemplateDraft, type ValidateTemplateDraftResult } from './validateTemplateDraft'
-
-import { minimalValidTemplate } from '../../../../fixtures/template-inference/minimal-template'
+import {
+  validateTemplateFeasibility,
+  type TemplateFeasibilityPipelineResult,
+} from './validateTemplateFeasibility'
 
 /**
- * Pipeline: font → rawDraft → normalizer → validator.
- * L’origen del draft ve exclusivament de `source`; aquest mòdul no decideix mock vs futur LLM.
+ * Pipeline: font → rawDraft → normalització → validator de viabilitat (`ok` | `ko` + regions).
  */
 export async function analyzeExamText(
   input: { text: string },
   source: TemplateDraftSource,
-): Promise<{
-  rawDraft: unknown
-  normalizedDraft: unknown
-  validated: ValidateTemplateDraftResult
-}> {
+): Promise<TemplateFeasibilityPipelineResult> {
   const rawDraft = await Promise.resolve(source.getDraft(input))
   const normalizedDraft = normalizeTemplateDraft(rawDraft)
-
-  const validated = validateTemplateDraft({
-    exam: normalizedDraft,
-    template: structuredClone(minimalValidTemplate),
-  })
-
-  return { rawDraft, normalizedDraft, validated }
+  const result = validateTemplateFeasibility(normalizedDraft)
+  return { rawDraft, normalizedDraft, result }
 }

@@ -1,10 +1,10 @@
 import { describe, expect, it } from 'vitest'
 
-import { goBasicExam } from '../../../fixtures/template-inference/go-basic'
+import { templateClearViableDraft } from '../../../fixtures/template-inference/template-clear-viable'
 import { executeFeature0AnalysisFromJsonBody } from '../../../src/features/template-inference/server/feature0AnalysisHttpRoute'
 
 describe('executeFeature0AnalysisFromJsonBody (route local)', () => {
-  it('JSON invàlid → 400', async () => {
+  it('JSON invalid → 400', async () => {
     const out = await executeFeature0AnalysisFromJsonBody('{')
     expect(out.ok).toBe(false)
     if (!out.ok) {
@@ -21,38 +21,35 @@ describe('executeFeature0AnalysisFromJsonBody (route local)', () => {
     }
   })
 
-  it('request vàlid, text llarg → 200 i Feature0AnalysisResponse apte', async () => {
+  it('request valid text llarg → 200 i status ok', async () => {
     const out = await executeFeature0AnalysisFromJsonBody(
       JSON.stringify({ text: '1234567890 examen http' }),
     )
     expect(out.ok).toBe(true)
     if (out.ok) {
-      expect(out.body.rawDraft).toEqual(goBasicExam)
-      expect(out.body.validated.ok).toBe(true)
-      if (out.body.validated.ok) {
-        expect(out.body.validated.decision).toBe('apte')
+      expect(out.body.debug?.rawDraft).toEqual(templateClearViableDraft)
+      expect(out.body.status).toBe('ok')
+      if (out.body.status === 'ok') {
+        expect(out.body.answer_regions.length).toBeGreaterThan(0)
       }
     }
   })
 
-  it('text curt → 200 i no_apte al validator', async () => {
+  it('text curt → 200 i ko', async () => {
     const out = await executeFeature0AnalysisFromJsonBody(JSON.stringify({ text: 'curt' }))
     expect(out.ok).toBe(true)
     if (out.ok) {
-      expect(out.body.validated.ok).toBe(false)
-      if (!out.body.validated.ok) {
-        expect(out.body.validated.decision).toBe('no_apte')
-      }
+      expect(out.body.status).toBe('ko')
     }
   })
 
-  it('text amb ??? → 200 i no_apte', async () => {
+  it('text amb ??? → 200 i ko', async () => {
     const out = await executeFeature0AnalysisFromJsonBody(
       JSON.stringify({ text: '1234567890 ???' }),
     )
     expect(out.ok).toBe(true)
     if (out.ok) {
-      expect(out.body.validated.ok).toBe(false)
+      expect(out.body.status).toBe('ko')
     }
   })
 })

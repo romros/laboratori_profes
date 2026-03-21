@@ -1,20 +1,20 @@
 import { describe, expect, it } from 'vitest'
 
-import { goBasicExam } from '../../../fixtures/template-inference/go-basic'
+import { templateClearViableDraft } from '../../../fixtures/template-inference/template-clear-viable'
 import {
   llmTemplateDraftSourceStub,
   simulateLlmDraftFromText,
 } from '../../../src/features/template-inference/services/llmTemplateDraftSourceStub'
 
 describe('llmTemplateDraftSourceStub', () => {
-  it('implementa TemplateDraftSource: getDraft retorna unknown amb forma d’examen (text llarg)', () => {
+  it('implementa TemplateDraftSource: getDraft retorna esborrany de plantilla (text llarg)', () => {
     const d = llmTemplateDraftSourceStub.getDraft({
       text: '1234567890 stub exam',
     }) as Record<string, unknown>
 
     expect(typeof d).toBe('object')
-    expect(Array.isArray(d.exercises)).toBe(true)
-    expect(d).toEqual(goBasicExam)
+    expect(Array.isArray(d.answer_regions)).toBe(true)
+    expect(d).toEqual(templateClearViableDraft)
   })
 
   it('és determinista (mateix text → mateix payload estructural)', () => {

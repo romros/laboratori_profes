@@ -55,14 +55,14 @@ export function Feature0DemoPage({ onBack }: Props) {
         </button>
         <h1>Feature 0 — demo</h1>
         <p className="feature0-demo__hint">
-          <code>/api/feature0/analysis</code> stub determinista ·{' '}
-          <code>/api/feature0/analysis/llm</code> model al servidor (cal clau d’API a env). Només
-          dev / <code>vite preview</code>.
+          Viabilitat de plantilla per <strong>regions de resposta</strong> (crops futurs).{' '}
+          <code>/api/feature0/analysis</code> stub · <code>/api/feature0/analysis/llm</code> model
+          al servidor (cal clau a env). Només dev / <code>vite preview</code>.
         </p>
       </header>
 
       <label className="feature0-demo__label" htmlFor="feature0-text">
-        Text d’entrada
+        Text de la plantilla (placeholder fins a PDF)
       </label>
       <textarea
         id="feature0-text"
@@ -100,25 +100,49 @@ export function Feature0DemoPage({ onBack }: Props) {
 
       {result ? (
         <section className="feature0-demo__result" aria-live="polite">
-          <h2>Resultat (validator)</h2>
+          <h2>Resultat</h2>
           <p>
-            <strong>ok:</strong> {String(result.validated.ok)} · <strong>decisió:</strong>{' '}
-            {result.validated.decision}
+            <strong>status:</strong> {result.status}
           </p>
-          <p>
-            <strong>motius:</strong> {result.validated.reasons.join(' | ')}
-          </p>
+          {result.status === 'ko' ? (
+            <p>
+              <strong>motius:</strong> {result.reasons.join(' | ')}
+            </p>
+          ) : (
+            <div>
+              <p>
+                <strong>answer_regions</strong> ({result.answer_regions.length})
+              </p>
+              <ul className="feature0-demo__regions">
+                {result.answer_regions.map((r) => (
+                  <li key={`${r.page}-${r.question_id}`}>
+                    <code>{r.question_id}</code> · pàg. {r.page} · bbox{' '}
+                    <code>
+                      {r.bbox.x.toFixed(3)},{r.bbox.y.toFixed(3)},{r.bbox.w.toFixed(3)},
+                      {r.bbox.h.toFixed(3)}
+                    </code>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
 
-          <details className="feature0-demo__details">
-            <summary>Debug: rawDraft</summary>
-            <pre className="feature0-demo__pre">{JSON.stringify(result.rawDraft, null, 2)}</pre>
-          </details>
-          <details className="feature0-demo__details">
-            <summary>Debug: normalizedDraft</summary>
-            <pre className="feature0-demo__pre">
-              {JSON.stringify(result.normalizedDraft, null, 2)}
-            </pre>
-          </details>
+          {result.debug ? (
+            <>
+              <details className="feature0-demo__details">
+                <summary>Debug: rawDraft</summary>
+                <pre className="feature0-demo__pre">
+                  {JSON.stringify(result.debug.rawDraft, null, 2)}
+                </pre>
+              </details>
+              <details className="feature0-demo__details">
+                <summary>Debug: normalizedDraft</summary>
+                <pre className="feature0-demo__pre">
+                  {JSON.stringify(result.debug.normalizedDraft, null, 2)}
+                </pre>
+              </details>
+            </>
+          ) : null}
         </section>
       ) : null}
     </main>

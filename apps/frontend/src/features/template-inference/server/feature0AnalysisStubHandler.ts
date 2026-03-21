@@ -1,4 +1,5 @@
 import {
+  packFeature0AnalysisResponse,
   parseFeature0AnalysisRequest,
   type Feature0AnalysisResponse,
 } from '../contracts/feature0AnalysisContract'
@@ -11,9 +12,6 @@ import { llmTemplateDraftSourceStub } from '../services/llmTemplateDraftSourceSt
  */
 export async function handleFeature0AnalysisStub(body: unknown): Promise<Feature0AnalysisResponse> {
   const { text } = parseFeature0AnalysisRequest(body)
-  const { rawDraft, normalizedDraft, validated } = await analyzeExamText(
-    { text },
-    llmTemplateDraftSourceStub,
-  )
-  return { rawDraft, normalizedDraft, validated }
+  const pipeline = await analyzeExamText({ text }, llmTemplateDraftSourceStub)
+  return packFeature0AnalysisResponse(pipeline)
 }

@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
-import { goBasicExam } from '../../../fixtures/template-inference/go-basic'
+import { templateClearViableDraft } from '../../../fixtures/template-inference/template-clear-viable'
 import { executeFeature0AnalysisLlmFromJsonBody } from '../../../src/features/template-inference/server/feature0AnalysisLlmHttpRoute'
 
 describe('executeFeature0AnalysisLlmFromJsonBody', () => {
@@ -33,7 +33,7 @@ describe('executeFeature0AnalysisLlmFromJsonBody', () => {
 
   it('amb clau i fetch simulat → 200 i contracte', async () => {
     process.env.FEATURE0_OPENAI_API_KEY = 'test-key'
-    const content = JSON.stringify(goBasicExam)
+    const content = JSON.stringify(templateClearViableDraft)
     vi.stubGlobal(
       'fetch',
       vi.fn(
@@ -52,9 +52,9 @@ describe('executeFeature0AnalysisLlmFromJsonBody', () => {
     )
     expect(out.ok).toBe(true)
     if (out.ok) {
-      expect(out.body.validated.ok).toBe(true)
-      if (out.body.validated.ok) {
-        expect(out.body.validated.decision).toBe('apte')
+      expect(out.body.status).toBe('ok')
+      if (out.body.status === 'ok') {
+        expect(out.body.answer_regions.length).toBeGreaterThan(0)
       }
     }
   })

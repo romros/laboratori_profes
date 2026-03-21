@@ -1,10 +1,10 @@
 import { z } from 'zod'
 
-/** Coordenades normalitzades 0..1 (plantilla). */
+/** Coordenades normalitzades 0..1 (pàgina de plantilla). */
 export const normalizedUnitSchema = z.number().min(0).max(1)
 
 /**
- * Regió geomètrica normalitzada (0..1) — contracte «Region».
+ * Caixa normalitzada (0..1) per a una regió de resposta sobre la plantilla.
  */
 export const regionSchema = z
   .object({
@@ -32,40 +32,5 @@ export const regionSchema = z
 
 export type Region = z.infer<typeof regionSchema>
 
-/** Alias històric; mateix que `regionSchema`. */
+/** @deprecated Reemplaçat per `regionSchema` / `AnswerRegion` (Feature 0 pivot). */
 export const normalizedBBoxSchema = regionSchema
-
-/**
- * Regió d’exercici a la plantilla (`exercise_id` + caixa) — «ExerciseRegion».
- */
-export const exerciseRegionSchema = z.object({
-  exercise_id: z.string().min(1),
-  bbox: regionSchema,
-})
-
-export type ExerciseRegion = z.infer<typeof exerciseRegionSchema>
-
-/** @deprecated Usar `exerciseRegionSchema`. */
-export const templateRegionSchema = exerciseRegionSchema
-
-export type TemplateRegion = ExerciseRegion
-
-export const templateDraftSchema = z
-  .object({ regions: z.array(exerciseRegionSchema).min(1) })
-  .superRefine((data, ctx) => {
-    const seen = new Set<string>()
-    for (let i = 0; i < data.regions.length; i++) {
-      const id = data.regions[i].exercise_id
-      if (seen.has(id)) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          message: `duplicate exercise_id: ${id}`,
-          path: ['regions', i, 'exercise_id'],
-        })
-        return
-      }
-      seen.add(id)
-    }
-  })
-
-export type TemplateDraft = z.infer<typeof templateDraftSchema>

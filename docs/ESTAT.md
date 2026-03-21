@@ -1,6 +1,6 @@
 # Estat del projecte (operatiu)
 
-**Darrera actualització:** 2026-03-27
+**Darrera actualització:** 2025-03-22
 
 Només **estat i verificació**. Normativa: **`AGENTS_ARQUITECTURA.md`**. Ordre de lectura: **`llm.txt`**.
 
@@ -8,7 +8,7 @@ Només **estat i verificació**. Normativa: **`AGENTS_ARQUITECTURA.md`**. Ordre 
 
 ## Fase
 
-**Foundations + govern documental** — frontend canònic `apps/frontend`, **validació canònica via Docker** (`frontend-check`), manifest `llm.txt`. **Feature 0 (template-inference):** contracte `feasibility-definition.md` + **nucli executable** (Zod, `validateTemplateDraft`, `templateDraftNormalizer`, fixtures, tests) + `llmTemplateAnalyzer` (fonts: stub determinista, **`createLlmTemplateDraftSource`** amb crida **servidor** a API compatible OpenAI via `fetch`, sense SDK) + **contracte** + handlers stub / **LLM** (`handleFeature0AnalysisStub`, `handleFeature0AnalysisLlm`) + POST **`/api/feature0/analysis`** (stub) i **`/api/feature0/analysis/llm`** (model; **sense clau → HTTP 503**). Tot el middleware només en **`vite dev` / `vite preview`** (nginx build estàtic sense aquestes APIs). Client `analyzeFeature0` / **`analyzeFeature0WithLlm`**; demo **`/demo/feature0`**. Config: veure **`.env.example`** (`FEATURE0_OPENAI_API_KEY` o `OPENAI_API_KEY`, etc.). Integració inicial, **no** robusta per producció; cap crida al model des del navegador. Sense PDF.
+**Foundations + govern documental** — frontend canònic `apps/frontend`, **validació canònica via Docker** (`frontend-check`), manifest `llm.txt`. **Feature 0 (template-inference):** pivot a **viabilitat de plantilla per extracció de regions de resposta** — domini `template_feasibility.schema.ts` (`AnswerRegion`: `question_id`, `page`, `bbox` normalitzat), **`validateTemplateFeasibility`**, `templateDraftNormalizer`, `llmTemplateAnalyzer`, fonts stub / **`createLlmTemplateDraftSource`** (servidor, `fetch`, sense SDK). Resposta d’èxit: **`status: 'ok' | 'ko'`**, `reasons` si `ko`, **`answer_regions`** si `ok`; camp opcional **`debug`** (`rawDraft`, `normalizedDraft`) per demo. Handlers stub / LLM + POST **`/api/feature0/analysis`** i **`/api/feature0/analysis/llm`** (**sense clau → HTTP 503**). Middleware només **`vite dev` / `vite preview`**. Client `analyzeFeature0` / **`analyzeFeature0WithLlm`**; demo **`/demo/feature0`**. Entrada actual: text placeholder (PDF en tasca separada). Doc històric: `feasibility-definition.md` (nota d’alineació al pivot). **Casos canònics:** `fixtures/template-inference/` + **`feature0CanonicalCases.test.ts`**. Sense OCR, sense crops reals sobre alumnes, sense classificació text|mixed|blank en aquesta fase.
 
 ---
 
@@ -24,17 +24,17 @@ Només **estat i verificació**. Normativa: **`AGENTS_ARQUITECTURA.md`**. Ordre 
 | Manifest agents | `llm.txt` (índex raw). |
 | Push (aquest entorn) | Remote `git@github.com-laboratori:romros/laboratori_profes.git`; `ssh -T git@github.com-laboratori` OK. **Altres màquines:** calen credencials/SSH pròpies (no depèn d’aquest fitxer). |
 | Legacy | `legacy/figma-prototype/` mogut; **no oficial** (veure `llm.txt` § Legacy). |
-| Feasibility template-inference | Doc + codi domini | Doc: `docs/features/template-inference/feasibility-definition.md`. Codi: `src/domain/template-inference/`, `features/template-inference/` (contracts, `server/`, `client/`, `ui/`, serveis), plugin Vite `vite-plugins/feature0AnalysisApiPlugin.ts`, `vitest.config.ts` (tests sense carregar el plugin), tests `tests/unit/…` i `tests/integration/…`. |
-| Verificar frontend / Feature 0 | `./scripts/run_frontend.sh test` · `typecheck` · `lint` · `build` (o `./test.sh` …); **sempre** dins `frontend-check`. |
+| Feature 0 template / regions | Doc + codi | Doc: `feasibility-definition.md` (context històric) + `docs/product-context.md`. Domini: `template_feasibility.schema.ts`, `template.schema.ts` (`regionSchema`). Feature: `validateTemplateFeasibility`, plugin Vite `feature0AnalysisApiPlugin.ts`, tests unit/integration sota `tests/…/template-inference/`. |
+| Verificar frontend / Feature 0 | `./scripts/run_frontend.sh test` · `typecheck` · `lint` · `build` (o `./test.sh` …); **sempre** dins `frontend-check`. Inclou casos canònics Feature 0 (`feature0CanonicalCases.test.ts`). |
 
 ---
 
 ## Falta
 
-- **Producte** Feature 0 següent: parsing PDF, OCR, UI final, backend dedicat fora del middleware Vite — segons tasca PM.
+- **Producte** Feature 0 següent: **PDF real** de plantilla, geometria en coordenades de pàgina, backend fora de Vite — segons tasca PM (la lògica `ok/ko` + regions ja està al domini actual).
 
 ---
 
 ## Següent pas
 
-**Producte** Feature 0: PDF / flux complet — amb tasca PM; validació amb `./scripts/run_frontend.sh …` (Docker).
+**Producte** Feature 0: integració **PDF** + pipeline sobre el contracte `answer_regions` — amb tasca PM; validació amb `./scripts/run_frontend.sh …` (Docker).

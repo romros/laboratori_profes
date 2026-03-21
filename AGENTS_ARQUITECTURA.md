@@ -13,7 +13,7 @@
 
 1. **Una sola base de producte:** el frontend oficial és **`apps/frontend`**. **`legacy/figma-prototype`** és històric i **no oficial**; no hi afegeixis producte ni en copiïs patrons cap al canònic.
 2. **Capes obligatòries** sota `apps/frontend/src/`: `app/` · `domain/` · `features/` · `infrastructure/` · `shared/`. No inventis una sisena capa sense decisió de PM.
-3. **Feature 0 (template-inference)** té **nucli executable** pactat: schemas + validator pur + tests (veure `docs/ESTAT.md`). No afegeixis LLM, PDF ni flux de producte nou fora de tasca PM; el validator ha de seguir `feasibility-definition.md` (fail-closed).
+3. **Feature 0 (template-inference)** és **viabilitat de plantilla per extracció de regions de resposta** (`status: ok|ko`, `answer_regions`); schemas + validator pur + tests (veure `docs/ESTAT.md`, domini `template_feasibility.schema.ts`). No afegeixis OCR, crops d’alumnes ni classificació de respostes fora de tasca PM; fail-closed al validator.
 4. **Roadmap / “subprojectes”** són **planificació**, no carpetes d’arrel alternatives. El codi viu en aquest monorepo i aquestes capes.
 5. **Git — branca única:** el treball i la integració són sobre **`main`**. No s’utilitzen branques de feature com a flux per defecte; tot el que es valida i es publica ha d’acabar a **`main`** (evita desajustos entre “fet” i remot). Dubte o excepció → **PM**.
 

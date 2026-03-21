@@ -1,16 +1,10 @@
 /**
- * Normalització estructural mínima del payload LLM (sense negoci, sense inferències).
+ * Normalització estructural mínima del payload (sense negoci, sense inferències).
  * Claus opcionals que han de ser arrays: si falten o són null/undefined → [].
  * Tipus incorrecte: es deixa igual; el validator fallarà (fail-closed).
  */
 
-const OPTIONAL_ARRAY_KEYS = [
-  'reasons',
-  'limitations',
-  'header_regions',
-  'exercise_regions',
-  'proposed_limitations',
-] as const
+const OPTIONAL_ARRAY_KEYS = ['answer_regions', 'anchors', 'limitations'] as const
 
 export function normalizeTemplateDraft(input: unknown): unknown {
   if (input === null || typeof input !== 'object' || Array.isArray(input)) {

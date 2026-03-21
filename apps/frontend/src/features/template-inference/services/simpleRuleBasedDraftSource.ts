@@ -1,30 +1,37 @@
 import type { TemplateDraftSource } from './templateDraftSource'
 
-import { goBasicExam } from '../../../../fixtures/template-inference/go-basic'
+import {
+  FIXTURE_SENTINEL_AMBIGUOUS,
+  FIXTURE_SENTINEL_REGRESSION_TWO_OPEN_ONLY,
+  FIXTURE_SENTINEL_SEMI_STRUCTURED,
+} from '../../../../fixtures/template-inference/feature0-canonical-text'
+import { templateClearViableDraft } from '../../../../fixtures/template-inference/template-clear-viable'
+import { templateKoMixedPromptDraft } from '../../../../fixtures/template-inference/template-ko-mixed-prompt'
+import { templateKoUnstableLayoutDraft } from '../../../../fixtures/template-inference/template-ko-unstable-layout'
 
 /** Llindar mínim de caràcters (regla trivial; sense semàntica de domini). */
 const MIN_TEXT_CHARS = 10
 
 /**
- * Simulació determinista d’entrada text → draft brut (sense API ni aleatorietat).
- * Només retorna payloads d’examen (`unknown`); **validateTemplateDraft** decideix apte / no_apte.
+ * Simulació determinista d’entrada text → esborrany de viabilitat de plantilla (`unknown`).
+ * **validateTemplateFeasibility** decideix `ok` / `ko`.
  *
- * Regles (màxim simplicitat):
- * - text buit o massa curt → objecte buit (fallida d’esquema al validator)
- * - presència de `???` → mateix perfil que go-basic però amb dubte §6 (fail-closed)
- * - altrament → go-basic
+ * Sentinels `FIXTURE_SENTINEL_*`: només per proves canòniques (veure `feature0-canonical-text.ts`).
  */
 export const simpleRuleBasedDraftSource: TemplateDraftSource = {
   getDraft({ text }): unknown {
     if (!text || text.length < MIN_TEXT_CHARS) {
       return {}
     }
-    if (text.includes('???')) {
-      return structuredClone({
-        ...goBasicExam,
-        doubt_on_seminanonimitzable: true,
-      })
+    if (text.includes(FIXTURE_SENTINEL_REGRESSION_TWO_OPEN_ONLY)) {
+      return structuredClone(templateKoMixedPromptDraft)
     }
-    return structuredClone(goBasicExam)
+    if (text.includes(FIXTURE_SENTINEL_SEMI_STRUCTURED)) {
+      return structuredClone(templateKoUnstableLayoutDraft)
+    }
+    if (text.includes('???') || text.includes(FIXTURE_SENTINEL_AMBIGUOUS)) {
+      return structuredClone(templateKoMixedPromptDraft)
+    }
+    return structuredClone(templateClearViableDraft)
   },
 }

@@ -1,4 +1,5 @@
 import {
+  packFeature0AnalysisResponse,
   parseFeature0AnalysisRequest,
   type Feature0AnalysisResponse,
 } from '../contracts/feature0AnalysisContract'
@@ -27,7 +28,8 @@ export async function handleFeature0AnalysisLlmWithSource(
   source: TemplateDraftSource,
 ): Promise<Feature0AnalysisResponse> {
   const { text } = parseFeature0AnalysisRequest(body)
-  return analyzeExamText({ text }, source)
+  const pipeline = await analyzeExamText({ text }, source)
+  return packFeature0AnalysisResponse(pipeline)
 }
 
 export async function handleFeature0AnalysisLlm(body: unknown): Promise<Feature0AnalysisResponse> {

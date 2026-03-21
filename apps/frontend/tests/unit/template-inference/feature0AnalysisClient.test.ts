@@ -12,9 +12,9 @@ describe('analyzeFeature0', () => {
 
   it('encapsula POST i retorna Feature0AnalysisResponse', async () => {
     const payload = {
-      rawDraft: { x: 1 },
-      normalizedDraft: { x: 1, proposed_limitations: [] },
-      validated: { ok: true, decision: 'apte' as const, reasons: ['§7.2'] },
+      status: 'ok' as const,
+      answer_regions: [{ question_id: '1', page: 1, bbox: { x: 0.1, y: 0.2, w: 0.5, h: 0.1 } }],
+      debug: { rawDraft: {}, normalizedDraft: {} },
     }
     vi.stubGlobal(
       'fetch',
@@ -39,7 +39,7 @@ describe('analyzeFeature0', () => {
     )
   })
 
-  it('status KO → Error amb missatge del cos', async () => {
+  it('status KO Error amb missatge del cos', async () => {
     vi.stubGlobal(
       'fetch',
       vi.fn(
@@ -64,9 +64,9 @@ describe('analyzeFeature0', () => {
         async () =>
           new Response(
             JSON.stringify({
-              rawDraft: {},
-              normalizedDraft: { proposed_limitations: [] },
-              validated: { ok: false, decision: 'no_apte', reasons: [] },
+              status: 'ko',
+              reasons: ['test'],
+              debug: { rawDraft: {}, normalizedDraft: {} },
             }),
             { status: 200, headers: { 'Content-Type': 'application/json' } },
           ),
@@ -80,16 +80,16 @@ describe('analyzeFeature0', () => {
     )
   })
 
-  it('analyzeFeature0WithLlm usa ruta /llm', async () => {
+  it('analyzeFeature0WithLlm usa ruta llm', async () => {
     vi.stubGlobal(
       'fetch',
       vi.fn(
         async () =>
           new Response(
             JSON.stringify({
-              rawDraft: {},
-              normalizedDraft: { proposed_limitations: [] },
-              validated: { ok: false, decision: 'no_apte', reasons: [] },
+              status: 'ko',
+              reasons: [],
+              debug: { rawDraft: {}, normalizedDraft: {} },
             }),
             { status: 200 },
           ),
