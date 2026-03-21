@@ -8,7 +8,7 @@ Només **estat i verificació**. Normativa: **`AGENTS_ARQUITECTURA.md`**. Ordre 
 
 ## Fase
 
-**Foundations + govern documental** — frontend canònic `apps/frontend`, **validació canònica via Docker** (`frontend-check`), manifest `llm.txt`. **Feature 0 (template-inference):** contracte de feasibility en doc; implementació segons tasques PM (sense LLM / PDF / UI fins que es demani).
+**Foundations + govern documental** — frontend canònic `apps/frontend`, **validació canònica via Docker** (`frontend-check`), manifest `llm.txt`. **Feature 0 (template-inference):** contracte `feasibility-definition.md` + **nucli executable** (Zod `exam_feasibility` / `template` + `validateTemplateDraft` pur + fixtures + tests sota `tests/unit/template-inference/`); sense LLM, sense PDF, sense UI.
 
 ---
 
@@ -23,8 +23,8 @@ Només **estat i verificació**. Normativa: **`AGENTS_ARQUITECTURA.md`**. Ordre 
 | Manifest agents | `llm.txt` (índex raw). |
 | Push (aquest entorn) | Remote `git@github.com-laboratori:romros/laboratori_profes.git`; `ssh -T git@github.com-laboratori` OK. **Altres màquines:** calen credencials/SSH pròpies (no depèn d’aquest fitxer). |
 | Legacy | `legacy/figma-prototype/` mogut; **no oficial** (veure `llm.txt` § Legacy). |
-| Feasibility template-inference | Doc commitejat | `docs/features/template-inference/feasibility-definition.md`. |
-| Verificar frontend (inclou Feature 0 quan hi hagi codi) | `./scripts/run_frontend.sh test` · `typecheck` · `lint` · `build` (o `./test.sh` …); **sempre** dins `frontend-check`; 0 xarxa; Node 22 al contenidor. |
+| Feasibility template-inference | Doc + codi domini | Doc: `docs/features/template-inference/feasibility-definition.md`. Codi: `src/domain/template-inference/` (schemas, constants), `src/features/template-inference/services/validateTemplateDraft.ts`, fixtures `fixtures/template-inference/`, tests `tests/unit/template-inference/`. |
+| Verificar frontend / Feature 0 | `./scripts/run_frontend.sh test` · `typecheck` · `lint` · `build` (o `./test.sh` …); **sempre** dins `frontend-check`. |
 
 ---
 
@@ -36,4 +36,4 @@ Només **estat i verificació**. Normativa: **`AGENTS_ARQUITECTURA.md`**. Ordre 
 
 ## Següent pas
 
-Continuar **Feature 0** (schemas, validator, etc.) amb tasques explícites; validar sempre amb `./scripts/run_frontend.sh …` (Docker).
+**Integració** Feature 0: analitzador LLM, parsing PDF, UI — només amb tasca PM; validació prèvia sempre amb `./scripts/run_frontend.sh …` (Docker).
