@@ -23,4 +23,4 @@
 
 **DONE** — validat: `npm ci`, `lint`, `typecheck`, `test`, `build`; servidor de desenvolupament Vite arrenca i respon a `/` (prova en entorn sense `npm` local via imatge `node:22-alpine`).
 
-**Push a GitHub:** pendent al teu entorn (`git push` ha retornat permís denegat per la clau SSH configurada). Cal un remote amb accés (usuari correcte o clau amb permís a `romros/laboratori_profes`).
+**Push a GitHub:** fet — `origin` → `git@github.com-laboratori:romros/laboratori_profes.git` (clau dedicada `id_ed25519_laboratori_profes`, fingerprint `SHA256:rDkTtnLpeec20QWAt16RkQGJZ5rePo77EG/yt68fUZY`).
