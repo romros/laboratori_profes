@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 
 import { analyzeExamText } from '../../../src/features/template-inference/services/llmTemplateAnalyzer'
 import { mockTemplateDraftSource } from '../../../src/features/template-inference/services/mockTemplateDraftSource'
+import { simpleRuleBasedDraftSource } from '../../../src/features/template-inference/services/simpleRuleBasedDraftSource'
 import type { TemplateDraftSource } from '../../../src/features/template-inference/services/templateDraftSource'
 
 describe('analyzeExamText', () => {
@@ -48,5 +49,46 @@ describe('analyzeExamText', () => {
 
     const { rawDraft } = await analyzeExamText({ text: 'async' }, source)
     expect(rawDraft).toEqual({ proposed_limitations: [] })
+  })
+
+  describe('amb simpleRuleBasedDraftSource (pipeline text → draft → validator)', () => {
+    it('text curt → rawDraft buit i validated no_apte', async () => {
+      const { rawDraft, validated } = await analyzeExamText(
+        { text: 'curt' },
+        simpleRuleBasedDraftSource,
+      )
+
+      expect(rawDraft).toEqual({})
+      expect(validated.ok).toBe(false)
+      if (!validated.ok) {
+        expect(validated.decision).toBe('no_apte')
+      }
+    })
+
+    it('text amb ??? → no_apte (dubte §6)', async () => {
+      const { rawDraft, validated } = await analyzeExamText(
+        { text: '1234567890 amb ???' },
+        simpleRuleBasedDraftSource,
+      )
+
+      expect((rawDraft as Record<string, unknown>).doubt_on_seminanonimitzable).toBe(true)
+      expect(validated.ok).toBe(false)
+      if (!validated.ok) {
+        expect(validated.decision).toBe('no_apte')
+        expect(validated.reasons.some((r) => r.includes('§6'))).toBe(true)
+      }
+    })
+
+    it('text vàlid → apte (go-basic)', async () => {
+      const { validated } = await analyzeExamText(
+        { text: '1234567890 examen sense ambigüitat' },
+        simpleRuleBasedDraftSource,
+      )
+
+      expect(validated.ok).toBe(true)
+      if (validated.ok) {
+        expect(validated.decision).toBe('apte')
+      }
+    })
   })
 })
