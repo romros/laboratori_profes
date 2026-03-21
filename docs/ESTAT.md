@@ -22,7 +22,7 @@ Només **estat i verificació**. Normativa: **`AGENTS_ARQUITECTURA.md`**. Ordre 
 | CI | `.github/workflows/ci.yml`: `docker compose run --rm frontend-check sh -c "npm ci && npm run lint && …"` (mateix contenidor que local). |
 | Docker | `docker compose up --build` → servei **frontend** (nginx). Validació: servei **frontend-check** (veure `docker-compose.yml`). |
 | Manifest agents | `llm.txt` (índex raw). |
-| Push (aquest entorn) | Remote `git@github.com-laboratori:romros/laboratori_profes.git`; `ssh -T git@github.com-laboratori` OK. **Altres màquines:** calen credencials/SSH pròpies (no depèn d’aquest fitxer). |
+| Push | Remote canònic: `git@github.com:romros/laboratori_profes.git`. Si tens **més d’una clau SSH** a GitHub (p. ex. deploy key només per aquest repo), al clon local: `git config core.sshCommand "ssh -i ~/.ssh/id_ed25519_laboratori_profes -o IdentitiesOnly=yes"` (ajusta el camí de la clau privada). Sense això, SSH pot triar una altra clau i donar *Permission denied to deploy key*. |
 | Legacy | `legacy/figma-prototype/` mogut; **no oficial** (veure `llm.txt` § Legacy). |
 | Feature 0 template / regions | Doc + codi | Doc: `feasibility-definition.md` (context històric) + `docs/product-context.md`. Domini: `template_feasibility.schema.ts`, `template.schema.ts` (`regionSchema`). Feature: `validateTemplateFeasibility`, plugin Vite `feature0AnalysisApiPlugin.ts`, tests unit/integration sota `tests/…/template-inference/`. |
 | Verificar frontend / Feature 0 | `./scripts/run_frontend.sh test` · `typecheck` · `lint` · `build` (o `./test.sh` …); **sempre** dins `frontend-check`. Inclou casos canònics Feature 0 (`feature0CanonicalCases.test.ts`). |
