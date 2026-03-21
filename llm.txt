@@ -24,6 +24,8 @@ Raw: `https://raw.githubusercontent.com/romros/laboratori_profes/main/`
    https://raw.githubusercontent.com/romros/laboratori_profes/main/docs/roadmap.md
 8. `docs/plantilla_tasca.md`  
    https://raw.githubusercontent.com/romros/laboratori_profes/main/docs/plantilla_tasca.md
+9. `docs/features/template-inference/feasibility-definition.md` — contracte go/no-go (Feature 0, sense implementació encara)  
+   https://raw.githubusercontent.com/romros/laboratori_profes/main/docs/features/template-inference/feasibility-definition.md
 
 ## Legacy (no oficial — no usar com a base de producte)
 
