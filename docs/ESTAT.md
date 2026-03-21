@@ -1,26 +1,46 @@
-# Estat del projecte
+# Estat del projecte (operatiu)
 
-**Darrera actualització:** 2025-03-21
+**Darrera actualització:** 2026-03-21
+
+**Normativa arquitectònica:** `AGENTS_ARQUITECTURA.md` (invariants, capes, imports, DoD). **Aquest fitxer** resumeix què està fet, com ho verifiques i què ve després.
+
+---
 
 ## Fase actual
 
-**Foundations** — repo canònic inicialitzat: frontend oficial a `apps/frontend`, documentació mínima, CI, capes `app` / `domain` / `features` / `infrastructure` / `shared`.
+**Foundations + governança d’agents** — repo canònic, frontend a `apps/frontend`, CI, Docker, documentació normativa reforçada. **Feature 0 no iniciada** (sense lògica de producte acordada).
 
-## Què està fet
+---
 
-- Monorepo npm (`apps/*`); frontend Vite + React + TypeScript.
-- Zod, Vitest, ESLint, Prettier; scripts `dev`, `build`, `test`, `lint`, `typecheck`.
-- GitHub Actions: lint, typecheck, test, build.
-- Docker Compose apunta al build del monorepo (`apps/frontend`).
-- Prototip Figma anterior mogut a `legacy/figma-prototype` (no oficial).
+## Què està tancat
 
-## Què no està fet encara
+| Àmbit | Estat | Evidència / com verificar-ho |
+|--------|--------|------------------------------|
+| Monorepo + frontend canònic | Fet | `apps/frontend/` existeix; `npm run dev` arrenca Vite. |
+| Tooling | Fet | Des de l’arrel: `npm ci` (o `npm install`), després `npm run lint`, `typecheck`, `test`, `build`. |
+| CI | Fet | Workflow `.github/workflows/ci.yml` (lint, typecheck, test, build). |
+| Docker | Fet | `docker compose build` amb context arrel (veure `docker-compose.yml`). |
+| Prototip no oficial | Mogut | `legacy/figma-prototype/` (no és el producte oficial). |
+| Plantilla de tasques | Fet | `docs/plantilla_tasca.md`. |
+| Push GitHub | Fet | Remote `git@github.com-laboratori:romros/laboratori_profes.git`; `ssh -T git@github.com-laboratori` → missatge d’èxit GitHub. |
+| Governança agents | Fet | `AGENTS_ARQUITECTURA.md` normatiu; aquest `ESTAT.md` alineat. |
 
-- Feature 0 i qualsevol lògica de producte real.
-- Backend, OCR, PDF.js, schemas de negoci reals.
+---
 
-## Estat de la tasca «foundations»
+## Què falta (alt nivell)
 
-**DONE** — validat: `npm ci`, `lint`, `typecheck`, `test`, `build`; servidor de desenvolupament Vite arrenca i respon a `/` (prova en entorn sense `npm` local via imatge `node:22-alpine`).
+- **Feature 0** (definició + implementació quan el PM obri la tasca).
+- Backend, OCR, PDF.js, schemas de negoci reals (fora d’aquesta fase).
 
-**Push a GitHub:** fet — `origin` → `git@github.com-laboratori:romros/laboratori_profes.git` (clau dedicada `id_ed25519_laboratori_profes`, fingerprint `SHA256:rDkTtnLpeec20QWAt16RkQGJZ5rePo77EG/yt68fUZY`).
+---
+
+## Següent pas recomanat
+
+1. Obrir tasca de **Feature 0** amb abast i criteris DoD explícits (respectant `AGENTS_ARQUITECTURA.md`).
+2. Fins llavors: **no** afegir lògica de producte al frontend excepte tasques escrites que ho autoritzin.
+
+---
+
+## Històric curt (tasques grans)
+
+- **Foundations:** DONE — validació amb `npm ci` / `lint` / `typecheck` / `test` / `build` (en entorns sense `npm` local s’ha validat amb imatge `node:22-alpine`).
