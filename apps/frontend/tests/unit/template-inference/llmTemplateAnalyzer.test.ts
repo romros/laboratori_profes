@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest'
 
+import { goBasicExam } from '../../../fixtures/template-inference/go-basic'
 import { analyzeExamText } from '../../../src/features/template-inference/services/llmTemplateAnalyzer'
+import { llmTemplateDraftSourceStub } from '../../../src/features/template-inference/services/llmTemplateDraftSourceStub'
 import { mockTemplateDraftSource } from '../../../src/features/template-inference/services/mockTemplateDraftSource'
 import { simpleRuleBasedDraftSource } from '../../../src/features/template-inference/services/simpleRuleBasedDraftSource'
 import type { TemplateDraftSource } from '../../../src/features/template-inference/services/templateDraftSource'
@@ -85,6 +87,25 @@ describe('analyzeExamText', () => {
         simpleRuleBasedDraftSource,
       )
 
+      expect(validated.ok).toBe(true)
+      if (validated.ok) {
+        expect(validated.decision).toBe('apte')
+      }
+    })
+  })
+
+  describe('amb llmTemplateDraftSourceStub (seam LLM sense API)', () => {
+    it('analyzeExamText retorna rawDraft, normalizedDraft i validated coherents', async () => {
+      const { rawDraft, normalizedDraft, validated } = await analyzeExamText(
+        { text: '1234567890 pipeline stub LLM' },
+        llmTemplateDraftSourceStub,
+      )
+
+      expect(rawDraft).toEqual(goBasicExam)
+      expect(typeof normalizedDraft).toBe('object')
+      expect(Array.isArray((normalizedDraft as Record<string, unknown>).proposed_limitations)).toBe(
+        true,
+      )
       expect(validated.ok).toBe(true)
       if (validated.ok) {
         expect(validated.decision).toBe('apte')
