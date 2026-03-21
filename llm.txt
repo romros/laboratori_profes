@@ -1,0 +1,50 @@
+# laboratori_profes — lectura obligada per a models / agents
+
+Repositori: https://github.com/romros/laboratori_profes  
+Base raw (substitueix `main` per una altra branca o commit si cal):  
+`https://raw.githubusercontent.com/romros/laboratori_profes/main/`
+
+Llegeix aquests fitxers en ordre abans de proposar canvis de codi o arquitectura.
+
+## Obligatori (normativa + estat + context)
+
+1. AGENTS_ARQUITECTURA.md (normativa estable)  
+   https://raw.githubusercontent.com/romros/laboratori_profes/main/AGENTS_ARQUITECTURA.md
+
+2. docs/ESTAT.md (estat operatiu, verificació, següent pas)  
+   https://raw.githubusercontent.com/romros/laboratori_profes/main/docs/ESTAT.md
+
+3. docs/architecture.md  
+   https://raw.githubusercontent.com/romros/laboratori_profes/main/docs/architecture.md
+
+4. docs/engineering-rules.md  
+   https://raw.githubusercontent.com/romros/laboratori_profes/main/docs/engineering-rules.md
+
+5. README.md (arrel del repo, scripts, Docker)  
+   https://raw.githubusercontent.com/romros/laboratori_profes/main/README.md
+
+## Recomanat (producte i tasques)
+
+6. docs/product-context.md  
+   https://raw.githubusercontent.com/romros/laboratori_profes/main/docs/product-context.md
+
+7. docs/roadmap.md  
+   https://raw.githubusercontent.com/romros/laboratori_profes/main/docs/roadmap.md
+
+8. docs/plantilla_tasca.md  
+   https://raw.githubusercontent.com/romros/laboratori_profes/main/docs/plantilla_tasca.md
+
+## Opcional (legacy, no oficial)
+
+9. legacy/figma-prototype/README.md  
+   https://raw.githubusercontent.com/romros/laboratori_profes/main/legacy/figma-prototype/README.md
+
+10. legacy/figma-prototype/ATTRIBUTIONS.md  
+    https://raw.githubusercontent.com/romros/laboratori_profes/main/legacy/figma-prototype/ATTRIBUTIONS.md
+
+11. legacy/figma-prototype/guidelines/Guidelines.md  
+    https://raw.githubusercontent.com/romros/laboratori_profes/main/legacy/figma-prototype/guidelines/Guidelines.md
+
+---
+Aquest fitxer també en raw:  
+https://raw.githubusercontent.com/romros/laboratori_profes/main/llm.txt
