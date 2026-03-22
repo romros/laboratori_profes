@@ -2,11 +2,11 @@
 
 **Vertical de producte (definició formal):** extreure **text de resposta per pregunta** des d'un **examen escanejat d'alumne**, enfoc **text-first** i **scan-first** (OCR + segmentació per preguntes).
 
-| Estat                | On                                                                                                                                                                                                                      |
-| -------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Definició**        | `mvp-definition.md`                                                                                                                                                                                                     |
-| **Spike (pas 1)**    | Codi a `apps/frontend/src/features/question-answer-extraction/` + `infrastructure/ocr/`; execució: `npm run spike:qae -- [camí.pdf]` (des de `apps/frontend`). PDF d’exemple local: `data/ex_alumne1.pdf` (gitignored). |
-| **Producte estable** | Pendent: contracte a `domain/`, sense reutilitzar l’spike com a API final.                                                                                                                                              |
+| Estat                | On                                                                                                                                                                                                                                                                             |
+| -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **Definició**        | `mvp-definition.md`                                                                                                                                                                                                                                                            |
+| **Spike (pas 1–2)**  | Mateix codi; **pas 2:** OCR només **`cat`**, `dedupeQuestionMarkersByFirstId`, truncament si bloc > ~2800 chars (pàgina / paràgraf), `stripTrailingBoilerplateLines`. `npm run spike:qae -- [camí.pdf]` des de `apps/frontend`. PDF local: `data/ex_alumne1.pdf` (gitignored). |
+| **Producte estable** | Pendent: contracte a `domain/`, sense reutilitzar l’spike com a API final.                                                                                                                                                                                                     |
 
 ## Lectura obligatòria per implementar
 

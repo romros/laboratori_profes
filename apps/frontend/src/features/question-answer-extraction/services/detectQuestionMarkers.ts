@@ -44,3 +44,18 @@ export function findQuestionMarkers(fullText: string): QuestionMarkerHit[] {
 
   return deduped
 }
+
+/**
+ * Pas 2 (MVP): elimina marcadors duplicats del mateix `question_id` (capçalera/peu OCR).
+ * Conservar la primera aparicio per cada question_id; descartar la resta (MVP pas 2).
+ */
+export function dedupeQuestionMarkersByFirstId(markers: QuestionMarkerHit[]): QuestionMarkerHit[] {
+  const seen = new Set<string>()
+  const out: QuestionMarkerHit[] = []
+  for (const h of markers) {
+    if (seen.has(h.question_id)) continue
+    seen.add(h.question_id)
+    out.push(h)
+  }
+  return out
+}

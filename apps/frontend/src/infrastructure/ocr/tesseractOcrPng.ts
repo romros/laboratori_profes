@@ -1,9 +1,13 @@
 import { createWorker } from 'tesseract.js'
 
-const DEFAULT_LANGS = 'cat+eng'
+/**
+ * MVP pas 2: OCR **només en català** (`cat`), sense barreja amb anglès per defecte.
+ * Si en un document concret el model cat falla massa, es pot valorar fallback explícit en tasca posterior.
+ */
+const DEFAULT_LANGS = 'cat'
 
 /**
- * OCR per pagina (PNG). Un sol worker per tot el document (spike).
+ * OCR per pàgina (PNG). Un sol worker per tot el document (spike).
  */
 export async function ocrPngBuffersWithTesseract(
   pngPages: Buffer[],

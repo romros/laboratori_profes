@@ -4,6 +4,13 @@ import type { QuestionMarkerHit } from './detectQuestionMarkers'
 
 const MIN_EMPTY_CHARS = 8
 
+/** Evita blocs gegants si el següent marcador OCR arriba tard (spike pas 2). */
+/** Blocs més curts que a pas 1: força talls a canvi de pàgina / paràgraf si el següent marcador és lluny. */
+const MAX_SLICE_CHARS_BEFORE_SOFT_SPLIT = 2800
+
+/** Proporció mínima del límit on acceptar un tall per pàgina o paràgraf. */
+const MIN_HEAD_FRACTION_FOR_SPLIT = 0.35
+
 /** Darrer sentinel <<<PAGE n>>> abans de `index` (per defecte 1). */
 function lastPageBefore(fullText: string, index: number): number {
   const before = fullText.slice(0, index)
@@ -33,6 +40,49 @@ function stripPageTags(s: string): string {
     .trim()
 }
 
+const BOILERPLATE_LINE = /^(Generalitat|INS |Departament|AVALUACI|III |ALL INS|©|page\s+\d)/i
+
+/** Treu línies finals típiques de peu de pàgina institucional (OCR repetit). */
+export function stripTrailingBoilerplateLines(s: string): string {
+  const lines = s.split('\n')
+  while (lines.length > 0) {
+    const L = lines[lines.length - 1]?.trim() ?? ''
+    if (L.length === 0) {
+      lines.pop()
+      continue
+    }
+    if (BOILERPLATE_LINE.test(L)) {
+      lines.pop()
+      continue
+    }
+    break
+  }
+  return lines.join('\n').trim()
+}
+
+/**
+ * Si el tall entre marcadors és massa llarg, talla abans del darrer límit de pàgina
+ * o paràgraf doble dins del límit, i afegeix nota explícita (sense NLP).
+ */
+export function truncateOversizedSlice(slice: string): string {
+  if (slice.length <= MAX_SLICE_CHARS_BEFORE_SOFT_SPLIT) return slice
+
+  const head = slice.slice(0, MAX_SLICE_CHARS_BEFORE_SOFT_SPLIT)
+  const minPos = Math.floor(MAX_SLICE_CHARS_BEFORE_SOFT_SPLIT * MIN_HEAD_FRACTION_FOR_SPLIT)
+
+  const pageBreak = head.lastIndexOf('\n<<<PAGE ')
+  if (pageBreak >= minPos) {
+    return `${head.slice(0, pageBreak).trimEnd()}\n\n[… spike pas 2: tall al canvi de pàgina (límit mida) …]`
+  }
+
+  const paraBreak = head.lastIndexOf('\n\n')
+  if (paraBreak >= minPos) {
+    return `${head.slice(0, paraBreak).trimEnd()}\n\n[… spike pas 2: tall en blanc doble (límit mida) …]`
+  }
+
+  return `${head.trimEnd()}\n\n[… spike pas 2: tall per límit d extensio sense tall net …]`
+}
+
 function classifyBlock(raw: string): QuestionAnswerExtractionSpikeItem['status'] {
   const t = stripPageTags(raw)
   if (t.length < MIN_EMPTY_CHARS) return 'empty'
@@ -42,7 +92,7 @@ function classifyBlock(raw: string): QuestionAnswerExtractionSpikeItem['status']
 }
 
 /**
- * Segmenta el text entre un marcador i el següent; infereix `page_indices` via sentinels `<<<PAGE n>>>`.
+ * Segmenta el text entre marcadors; aplica truncament suau i neteja de peus.
  */
 export function segmentByQuestionMarkers(
   fullText: string,
@@ -54,8 +104,9 @@ export function segmentByQuestionMarkers(
   for (let i = 0; i < markers.length; i++) {
     const start = markers[i].index + markers[i].matchLength
     const end = i + 1 < markers.length ? markers[i + 1].index : fullText.length
-    const slice = fullText.slice(start, end)
-    const raw_text_block = stripPageTags(slice)
+    let slice = fullText.slice(start, end)
+    slice = truncateOversizedSlice(slice)
+    const raw_text_block = stripTrailingBoilerplateLines(stripPageTags(slice))
     const fromSentinels = pagesInSlice(slice)
     const startPage = lastPageBefore(fullText, markers[i].index)
     const pageSet = new Set<number>([startPage, ...fromSentinels])
