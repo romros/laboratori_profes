@@ -92,7 +92,53 @@ function classifyBlock(raw: string): QuestionAnswerExtractionSpikeItem['status']
 }
 
 /**
- * Segmenta el text entre marcadors; aplica truncament suau i neteja de peus.
+ * Detecta si una línia és part de l'enunciat de la pregunta (text imprès del professor).
+ *
+ * Senyals: conté puntuació entre parèntesis `(X punts)` / `(X,XX punts)` / `(X,XX pu`
+ * (OCR brut pot tallar "punts"). La puntuació és el senyal més fiable perquè apareix
+ * al text imprès de l'enunciat i gairebé mai a la resposta manuscrita.
+ */
+const SCORE_PATTERN = /\(\s*\d+[.,]\d*\s*p/i
+
+/**
+ * Elimina les primeres línies d'un bloc que són clarament l'enunciat de la pregunta.
+ *
+ * Estratègia conservadora:
+ * - Busca el patró de puntuació `(X punts)` a les primeres MAX_STATEMENT_LINES línies
+ * - Talla fins a la línia que conté el patró (inclosa), ja que l'enunciat sol acabar allà
+ * - Si treure les línies deixa menys de MIN_ANSWER_CHARS, conserva tot (no arriscar)
+ *
+ * Exemples de línies d'enunciat (poden ocupar 1 o 2 línies):
+ *   "Creació de la taula Biblioteca amb les restriccions corresponents. (0.75 punts)"
+ *   "Inserir un hospital amb codi 1 ubicat al carrer Sant Joan,\nnúmero 50, ... (0,33 punts)"
+ */
+const MIN_ANSWER_CHARS = 20
+const MAX_STATEMENT_LINES = 4
+
+export function stripLeadingQuestionStatement(block: string): string {
+  const lines = block.split('\n')
+
+  // Busca la darrera línia dins les primeres MAX_STATEMENT_LINES que conté puntuació
+  let cutTo = 0
+  const limit = Math.min(lines.length, MAX_STATEMENT_LINES)
+  for (let i = 0; i < limit; i++) {
+    if (SCORE_PATTERN.test(lines[i])) {
+      cutTo = i + 1
+    }
+  }
+
+  if (cutTo === 0) return block
+
+  const rest = lines.slice(cutTo).join('\n').trim()
+  // Conservador: si el que queda és massa curt, no tallar
+  if (rest.length < MIN_ANSWER_CHARS) return block
+
+  return rest
+}
+
+/**
+ * Segmenta el text entre marcadors; aplica truncament suau, neteja de peus,
+ * i eliminació de l'enunciat inicial de cada bloc.
  */
 export function segmentByQuestionMarkers(
   fullText: string,
@@ -106,7 +152,8 @@ export function segmentByQuestionMarkers(
     const end = i + 1 < markers.length ? markers[i + 1].index : fullText.length
     let slice = fullText.slice(start, end)
     slice = truncateOversizedSlice(slice)
-    const raw_text_block = stripTrailingBoilerplateLines(stripPageTags(slice))
+    let raw_text_block = stripTrailingBoilerplateLines(stripPageTags(slice))
+    raw_text_block = stripLeadingQuestionStatement(raw_text_block)
     const fromSentinels = pagesInSlice(slice)
     const startPage = lastPageBefore(fullText, markers[i].index)
     const pageSet = new Set<number>([startPage, ...fromSentinels])

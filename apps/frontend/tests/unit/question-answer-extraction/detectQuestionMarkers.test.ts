@@ -7,6 +7,7 @@ import {
 } from '../../../src/features/question-answer-extraction/services/detectQuestionMarkers'
 import {
   segmentByQuestionMarkers,
+  stripLeadingQuestionStatement,
   stripTrailingBoilerplateLines,
   truncateOversizedSlice,
 } from '../../../src/features/question-answer-extraction/services/segmentByQuestionMarkers'
@@ -121,6 +122,45 @@ describe('truncateOversizedSlice', () => {
     expect(out).toMatch(/canvi de pàgina|tall al canvi/)
     expect(out).not.toContain('bbbb')
     expect(out.length).toBeLessThan(slice.length)
+  })
+})
+
+describe('stripLeadingQuestionStatement', () => {
+  it('elimina linia inicial amb puntuacio (X punts)', () => {
+    const block =
+      'Creació de la taula Biblioteca amb les restriccions corresponents. (0.75 punts)\nCREATE TABLE Biblioteca (\nid INT PRIMARY KEY\n);'
+    const result = stripLeadingQuestionStatement(block)
+    expect(result).not.toContain('0.75 punts')
+    expect(result).toContain('CREATE TABLE')
+  })
+
+  it('elimina enunciat amb puntuacio OCR brut (punts tallat)', () => {
+    const block =
+      'Inserir un hospital amb codi 1 ubicat al carrer Sant Joan. (0,33 punts) Sal\n233\n: 3\n4322 23344).'
+    const result = stripLeadingQuestionStatement(block)
+    expect(result).not.toContain('Inserir un hospital')
+    expect(result).toContain('233')
+  })
+
+  it('conserva tot si no hi ha patro de puntuacio', () => {
+    const block = 'CREATE TABLE foo (\nid INT PRIMARY KEY\n);'
+    const result = stripLeadingQuestionStatement(block)
+    expect(result).toBe(block)
+  })
+
+  it('conserva tot si treure enunciat deixa menys de 20 chars', () => {
+    const block = 'Creació de la taula. (0.75 punts)\nOK'
+    const result = stripLeadingQuestionStatement(block)
+    expect(result).toBe(block)
+  })
+
+  it('elimina multiples linies consecutives si totes tenen puntuacio', () => {
+    const block =
+      'Creació de la taula Soci. (0,75 punts)\nAmb restriccions. (0,5 punts)\nCREATE TABLE Soci (\nid INT PRIMARY KEY\n);'
+    const result = stripLeadingQuestionStatement(block)
+    expect(result).not.toContain('0,75 punts')
+    expect(result).not.toContain('0,5 punts')
+    expect(result).toContain('CREATE TABLE')
   })
 })
 
