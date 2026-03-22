@@ -1,6 +1,6 @@
 # Estat del projecte (operatiu)
 
-**Darrera actualització:** 2026-03-22
+**Darrera actualització:** 2026-03-22 (tancament Feature 1 QAE)
 
 Només **estat i verificació**. Normativa: **`AGENTS_ARQUITECTURA.md`**. Ordre de lectura: **`llm.txt`**.
 
@@ -43,4 +43,10 @@ Només **estat i verificació**. Normativa: **`AGENTS_ARQUITECTURA.md`**. Ordre 
 
 ## Següent pas
 
-Segons prioritat de PM: **Feature 0** (coordenades reals / layout) **o** **`question-answer-extraction`** (consum estable des d’API o flux producte). Validació habitual: `./scripts/run_frontend.sh …` (Docker).
+**Feature 1 QAE tancada** (MVP validat). Prioritats pendents (decidir amb PM):
+
+- **Feature 0** — coordenades de pàgina reals, backend fora del middleware Vite.
+- **QAE — millores OCR** — preprocessing imatge (contrast, binarització) per alumne4 i casos d’OCR molt brut.
+- **QAE — postprocessat LLM** — millorar `answer_text` amb model en casos d’OCR dubtós.
+
+Validació habitual: `./scripts/run_frontend.sh …` (Docker).

@@ -28,7 +28,7 @@ Raw: `https://raw.githubusercontent.com/romros/laboratori_profes/main/`
    https://raw.githubusercontent.com/romros/laboratori_profes/main/docs/features/template-inference/feasibility-definition.md
 10. `docs/features/question-answer-extraction/README.md` — índex vertical **examen alumne / OCR / text per pregunta** (ortogonal a Feature 0)  
    https://raw.githubusercontent.com/romros/laboratori_profes/main/docs/features/question-answer-extraction/README.md
-11. `docs/features/question-answer-extraction/mvp-definition.md` — **contracte conceptual MVP** (`question_id`, `answer_text`, `status`); sense codi encara  
+11. `docs/features/question-answer-extraction/mvp-definition.md` — **contracte conceptual MVP** (`question_id`, `answer_text`, `status`); **MVP implementat i validat** (servei Docker, nginx proxy, demo `/demo/qae`, 4 PDFs reals, 122 tests)
    https://raw.githubusercontent.com/romros/laboratori_profes/main/docs/features/question-answer-extraction/mvp-definition.md
 
 ## Legacy (no oficial — no usar com a base de producte)
