@@ -1,4 +1,3 @@
-#!/usr/bin/env npx tsx
 /**
  * Harness local: processa un PDF d’examen d’alumne i imprimeix JSON del spike.
  * Ús (des de apps/frontend): npm run spike:qae -- [camí/al.pdf]
