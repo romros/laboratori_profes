@@ -12,6 +12,22 @@
 | **Docker (proxy nginx)** | `docker compose up --build -d` arrenca serveis **frontend** (nginx, 9088/9443) + **qae-api** (Node 22, permanent). Nginx fa **proxy invers** de `/api/…` cap a `qae-api:8787` (xarxa interna Docker, sense ports exposats ni firewall extra). Tot passa per un sol port. Demo: `http://<IP>:9088/demo/qae`. |
 | **Consum (pas 4–4.1)** | Façana: **`features/question-answer-extraction/server/questionAnswerExtractionHttpRoute.ts`**. Reexport app: **`app/question-answer-extraction/index.ts`**. Constants dev: **`features/question-answer-extraction/dev/qaeDevServerConstants.ts`** (path, port, env). **Èxit (200):** `{ result, diagnostic }` (contracte domini + diagnòstic). **Error (400 / 413 / 500):** `{ "error": { "code", "message" } }` amb codis estables (`invalid_multipart`, `missing_file`, `payload_too_large`, `invalid_pdf`, `processing_failed`, `internal_error`). *Motiu servidor Node apart:* el pipeline OCR no pot carregar-se al bundle del `vite.config` sense trencar `vite build`. Smoke sense HTTP: `npm run smoke:qae-facade -- [camí.pdf]`. Harness JSON: `npm run spike:qae -- [camí.pdf]`. PDF local: `data/ex_alumne1.pdf` (gitignored). **Vite dev local:** `npm run dev:qae-api` (port 8787 al host). |
 
+## Iteració següent — millora OCR (dins Feature 1)
+
+**Problema:** errors residuals per OCR deficient en casos difícils (ex: `ex_alumne4`) — text il·legible, falsos positius al regex tolerant, blocs que absorbeixen múltiples preguntes.
+
+**Estratègia:** benchmark → decisió → implementació. No és nova feature.
+
+**Benchmark executat (2026-03-22):** `docs/benchmarks/ocr-benchmark-2026-03-22.md`
+
+**Resultat:** cap configuració Tesseract.js (cat, cat+spa, PSM3, PSM6) millora prou els casos crítics. El text d'`ex_alumne4` és soroll pur per a tots els motors — el tuning de paràmetres no és suficient.
+
+**Decisió:** ⚠️ **explorar motor OCR alternatiu LOCAL** (Tesseract CLI natiu, easyocr local, paddleocr local). Cap API cloud — dades personals d'alumnes.
+
+**Restricció de privacitat:** tot el processament OCR ha de ser local (servidor o navegador). Cap API cloud acceptable.
+
+---
+
 ## Lectura obligatòria per implementar
 
 - **`mvp-definition.md`** — contracte conceptual MVP, abast, fora d'abast, decisions de domini, decisions obertes, relació amb Feature 0.
