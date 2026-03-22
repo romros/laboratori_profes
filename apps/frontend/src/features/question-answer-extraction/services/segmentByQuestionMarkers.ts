@@ -39,7 +39,8 @@ function stripPageTags(s: string): string {
     .trim()
 }
 
-const BOILERPLATE_LINE = /^(Generalitat|INS |Departament|AVALUACI|III |ALL INS|©|page\s+\d)/i
+const BOILERPLATE_LINE =
+  /^(Generalitat|INS |Departament|AVALUACI|III |ALL INS|©|page\s+\d|P[àa]g[ri][ne]a?\s+\d|Es demana)/i
 
 /** Treu línies finals típiques de peu de pàgina institucional (OCR repetit). */
 export function stripTrailingBoilerplateLines(s: string): string {

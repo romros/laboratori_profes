@@ -140,8 +140,8 @@ export function QaeDemoPage({ onBack }: Props) {
         </button>
         <h1>Demo QAE (question-answer-extraction)</h1>
         <p className="qae-demo__hint">
-          API QAE integrada via nginx proxy. Endpoint: <code>{apiUrl}</code>{' '}
-          (override: <code>VITE_QAE_API_BASE_URL</code>; Vite dev local: <code>npm run dev:qae-api</code>).
+          API QAE integrada via nginx proxy. Endpoint: <code>{apiUrl}</code> (override:{' '}
+          <code>VITE_QAE_API_BASE_URL</code>; Vite dev local: <code>npm run dev:qae-api</code>).
         </p>
       </header>
 

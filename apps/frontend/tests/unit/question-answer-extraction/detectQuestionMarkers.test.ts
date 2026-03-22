@@ -22,6 +22,57 @@ Pregunta 3 Encara més text per la tercera part.
     const m = findQuestionMarkers(text)
     expect(m.map((x) => x.question_id)).toEqual(['1', '2', '3'])
   })
+
+  it("detecta marcadors sense punt quan segueix paraula d'enunciat (OCR brut)", () => {
+    const text = `
+<<<PAGE 1>>>
+1. Creació de la taula Biblioteca.
+2. Creació de la taula Soci.
+<<<PAGE 2>>>
+4 creació de ha tala
+<<<PAGE 3>>>
+5 Creació de ia ta Reserva
+6 Creació Oe la taula Multa
+`
+    const m = findQuestionMarkers(text)
+    const ids = m.map((x) => x.question_id)
+    expect(ids).toContain('1')
+    expect(ids).toContain('2')
+    expect(ids).toContain('4')
+    expect(ids).toContain('5')
+    expect(ids).toContain('6')
+  })
+
+  it("no genera fals positiu amb numeros solts sense paraula d'enunciat", () => {
+    const text = `
+<<<PAGE 1>>>
+1. Resposta correcta.
+El valor 42 no hauria de ser marcador.
+Hi ha 3 taules i 15 columnes.
+`
+    const m = findQuestionMarkers(text)
+    expect(m.map((x) => x.question_id)).toEqual(['1'])
+  })
+
+  it('deduplicacio proxima: no duplica si regex estricte i tolerant cauen al mateix lloc', () => {
+    const text = `
+1. Creació de la taula Foo.
+`
+    const m = findQuestionMarkers(text)
+    const ones = m.filter((x) => x.question_id === '1')
+    expect(ones).toHaveLength(1)
+  })
+
+  it('tolerant detecta Inserir, Assignar, Esborrar, Registrar', () => {
+    const text = `
+7 Inserir un hospital
+8 Assignar una habitacio
+9 Esborrar totes les visites
+10 Registrar una visita
+`
+    const m = findQuestionMarkers(text)
+    expect(m.map((x) => x.question_id)).toEqual(['7', '8', '9', '10'])
+  })
 })
 
 describe('dedupeQuestionMarkersByFirstId', () => {
@@ -41,6 +92,16 @@ describe('stripTrailingBoilerplateLines', () => {
   it('elimina peus institucionals tipics', () => {
     const s = 'Resposta SQL aqui.\n\nGeneralitat de Catalunya'
     expect(stripTrailingBoilerplateLines(s)).toBe('Resposta SQL aqui.')
+  })
+
+  it('elimina peu de pagina OCR brut (Pagina N de M)', () => {
+    const s = 'SELECT * FROM taula\n\nPàgina 3 de 6'
+    expect(stripTrailingBoilerplateLines(s)).toBe('SELECT * FROM taula')
+  })
+
+  it('elimina linia Es demana al final', () => {
+    const s = 'Bloc de resposta.\n\nEs demana:'
+    expect(stripTrailingBoilerplateLines(s)).toBe('Bloc de resposta.')
   })
 })
 
