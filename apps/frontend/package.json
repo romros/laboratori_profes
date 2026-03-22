@@ -11,7 +11,9 @@
     "lint": "eslint . && prettier --check .",
     "format": "prettier --write .",
     "typecheck": "tsc --noEmit -p tsconfig.app.json && tsc --noEmit -p tsconfig.node.json",
-    "spike:qae": "tsx --tsconfig tsconfig.app.json scripts/questionAnswerSpike.ts"
+    "spike:qae": "tsx --tsconfig tsconfig.app.json scripts/questionAnswerSpike.ts",
+    "smoke:qae-facade": "tsx --tsconfig tsconfig.app.json scripts/qaeFacadeSmoke.ts",
+    "dev:qae-api": "tsx --tsconfig tsconfig.app.json scripts/qaeLocalApiServer.ts"
   },
   "dependencies": {
     "busboy": "^1.6.0",

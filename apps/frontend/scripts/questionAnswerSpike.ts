@@ -1,5 +1,6 @@
 /**
  * Harness local: processa un PDF d’examen d’alumne i imprimeix JSON amb sortida estable + diagnòstic.
+ * Consum HTTP (dev): `npm run dev:qae-api` → POST multipart `file` a `http://127.0.0.1:8787/api/question-answer-extraction`.
  * Ús (des de apps/frontend): npm run spike:qae -- [camí/al.pdf]
  * Per defecte: ../../data/ex_alumne1.pdf (arrel del monorepo, fora de git).
  */
