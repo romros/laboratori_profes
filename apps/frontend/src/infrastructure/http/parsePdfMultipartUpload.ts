@@ -4,12 +4,16 @@ import type { IncomingMessage } from 'node:http'
 /** Límit per defecte per pujada PDF al middleware Vite (exàmens). */
 export const DEFAULT_PDF_UPLOAD_MAX_BYTES = 12 * 1024 * 1024
 
+export type PdfMultipartErrorCode = 'invalid_multipart' | 'missing_file' | 'payload_too_large'
+
 export class PdfMultipartParseError extends Error {
   readonly statusCode: number
-  constructor(statusCode: number, message: string) {
+  readonly code: PdfMultipartErrorCode
+  constructor(statusCode: number, code: PdfMultipartErrorCode, message: string) {
     super(message)
     this.name = 'PdfMultipartParseError'
     this.statusCode = statusCode
+    this.code = code
   }
 }
 
@@ -38,7 +42,11 @@ export function parsePdfMultipartUpload(
   const ct = req.headers['content-type']
   if (typeof ct !== 'string' || !ct.toLowerCase().includes('multipart/form-data')) {
     return Promise.reject(
-      new PdfMultipartParseError(400, 'Cal Content-Type multipart/form-data amb el PDF.'),
+      new PdfMultipartParseError(
+        400,
+        'invalid_multipart',
+        'Cal Content-Type multipart/form-data amb el PDF.',
+      ),
     )
   }
 
@@ -69,12 +77,24 @@ export function parsePdfMultipartUpload(
         file.resume()
       })
       file.on('error', (err: Error) => {
-        reject(err)
+        reject(
+          new PdfMultipartParseError(
+            400,
+            'invalid_multipart',
+            `Error llegint el fitxer multipart: ${err.message}`,
+          ),
+        )
       })
     })
 
     bb.on('error', (err: Error) => {
-      reject(err)
+      reject(
+        new PdfMultipartParseError(
+          400,
+          'invalid_multipart',
+          `Multipart mal format o incomplet: ${err.message}`,
+        ),
+      )
     })
 
     bb.on('finish', () => {
@@ -82,13 +102,20 @@ export function parsePdfMultipartUpload(
         reject(
           new PdfMultipartParseError(
             400,
+            'missing_file',
             `Falta el camp multipart "${fieldName}" amb el fitxer PDF.`,
           ),
         )
         return
       }
       if (limitHit) {
-        reject(new PdfMultipartParseError(413, `El PDF supera el límit de ${maxBytes} bytes.`))
+        reject(
+          new PdfMultipartParseError(
+            413,
+            'payload_too_large',
+            `El PDF supera el límit de ${maxBytes} bytes.`,
+          ),
+        )
         return
       }
       resolve({ buffer: Buffer.concat(chunks), filename })
