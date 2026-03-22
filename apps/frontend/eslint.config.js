@@ -36,5 +36,15 @@ export default tseslint.config(
       globals: globals.node,
     },
   },
+  {
+    files: [
+      'scripts/**/*.ts',
+      'src/infrastructure/**/*.ts',
+      'src/features/question-answer-extraction/**/*.ts',
+    ],
+    languageOptions: {
+      globals: globals.node,
+    },
+  },
   prettier,
 )
