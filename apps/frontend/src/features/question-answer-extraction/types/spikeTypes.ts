@@ -17,5 +17,9 @@ export type QuestionAnswerExtractionSpikeResult = {
     raster_target_width: number
     ocr_languages: string
     detection_note?: string
+    /** Recompte de marcadors abans de deduplicació (diagnòstic). */
+    marker_count_before_dedupe?: number
+    /** Recompte després de deduplicació per primera aparició de `question_id`. */
+    marker_count_after_dedupe?: number
   }
 }

@@ -4,8 +4,7 @@ import type { QuestionMarkerHit } from './detectQuestionMarkers'
 
 const MIN_EMPTY_CHARS = 8
 
-/** Evita blocs gegants si el següent marcador OCR arriba tard (spike pas 2). */
-/** Blocs més curts que a pas 1: força talls a canvi de pàgina / paràgraf si el següent marcador és lluny. */
+/** Blocs massa llargs: tall suau a canvi de pàgina o paràgraf (spike pas 2) per evitar segments gegants. */
 const MAX_SLICE_CHARS_BEFORE_SOFT_SPLIT = 2800
 
 /** Proporció mínima del límit on acceptar un tall per pàgina o paràgraf. */

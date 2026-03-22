@@ -11,8 +11,8 @@ const RASTER_WIDTH = 1800
 const OCR_LANGS = 'cat'
 
 /**
- * Pipeline spike: PDF → PNG per pàgina → OCR → marcadors → deduplicació → segments.
- * Només per execució local / proves; no és API pública estable.
+ * Pipeline intern: PDF → PNG per pàgina → OCR → marcadors → deduplicació → segments.
+ * La sortida estable de producte és `runQuestionAnswerExtractionFromPdf` + contracte `domain/`.
  */
 export async function runQuestionAnswerExtractionSpike(
   pdfBuffer: Buffer,
@@ -59,6 +59,8 @@ export async function runQuestionAnswerExtractionSpike(
       raster_target_width: RASTER_WIDTH,
       ocr_languages: OCR_LANGS,
       detection_note,
+      marker_count_before_dedupe: rawMarkers.length > 0 ? rawMarkers.length : undefined,
+      marker_count_after_dedupe: rawMarkers.length > 0 ? markers.length : undefined,
     },
   }
 }
