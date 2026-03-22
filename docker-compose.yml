@@ -12,6 +12,21 @@ services:
       - "${PROFES_HTTP_PORT:-9088}:80"
       - "${PROFES_HTTPS_PORT:-9443}:443"
 
+  # API QAE (question-answer-extraction) — servidor Node permanent; nginx fa proxy invers des de /api/
+  qae-api:
+    restart: unless-stopped
+    image: node:22-alpine
+    working_dir: /app/apps/frontend
+    environment:
+      QAE_DEV_HOST: "0.0.0.0"
+      QAE_API_PORT: "8787"
+    volumes:
+      - .:/app
+      - node_modules_root:/app/node_modules
+      - node_modules_apps_frontend:/app/apps/frontend/node_modules
+    command: sh -c "cd /app && npm ci && cd apps/frontend && npm run dev:qae-api"
+    # No exposa ports al host: nginx fa proxy intern via la xarxa Docker
+
   # Validació canònica del monorepo (test, typecheck, lint, build) — Node 22 fix, sense dependre del host
   frontend-check:
     image: node:22-alpine

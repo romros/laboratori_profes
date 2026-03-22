@@ -37,7 +37,8 @@ function setCors(req: IncomingMessage, res: ServerResponse): void {
     res.setHeader('Access-Control-Allow-Origin', '*')
   }
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS')
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type')
+  // multipart/form-data + preflight: cal permetre més que només `Content-Type` literal
+  res.setHeader('Access-Control-Allow-Headers', '*')
 }
 
 function sendJson(

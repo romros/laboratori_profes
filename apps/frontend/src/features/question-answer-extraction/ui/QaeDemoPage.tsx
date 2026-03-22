@@ -109,7 +109,7 @@ export function QaeDemoPage({ onBack }: Props) {
       setHttpStatus(null)
       setErrorDetail(
         e instanceof Error
-          ? `${e.message} (comprova que \`npm run dev:qae-api\` estigui en marxa i CORS activat)`
+          ? `${e.message} (l’API QAE hauria de respondre via nginx proxy; si uses Vite dev local, cal \`npm run dev:qae-api\`)`
           : String(e),
       )
     }
@@ -140,8 +140,8 @@ export function QaeDemoPage({ onBack }: Props) {
         </button>
         <h1>Demo QAE (question-answer-extraction)</h1>
         <p className="qae-demo__hint">
-          Servidor local requerit: <code>npm run dev:qae-api</code>. Endpoint: <code>{apiUrl}</code>{' '}
-          (configurable amb <code>VITE_QAE_API_BASE_URL</code>).
+          API QAE integrada via nginx proxy. Endpoint: <code>{apiUrl}</code>{' '}
+          (override: <code>VITE_QAE_API_BASE_URL</code>; Vite dev local: <code>npm run dev:qae-api</code>).
         </p>
       </header>
 
