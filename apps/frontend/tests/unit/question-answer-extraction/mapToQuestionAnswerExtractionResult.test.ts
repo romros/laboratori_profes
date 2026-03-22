@@ -117,3 +117,68 @@ describe('mapSpikeToQuestionAnswerExtraction', () => {
     expect(diagnostic.marker_count_after_dedupe).toBe(2)
   })
 })
+
+/**
+ * Pas 3.1: evidència verificable de la semàntica de `status` al mapper (sense tocar `domain/` ni el pipeline).
+ * Simula la sortida interna de l’spike tal com arribaria després de `segmentByQuestionMarkers`.
+ */
+describe('Semàntica de status — evidència explícita (pas 3.1)', () => {
+  it('empty: raw_text_block només espais/salts i spike empty → status empty', () => {
+    const spike = baseSpike([
+      {
+        question_id: 'q-empty',
+        status: 'empty',
+        raw_text_block: '   \n   ',
+        page_indices: [1],
+      },
+    ])
+    const { result } = mapSpikeToQuestionAnswerExtraction(spike)
+    expect(result.items[0].status).toBe('empty')
+    expect(result.items[0].answer_text).toBe('')
+  })
+
+  it('ok: text SQL-like i spike ok → status ok', () => {
+    const spike = baseSpike([
+      {
+        question_id: 'q-ok',
+        status: 'ok',
+        raw_text_block: 'SELECT * FROM taula...',
+        page_indices: [1],
+      },
+    ])
+    const { result } = mapSpikeToQuestionAnswerExtraction(spike)
+    expect(result.items[0].status).toBe('ok')
+    expect(result.items[0].answer_text).toBe('SELECT * FROM taula...')
+  })
+
+  it('uncertain: marcador de truncació spike pas 2 (doble salt abans del bracket) → uncertain + nota diagnòstic', () => {
+    const raw = 'text resposta...\n\n[… spike pas 2: truncat …]'
+    const spike = baseSpike([
+      {
+        question_id: 'q-trunc',
+        status: 'ok',
+        raw_text_block: raw,
+        page_indices: [1],
+      },
+    ])
+    const { result, diagnostic } = mapSpikeToQuestionAnswerExtraction(spike)
+    expect(result.items[0].status).toBe('uncertain')
+    expect(result.items[0].answer_text).toBe('text resposta...')
+    expect(result.items[0].answer_text).not.toMatch(/spike pas 2/)
+    expect(diagnostic.truncation_notes?.some((n) => n.includes('q-trunc'))).toBe(true)
+  })
+
+  it('uncertain: baixa densitat de lletres (spike unsupported) → uncertain', () => {
+    const spike = baseSpike([
+      {
+        question_id: 'q-noise',
+        status: 'unsupported',
+        raw_text_block: '.... --- ---',
+        page_indices: [1],
+      },
+    ])
+    const { result } = mapSpikeToQuestionAnswerExtraction(spike)
+    expect(result.items[0].status).toBe('uncertain')
+    expect(result.items[0].answer_text).toBe('.... --- ---')
+  })
+})
