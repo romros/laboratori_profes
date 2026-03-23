@@ -1,5 +1,5 @@
 {
-  "exam_id": "exam_1774283302149",
+  "exam_id": "exam_1774302641057",
   "title": "F_IT_008_01 — Examen LDD Ordinària — Cas Hospital (DAW)",
   "questions": [
     {
@@ -29,7 +29,7 @@
         "acceptar variacions raonables en la sintaxi",
         "tolerar petits errors de format si la lògica és correcta"
       ],
-      "extraction_confidence": 1,
+      "extraction_confidence": 0.99,
       "inference_confidence": 0.9
     },
     {
@@ -59,8 +59,8 @@
         "acceptar variacions raonables en la sintaxi",
         "tolerar petits errors de format si la lògica és correcta"
       ],
-      "extraction_confidence": 1,
-      "inference_confidence": 0.9
+      "extraction_confidence": 0.99,
+      "inference_confidence": 0.88
     },
     {
       "question_id": "Q3",
@@ -89,8 +89,8 @@
         "acceptar variacions raonables en la sintaxi",
         "tolerar petits errors de format si la lògica és correcta"
       ],
-      "extraction_confidence": 1,
-      "inference_confidence": 0.9
+      "extraction_confidence": 0.99,
+      "inference_confidence": 0.91
     },
     {
       "question_id": "Q4",
@@ -119,8 +119,8 @@
         "acceptar variacions raonables en la sintaxi",
         "tolerar petits errors de format si la lògica és correcta"
       ],
-      "extraction_confidence": 1,
-      "inference_confidence": 0.9
+      "extraction_confidence": 0.99,
+      "inference_confidence": 0.87
     },
     {
       "question_id": "Q5",
@@ -149,7 +149,7 @@
         "acceptar variacions raonables en la sintaxi",
         "tolerar petits errors de format si la lògica és correcta"
       ],
-      "extraction_confidence": 1,
+      "extraction_confidence": 0.99,
       "inference_confidence": 0.9
     },
     {
@@ -179,7 +179,7 @@
         "acceptar variacions raonables en la sintaxi",
         "tolerar petits errors de format si la lògica és correcta"
       ],
-      "extraction_confidence": 1,
+      "extraction_confidence": 0.99,
       "inference_confidence": 0.9
     },
     {
@@ -208,8 +208,8 @@
         "acceptar variacions raonables en la sintaxi",
         "tolerar petits errors de format si la lògica és correcta"
       ],
-      "extraction_confidence": 1,
-      "inference_confidence": 0.9
+      "extraction_confidence": 0.99,
+      "inference_confidence": 0.88
     },
     {
       "question_id": "Q8",
@@ -237,14 +237,14 @@
         "acceptar variacions raonables en la sintaxi",
         "tolerar petits errors de format si la lògica és correcta"
       ],
-      "extraction_confidence": 1,
-      "inference_confidence": 0.9
+      "extraction_confidence": 0.99,
+      "inference_confidence": 0.84
     },
     {
       "question_id": "Q9",
       "question_text": "Assignar una habitació número 101, de tipus individual, a l'hospital 1 per al pacient amb NIF 12345678A.",
       "max_score": 0.33,
-      "question_type": "sql_insert",
+      "question_type": "sql_update",
       "expected_answer": "INSERT INTO Habitacio (id_hospital, numero_hab, tipus)\nVALUES (1, 101, 'individual');\nUPDATE Pacient SET id_hospital = 1 WHERE nif = '12345678A';",
       "what_to_evaluate": [
         "la sintaxi SQL és correcta",
@@ -267,8 +267,8 @@
         "acceptar variacions raonables en la sintaxi",
         "tolerar petits errors de format si la lògica és correcta"
       ],
-      "extraction_confidence": 1,
-      "inference_confidence": 0.9
+      "extraction_confidence": 0.98,
+      "inference_confidence": 0.82
     },
     {
       "question_id": "Q10",
@@ -296,8 +296,8 @@
         "acceptar variacions raonables en la sintaxi",
         "tolerar petits errors de format si la lògica és correcta"
       ],
-      "extraction_confidence": 1,
-      "inference_confidence": 0.9
+      "extraction_confidence": 0.99,
+      "inference_confidence": 0.89
     },
     {
       "question_id": "Q11",
@@ -326,8 +326,8 @@
         "acceptar variacions raonables en la sintaxi",
         "tolerar petits errors de format si la lògica és correcta"
       ],
-      "extraction_confidence": 1,
-      "inference_confidence": 0.9
+      "extraction_confidence": 0.95,
+      "inference_confidence": 0.76
     },
     {
       "question_id": "Q12",
@@ -355,7 +355,7 @@
         "acceptar variacions raonables en la sintaxi",
         "tolerar petits errors de format si la lògica és correcta"
       ],
-      "extraction_confidence": 1,
+      "extraction_confidence": 0.99,
       "inference_confidence": 0.9
     },
     {
@@ -384,8 +384,8 @@
         "acceptar variacions raonables en la sintaxi",
         "tolerar petits errors de format si la lògica és correcta"
       ],
-      "extraction_confidence": 1,
-      "inference_confidence": 0.9
+      "extraction_confidence": 0.99,
+      "inference_confidence": 0.92
     },
     {
       "question_id": "Q14",
@@ -413,8 +413,8 @@
         "acceptar variacions raonables en la sintaxi",
         "tolerar petits errors de format si la lògica és correcta"
       ],
-      "extraction_confidence": 1,
-      "inference_confidence": 0.9
+      "extraction_confidence": 0.99,
+      "inference_confidence": 0.86
     },
     {
       "question_id": "Q15",
@@ -442,8 +442,8 @@
         "acceptar variacions raonables en la sintaxi",
         "tolerar petits errors de format si la lògica és correcta"
       ],
-      "extraction_confidence": 1,
-      "inference_confidence": 0.9
+      "extraction_confidence": 0.99,
+      "inference_confidence": 0.93
     }
   ]
 }

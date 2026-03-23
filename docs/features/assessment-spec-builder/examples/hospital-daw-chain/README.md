@@ -7,7 +7,7 @@ Cas fixturat `hospitalDawGolden`: mateixa cadena que `buildAssessmentSpecWithPed
 | **`pass1-output.json`** | **Sortida de la passada 1** (`buildAssessmentSpec`): `AssessmentSpec` base (abans de l’enriqueiment pedagògic). |
 | **`pass2-user-payload.txt`** | Cos del missatge **`role=user`** de la passada 2 (el que s’enviaria a l’API). |
 | **`pass2-llm-response.json`** | **Sortida “crua” de la passada 2**: JSON que va retornar el model (capturat al fixture; el codi només en llegeix els camps pedagògics i fa merge amb el base). |
-| **`pass2-after-merge.json`** | **Sortida final de la passada 2** al producte: mateix `mergeEnrichmentPedagogyFields` que en producció, **sense cap crida a OpenAI**. |
+| **`pass2-after-merge.json`** | **Sortida final de la passada 2** al producte: mateix `mergeEnrichmentPedagogyFields` que en producció, **sense cap crida a OpenAI**. La veritat documental ve sempre del `pass1-output.json`; si el model inventés camps, aquí veuries la diferència respecte a `pass2-llm-response.json`. En aquest golden concret els dos JSON de passada 2 poden coincidir perquè la captura ja està alineada amb el base. |
 
 ## Sense gastar crèdits OpenAI
 

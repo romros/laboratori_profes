@@ -67,7 +67,7 @@ ORDRE DE LECTURA
 ## ASSESSMENT_SPEC_BASE
 
 {
-  "exam_id": "exam_1774283302149",
+  "exam_id": "exam_1774302641057",
   "title": "F_IT_008_01 — Examen LDD Ordinària — Cas Hospital (DAW)",
   "questions": [
     {
@@ -77,15 +77,31 @@ ORDRE DE LECTURA
       "question_type": "sql_ddl",
       "expected_answer": "CREATE TABLE Hospital (\n  id INT PRIMARY KEY,\n  carrer VARCHAR(120) NOT NULL,\n  numero INT NOT NULL,\n  codi_postal CHAR(5) NOT NULL,\n  telefon VARCHAR(20) NOT NULL,\n  CONSTRAINT chk_hospital_numero_pos CHECK (numero > 0)\n);",
       "what_to_evaluate": [
-        "sintaxi SQL",
-        "restriccions correctes",
-        "coherència amb l'enunciat"
+        "Creació de la taula Hospital",
+        "Definició de clau primària a id",
+        "Camps obligatoris amb NOT NULL",
+        "Restricció CHECK sobre numero > 0"
       ],
-      "required_elements": [],
-      "accepted_variants": [],
-      "important_mistakes": [],
-      "teacher_style_notes": [],
-      "extraction_confidence": 1,
+      "required_elements": [
+        "CREATE TABLE Hospital",
+        "id INT PRIMARY KEY",
+        "codi_postal CHAR(5) NOT NULL",
+        "CHECK (numero > 0)"
+      ],
+      "accepted_variants": [
+        "Ordre diferent de columnes o restriccions si manté la mateixa semàntica",
+        "Nom diferent de la constraint CHECK"
+      ],
+      "important_mistakes": [
+        "No definir la clau primària",
+        "Ometre el CHECK del numero",
+        "Permetre NULL en camps obligatoris"
+      ],
+      "teacher_style_notes": [
+        "Es valora sintaxi PostgreSQL",
+        "Es valora coherència amb les restriccions"
+      ],
+      "extraction_confidence": 0.99,
       "inference_confidence": 0.9
     },
     {
@@ -95,16 +111,29 @@ ORDRE DE LECTURA
       "question_type": "sql_ddl",
       "expected_answer": "CREATE TABLE Pacient (\n  nif CHAR(9) PRIMARY KEY,\n  nom VARCHAR(100) NOT NULL,\n  adreça VARCHAR(150) NOT NULL,\n  numero INT NOT NULL,\n  codi_postal CHAR(5) NOT NULL,\n  telefon VARCHAR(20) NOT NULL,\n  id_hospital INT REFERENCES Hospital(id) ON DELETE SET NULL\n);",
       "what_to_evaluate": [
-        "sintaxi SQL",
-        "restriccions correctes",
-        "coherència amb l'enunciat"
+        "Creació de la taula Pacient",
+        "Clau primària sobre nif",
+        "Definició de la clau forana a Hospital",
+        "Acció ON DELETE SET NULL"
       ],
-      "required_elements": [],
-      "accepted_variants": [],
-      "important_mistakes": [],
-      "teacher_style_notes": [],
-      "extraction_confidence": 1,
-      "inference_confidence": 0.9
+      "required_elements": [
+        "nif CHAR(9) PRIMARY KEY",
+        "id_hospital INT REFERENCES Hospital(id)",
+        "ON DELETE SET NULL"
+      ],
+      "accepted_variants": [
+        "Nom alternatiu per a la clau forana si la referència és equivalent"
+      ],
+      "important_mistakes": [
+        "No referenciar Hospital(id)",
+        "Usar ON DELETE diferent de SET NULL",
+        "Fer id_hospital NOT NULL"
+      ],
+      "teacher_style_notes": [
+        "Cal mantenir coherència referencial"
+      ],
+      "extraction_confidence": 0.99,
+      "inference_confidence": 0.88
     },
     {
       "question_id": "Q3",
@@ -113,16 +142,29 @@ ORDRE DE LECTURA
       "question_type": "sql_ddl",
       "expected_answer": "CREATE TABLE Habitacio (\n  id_hospital INT NOT NULL REFERENCES Hospital(id) ON DELETE CASCADE,\n  numero_hab INT NOT NULL,\n  tipus VARCHAR(20) NOT NULL,\n  PRIMARY KEY (id_hospital, numero_hab),\n  CONSTRAINT chk_habitacio_tipus CHECK (tipus IN ('individual', 'doble'))\n);",
       "what_to_evaluate": [
-        "sintaxi SQL",
-        "restriccions correctes",
-        "coherència amb l'enunciat"
+        "Clau forana a Hospital amb ON DELETE CASCADE",
+        "Clau primària composta",
+        "Camp tipus restringit per CHECK",
+        "Camps obligatoris"
       ],
-      "required_elements": [],
-      "accepted_variants": [],
-      "important_mistakes": [],
-      "teacher_style_notes": [],
-      "extraction_confidence": 1,
-      "inference_confidence": 0.9
+      "required_elements": [
+        "PRIMARY KEY (id_hospital, numero_hab)",
+        "REFERENCES Hospital(id) ON DELETE CASCADE",
+        "CHECK (tipus IN ('individual', 'doble'))"
+      ],
+      "accepted_variants": [
+        "Nom diferent de la constraint CHECK"
+      ],
+      "important_mistakes": [
+        "Definir una clau primària simple en lloc de composta",
+        "Ometre el CHECK dels valors de tipus",
+        "No posar NOT NULL a id_hospital o numero_hab"
+      ],
+      "teacher_style_notes": [
+        "Es valora l'ús correcte de restriccions"
+      ],
+      "extraction_confidence": 0.99,
+      "inference_confidence": 0.91
     },
     {
       "question_id": "Q4",
@@ -131,16 +173,24 @@ ORDRE DE LECTURA
       "question_type": "sql_ddl",
       "expected_answer": "CREATE TABLE Metge (\n  nif CHAR(9) PRIMARY KEY,\n  nom VARCHAR(100) NOT NULL,\n  especialitat VARCHAR(80) NOT NULL,\n  id_hospital INT NOT NULL REFERENCES Hospital(id) ON DELETE CASCADE\n);",
       "what_to_evaluate": [
-        "sintaxi SQL",
-        "restriccions correctes",
-        "coherència amb l'enunciat"
+        "Creació de la taula Metge",
+        "Clau primària sobre nif",
+        "Clau forana a Hospital",
+        "ON DELETE CASCADE a id_hospital"
       ],
-      "required_elements": [],
+      "required_elements": [
+        "nif CHAR(9) PRIMARY KEY",
+        "id_hospital INT NOT NULL REFERENCES Hospital(id) ON DELETE CASCADE"
+      ],
       "accepted_variants": [],
-      "important_mistakes": [],
+      "important_mistakes": [
+        "No definir la referència a Hospital",
+        "Permetre NULL a id_hospital",
+        "Usar una acció ON DELETE diferent"
+      ],
       "teacher_style_notes": [],
-      "extraction_confidence": 1,
-      "inference_confidence": 0.9
+      "extraction_confidence": 0.99,
+      "inference_confidence": 0.87
     },
     {
       "question_id": "Q5",
@@ -149,15 +199,25 @@ ORDRE DE LECTURA
       "question_type": "sql_ddl",
       "expected_answer": "CREATE TABLE Tractament (\n  id_tractament INT PRIMARY KEY,\n  nom VARCHAR(120) NOT NULL,\n  CONSTRAINT chk_tractament_nom CHECK (char_length(trim(nom)) > 0)\n);",
       "what_to_evaluate": [
-        "sintaxi SQL",
-        "restriccions correctes",
-        "coherència amb l'enunciat"
+        "Clau primària sobre id_tractament",
+        "Camp nom obligatori",
+        "CHECK per evitar nom buit"
       ],
-      "required_elements": [],
-      "accepted_variants": [],
-      "important_mistakes": [],
+      "required_elements": [
+        "id_tractament INT PRIMARY KEY",
+        "nom VARCHAR(120) NOT NULL",
+        "CHECK (char_length(trim(nom)) > 0)"
+      ],
+      "accepted_variants": [
+        "Nom diferent de la constraint CHECK"
+      ],
+      "important_mistakes": [
+        "Ometre la clau primària",
+        "No validar que nom no sigui buit",
+        "Permetre NULL a nom"
+      ],
       "teacher_style_notes": [],
-      "extraction_confidence": 1,
+      "extraction_confidence": 0.99,
       "inference_confidence": 0.9
     },
     {
@@ -167,15 +227,26 @@ ORDRE DE LECTURA
       "question_type": "sql_ddl",
       "expected_answer": "CREATE TABLE Visita (\n  id_visita INT PRIMARY KEY,\n  data_visita DATE NOT NULL,\n  import NUMERIC(10,2) NOT NULL,\n  motiu VARCHAR(200) NOT NULL,\n  tipus VARCHAR(40) NOT NULL,\n  nif_pacient CHAR(9) NOT NULL REFERENCES Pacient(nif),\n  nif_metge CHAR(9) NOT NULL REFERENCES Metge(nif)\n);",
       "what_to_evaluate": [
-        "sintaxi SQL",
-        "restriccions correctes",
-        "coherència amb l'enunciat"
+        "Clau primària sobre id_visita",
+        "Tipus de dades adequats per data i import",
+        "Claus foranes a Pacient i Metge",
+        "Camps obligatoris amb NOT NULL"
       ],
-      "required_elements": [],
+      "required_elements": [
+        "id_visita INT PRIMARY KEY",
+        "data_visita DATE NOT NULL",
+        "import NUMERIC(10,2) NOT NULL",
+        "nif_pacient CHAR(9) NOT NULL REFERENCES Pacient(nif)",
+        "nif_metge CHAR(9) NOT NULL REFERENCES Metge(nif)"
+      ],
       "accepted_variants": [],
-      "important_mistakes": [],
+      "important_mistakes": [
+        "No definir alguna de les claus foranes",
+        "Usar un tipus inadequat per import",
+        "Permetre NULL a camps obligatoris"
+      ],
       "teacher_style_notes": [],
-      "extraction_confidence": 1,
+      "extraction_confidence": 0.99,
       "inference_confidence": 0.9
     },
     {
@@ -185,16 +256,27 @@ ORDRE DE LECTURA
       "question_type": "sql_insert",
       "expected_answer": "INSERT INTO Hospital (id, carrer, numero, codi_postal, telefon)\nVALUES (1, 'Sant Joan', 50, '08001', '932223344');",
       "what_to_evaluate": [
-        "sintaxi SQL",
-        "valors correctes",
-        "coherència amb l'enunciat"
+        "Inserció a la taula Hospital",
+        "Correspondència correcta entre columnes i valors",
+        "Format correcte de literals de text"
       ],
-      "required_elements": [],
-      "accepted_variants": [],
-      "important_mistakes": [],
-      "teacher_style_notes": [],
-      "extraction_confidence": 1,
-      "inference_confidence": 0.9
+      "required_elements": [
+        "INSERT INTO Hospital",
+        "VALUES (1, 'Sant Joan', 50, '08001', '932223344')"
+      ],
+      "accepted_variants": [
+        "Inserció sense llista de columnes si l'ordre és correcte"
+      ],
+      "important_mistakes": [
+        "No posar cometes als valors textuals",
+        "Canviar l'ordre de valors respecte a les columnes",
+        "Usar un codi postal sense conservar el format de text"
+      ],
+      "teacher_style_notes": [
+        "Es valora sintaxi SQL PostgreSQL"
+      ],
+      "extraction_confidence": 0.99,
+      "inference_confidence": 0.88
     },
     {
       "question_id": "Q8",
@@ -203,34 +285,54 @@ ORDRE DE LECTURA
       "question_type": "sql_insert",
       "expected_answer": "INSERT INTO Pacient (nif, nom, adreça, numero, codi_postal, telefon, id_hospital)\nVALUES ('12345678A', 'Pere Torres Font', 'Passeig de Gràcia', 12, '08001', '934445566', NULL);",
       "what_to_evaluate": [
-        "sintaxi SQL",
-        "valors correctes",
-        "coherència amb l'enunciat"
+        "Inserció a la taula Pacient",
+        "Assignació correcta dels valors del pacient",
+        "Ús de NULL a id_hospital segons el solucionari"
       ],
-      "required_elements": [],
+      "required_elements": [
+        "INSERT INTO Pacient",
+        "'12345678A'",
+        "'Pere Torres Font'",
+        "'Passeig de Gràcia'",
+        "NULL"
+      ],
       "accepted_variants": [],
-      "important_mistakes": [],
+      "important_mistakes": [
+        "Ometre id_hospital en una inserció incompatible amb l'ordre de columnes",
+        "No posar cometes a NIF o codi postal",
+        "Assignar un hospital diferent de NULL"
+      ],
       "teacher_style_notes": [],
-      "extraction_confidence": 1,
-      "inference_confidence": 0.9
+      "extraction_confidence": 0.99,
+      "inference_confidence": 0.84
     },
     {
       "question_id": "Q9",
       "question_text": "Assignar una habitació número 101, de tipus individual, a l'hospital 1 per al pacient amb NIF 12345678A.",
       "max_score": 0.33,
-      "question_type": "sql_insert",
+      "question_type": "sql_update",
       "expected_answer": "INSERT INTO Habitacio (id_hospital, numero_hab, tipus)\nVALUES (1, 101, 'individual');\nUPDATE Pacient SET id_hospital = 1 WHERE nif = '12345678A';",
       "what_to_evaluate": [
-        "sintaxi SQL",
-        "valors correctes",
-        "coherència amb l'enunciat"
+        "Inserció de l'habitació a Habitacio",
+        "Actualització del pacient per assignar l'hospital",
+        "Ús correcte de l'identificador del pacient al WHERE"
       ],
-      "required_elements": [],
+      "required_elements": [
+        "INSERT INTO Habitacio (id_hospital, numero_hab, tipus)",
+        "VALUES (1, 101, 'individual')",
+        "UPDATE Pacient SET id_hospital = 1 WHERE nif = '12345678A'"
+      ],
       "accepted_variants": [],
-      "important_mistakes": [],
-      "teacher_style_notes": [],
-      "extraction_confidence": 1,
-      "inference_confidence": 0.9
+      "important_mistakes": [
+        "Fer només la inserció o només l'update",
+        "Actualitzar el pacient incorrecte",
+        "Usar un tipus d'habitació diferent de 'individual'"
+      ],
+      "teacher_style_notes": [
+        "La resposta model resol l'assignació amb dues sentències"
+      ],
+      "extraction_confidence": 0.98,
+      "inference_confidence": 0.82
     },
     {
       "question_id": "Q10",
@@ -239,16 +341,28 @@ ORDRE DE LECTURA
       "question_type": "sql_insert",
       "expected_answer": "INSERT INTO Metge (nif, nom, especialitat, id_hospital)\nVALUES ('98765432B', 'Dr. Laura López', 'Cardiologia', 1);",
       "what_to_evaluate": [
-        "sintaxi SQL",
-        "valors correctes",
-        "coherència amb l'enunciat"
+        "Inserció a la taula Metge",
+        "Correspondència correcta de NIF, nom i especialitat",
+        "Associació a l'hospital 1"
       ],
-      "required_elements": [],
-      "accepted_variants": [],
-      "important_mistakes": [],
+      "required_elements": [
+        "INSERT INTO Metge",
+        "'98765432B'",
+        "'Dr. Laura López'",
+        "'Cardiologia'",
+        "1"
+      ],
+      "accepted_variants": [
+        "Inserció sense llista de columnes si l'ordre és correcte"
+      ],
+      "important_mistakes": [
+        "No posar cometes als camps textuals",
+        "Assignar un hospital incorrecte",
+        "Intercanviar nom i especialitat"
+      ],
       "teacher_style_notes": [],
-      "extraction_confidence": 1,
-      "inference_confidence": 0.9
+      "extraction_confidence": 0.99,
+      "inference_confidence": 0.89
     },
     {
       "question_id": "Q11",
@@ -257,16 +371,26 @@ ORDRE DE LECTURA
       "question_type": "sql_insert",
       "expected_answer": "INSERT INTO Tractament (id_tractament, nom) VALUES (1, 'Rehabilitació Cardíaca');\nINSERT INTO tractament_pacient_metge (nif_pacient, id_tractament, nif_metge)\nVALUES ('12345678A', 1, '98765432B');",
       "what_to_evaluate": [
-        "sintaxi SQL",
-        "valors correctes",
-        "coherència amb l'enunciat"
+        "Inserció del tractament a Tractament",
+        "Relació entre pacient, tractament i metge",
+        "Coherència dels identificadors usats"
       ],
-      "required_elements": [],
+      "required_elements": [
+        "INSERT INTO Tractament (id_tractament, nom) VALUES (1, 'Rehabilitació Cardíaca')",
+        "INSERT INTO tractament_pacient_metge",
+        "VALUES ('12345678A', 1, '98765432B')"
+      ],
       "accepted_variants": [],
-      "important_mistakes": [],
-      "teacher_style_notes": [],
-      "extraction_confidence": 1,
-      "inference_confidence": 0.9
+      "important_mistakes": [
+        "Fer només la inserció del tractament sense la relació",
+        "Usar identificadors diferents dels indicats",
+        "Canviar el nom de la taula relacional sense base al solucionari"
+      ],
+      "teacher_style_notes": [
+        "La resposta model inclou una taula relacional no descrita a l'enunciat"
+      ],
+      "extraction_confidence": 0.95,
+      "inference_confidence": 0.76
     },
     {
       "question_id": "Q12",
@@ -275,15 +399,30 @@ ORDRE DE LECTURA
       "question_type": "sql_insert",
       "expected_answer": "INSERT INTO Visita (id_visita, data_visita, import, motiu, tipus, nif_pacient, nif_metge)\nVALUES (1, DATE '2024-02-01', 100.00, 'Revisió postoperatòria', 'consulta', '12345678A', '98765432B');",
       "what_to_evaluate": [
-        "sintaxi SQL",
-        "valors correctes",
-        "coherència amb l'enunciat"
+        "Inserció a la taula Visita",
+        "Format correcte de la data en PostgreSQL",
+        "Assignació correcta de pacient i metge",
+        "Import numèric correcte"
       ],
-      "required_elements": [],
-      "accepted_variants": [],
-      "important_mistakes": [],
+      "required_elements": [
+        "INSERT INTO Visita",
+        "DATE '2024-02-01'",
+        "100.00",
+        "'Revisió postoperatòria'",
+        "'consulta'",
+        "'12345678A'",
+        "'98765432B'"
+      ],
+      "accepted_variants": [
+        "'2024-02-01' com a literal de data si PostgreSQL el converteix correctament"
+      ],
+      "important_mistakes": [
+        "Posar l'import amb símbol € dins del valor",
+        "No posar cometes al motiu o al tipus",
+        "Intercanviar nif_pacient i nif_metge"
+      ],
       "teacher_style_notes": [],
-      "extraction_confidence": 1,
+      "extraction_confidence": 0.99,
       "inference_confidence": 0.9
     },
     {
@@ -293,16 +432,25 @@ ORDRE DE LECTURA
       "question_type": "sql_update",
       "expected_answer": "UPDATE Visita SET import = import * 1.15;",
       "what_to_evaluate": [
-        "sintaxi SQL",
-        "operació correcta",
-        "coherència amb l'enunciat"
+        "Actualització de la taula Visita",
+        "Càlcul correcte de l'increment del 15%",
+        "Aplicació a totes les files sense WHERE"
       ],
-      "required_elements": [],
-      "accepted_variants": [],
-      "important_mistakes": [],
+      "required_elements": [
+        "UPDATE Visita",
+        "SET import = import * 1.15"
+      ],
+      "accepted_variants": [
+        "SET import = import + import * 0.15"
+      ],
+      "important_mistakes": [
+        "Aplicar només 0.15 en lloc de multiplicar per 1.15",
+        "Afegir un WHERE que limiti les files",
+        "Actualitzar una columna incorrecta"
+      ],
       "teacher_style_notes": [],
-      "extraction_confidence": 1,
-      "inference_confidence": 0.9
+      "extraction_confidence": 0.99,
+      "inference_confidence": 0.92
     },
     {
       "question_id": "Q14",
@@ -311,16 +459,28 @@ ORDRE DE LECTURA
       "question_type": "sql_alter",
       "expected_answer": "ALTER TABLE Pacient ALTER COLUMN codi_postal TYPE VARCHAR(5) USING codi_postal::varchar;",
       "what_to_evaluate": [
-        "sintaxi SQL",
-        "canvi de tipus correcte",
-        "coherència amb l'enunciat"
+        "Ús d'ALTER TABLE sobre Pacient",
+        "Canvi de tipus de codi_postal a caràcter",
+        "Conversió explícita amb USING"
       ],
-      "required_elements": [],
-      "accepted_variants": [],
-      "important_mistakes": [],
-      "teacher_style_notes": [],
-      "extraction_confidence": 1,
-      "inference_confidence": 0.9
+      "required_elements": [
+        "ALTER TABLE Pacient",
+        "ALTER COLUMN codi_postal TYPE VARCHAR(5)",
+        "USING codi_postal::varchar"
+      ],
+      "accepted_variants": [
+        "Tipus CHAR(5) si es justifica i manté el caràcter"
+      ],
+      "important_mistakes": [
+        "Modificar una columna diferent",
+        "No fer el canvi a un tipus de caràcter",
+        "Ometre USING quan cal conversió explícita"
+      ],
+      "teacher_style_notes": [
+        "Cal sintaxi compatible amb PostgreSQL"
+      ],
+      "extraction_confidence": 0.99,
+      "inference_confidence": 0.86
     },
     {
       "question_id": "Q15",
@@ -329,16 +489,23 @@ ORDRE DE LECTURA
       "question_type": "sql_delete",
       "expected_answer": "DELETE FROM Visita WHERE tipus = 'consulta';",
       "what_to_evaluate": [
-        "sintaxi SQL",
-        "condició correcta",
-        "coherència amb l'enunciat"
+        "Esborrat a la taula Visita",
+        "Condició WHERE sobre tipus",
+        "Valor correcte 'consulta'"
       ],
-      "required_elements": [],
+      "required_elements": [
+        "DELETE FROM Visita",
+        "WHERE tipus = 'consulta'"
+      ],
       "accepted_variants": [],
-      "important_mistakes": [],
+      "important_mistakes": [
+        "Ometre el WHERE i esborrar totes les files",
+        "Usar un valor de tipus diferent",
+        "Esborrar d'una taula incorrecta"
+      ],
       "teacher_style_notes": [],
-      "extraction_confidence": 1,
-      "inference_confidence": 0.9
+      "extraction_confidence": 0.99,
+      "inference_confidence": 0.93
     }
   ]
 }

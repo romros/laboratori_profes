@@ -3,8 +3,13 @@ import type {
   OpenAiLlmEndpointKind,
 } from '../../template-inference/services/openAiCompatibleChat'
 
-/** Passada 1 (extracció / AssessmentSpec base): model eficient per defecte. */
-export const DEFAULT_ASSESSMENT_SPEC_BASE_MODEL = 'gpt-5.4-mini'
+/**
+ * Passada 1 (extracció / AssessmentSpec base): prioritat fidelitat documental.
+ * `gpt-5.4-mini` deixa els camps d'inferència (`what_to_evaluate`, `required_elements`,
+ * `important_mistakes`) buits → la passada 2 no pot enriquir sobre base nul·la.
+ * `gpt-5.4` inferia correctament tots els camps en el cas hospital (evidència: quick-sample-v1-output.json).
+ */
+export const DEFAULT_ASSESSMENT_SPEC_BASE_MODEL = 'gpt-5.4'
 
 /**
  * Passada 2 (enriqueiment pedagògic): per defecte `gpt-5.4` (`chat/completions`).

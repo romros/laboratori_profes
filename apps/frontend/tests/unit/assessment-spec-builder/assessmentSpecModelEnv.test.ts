@@ -37,7 +37,8 @@ describe('assessmentSpecModelEnv', () => {
   })
 
   it('defaults de producte (constants)', () => {
-    expect(DEFAULT_ASSESSMENT_SPEC_BASE_MODEL).toBe('gpt-5.4-mini')
+    // Passada 1: gpt-5.4 per fidelitat documental (mini deixa camps d'inferència buits)
+    expect(DEFAULT_ASSESSMENT_SPEC_BASE_MODEL).toBe('gpt-5.4')
     expect(DEFAULT_ASSESSMENT_SPEC_ENRICH_MODEL).toBe('gpt-5.4')
   })
 
