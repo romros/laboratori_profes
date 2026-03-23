@@ -38,7 +38,7 @@ describe('assessmentSpecModelEnv', () => {
 
   it('defaults de producte (constants)', () => {
     expect(DEFAULT_ASSESSMENT_SPEC_BASE_MODEL).toBe('gpt-5.4-mini')
-    expect(DEFAULT_ASSESSMENT_SPEC_ENRICH_MODEL).toBe('gpt-5.4-pro')
+    expect(DEFAULT_ASSESSMENT_SPEC_ENRICH_MODEL).toBe('gpt-5.4')
   })
 
   it('resolveAssessmentSpecOpenAiBaseUrl: override explícit', () => {

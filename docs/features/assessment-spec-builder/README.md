@@ -1,6 +1,6 @@
 # Feature 2 — Assessment Spec Builder
 
-**Estat: implementada (MVP)** — extracció + enriqueiment pedagògic, schema estable, models per fase (`gpt-5.4-mini` / `gpt-5.4-pro`), client amb `chat/completions` i `responses`.
+**Estat: implementada (MVP)** — extracció + enriqueiment pedagògic, schema estable, **dues passades LLM** amb models per fase: passada 1 per defecte `gpt-5.4-mini`, passada 2 per defecte `gpt-5.4`. Client `chat/completions` per a aquests models; **`gpt-5.4-pro`** només com a opció experimental (`/v1/responses`).
 
 ---
 
@@ -39,12 +39,12 @@ Amb un `AssessmentSpec` ja vàlid (mateix schema, sense camps nous), el servei `
 
 Les dues passades poden usar **models diferents** via env:
 
-| Variable | Passada | Per defecte |
-|----------|---------|-------------|
+| Variable | Passada | Per defecte (codi) |
+|----------|---------|---------------------|
 | `ASSESSMENT_SPEC_MODEL` | 1 — extracció / `AssessmentSpec` base | `gpt-5.4-mini` |
-| `ASSESSMENT_SPEC_ENRICH_MODEL` | 2 — enriqueiment pedagògic | `gpt-5.4-pro` |
+| `ASSESSMENT_SPEC_ENRICH_MODEL` | 2 — enriqueiment pedagògic | `gpt-5.4` |
 
-El client HTTP (`callOpenAiCompatibleChatWithMeta`) enruta automàticament: **`gpt-5.4-pro` → `POST /v1/responses`**; la resta de models → `POST /v1/chat/completions`. Models addicionals només Responses: `OPENAI_RESPONSES_API_MODELS` (llista separada per comes). Per forçar sempre chat (p. ex. proxy sense `/responses`): `OPENAI_FORCE_CHAT_COMPLETIONS=1`.
+El client HTTP (`callOpenAiCompatibleChatWithMeta`) enruta automàticament: **`gpt-5.4-pro` (i altres configurats) → `POST /v1/responses`**; la resta → `POST /v1/chat/completions`. **`gpt-5.4-pro` no és el default:** només s’usa si poses `ASSESSMENT_SPEC_ENRICH_MODEL=gpt-5.4-pro` (experimental: latència i cost alts). Models addicionals només Responses: `OPENAI_RESPONSES_API_MODELS` (llista separada per comes). Per forçar sempre chat (p. ex. proxy sense `/responses`): `OPENAI_FORCE_CHAT_COMPLETIONS=1`.
 
 Compatibilitat: si només existeix `ASSESSMENT_SPEC_OPENAI_MODEL`, s’aplica a **ambdues** passades (comportament legacy).
 

@@ -7,10 +7,10 @@ import type {
 export const DEFAULT_ASSESSMENT_SPEC_BASE_MODEL = 'gpt-5.4-mini'
 
 /**
- * Passada 2 (enriqueiment pedagògic): màxima qualitat — `gpt-5.4-pro` via `/v1/responses`.
- * Escape hatch (proxy sense Responses): `ASSESSMENT_SPEC_ENRICH_MODEL=gpt-5.4` o `OPENAI_FORCE_CHAT_COMPLETIONS=1`.
+ * Passada 2 (enriqueiment pedagògic): per defecte `gpt-5.4` (`chat/completions`).
+ * Experimental (latència/cost alts): `ASSESSMENT_SPEC_ENRICH_MODEL=gpt-5.4-pro` → `/v1/responses`.
  */
-export const DEFAULT_ASSESSMENT_SPEC_ENRICH_MODEL = 'gpt-5.4-pro'
+export const DEFAULT_ASSESSMENT_SPEC_ENRICH_MODEL = 'gpt-5.4'
 
 /** Base URL OpenAI (o compatible): una sola font per als serveis Feature 2. */
 export const DEFAULT_ASSESSMENT_SPEC_OPENAI_BASE_URL = 'https://api.openai.com/v1'

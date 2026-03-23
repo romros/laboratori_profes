@@ -1,6 +1,6 @@
 # Estat del projecte (operatiu)
 
-**Darrera actualització:** 2026-03-23 (Feature 2.2 calibratge models + notes hospital)
+**Darrera actualització:** 2026-03-23 (Feature 2.2 final: default enrich `gpt-5.4`, pro experimental, calibratge + comparativa)
 
 Només **estat i verificació**. Normativa: **`AGENTS_ARQUITECTURA.md`**. Ordre de lectura: **`llm.txt`**.
 
@@ -63,7 +63,7 @@ Converteix materials del professor (enunciat + solucionari) en `AssessmentSpec` 
 
 **Feature 2.1 — Enriqueiment pedagògic (segon prompt):** `enrichAssessmentSpec` + `buildEnrichAssessmentSpecPrompt`; pipeline `buildAssessmentSpecWithPedagogicEnrichment`; HTTP opcional `pedagogic_enrichment: true`. Fusiona camps no pedagògics des del base (`mergeEnrichmentPedagogyFields`). **Test integració:** `enrichAssessmentSpec.hospital.test.ts` (entrada: `hospitalDawGolden.real-output.json`; sense clau → skip).
 
-**Feature 2.2 — Calibratge models:** `ASSESSMENT_SPEC_MODEL` (passada 1, defecte `gpt-5.4-mini`) i `ASSESSMENT_SPEC_ENRICH_MODEL` (passada 2, defecte `gpt-5.4-pro` via `/v1/responses`, **sense** `temperature` al cos). Altres models segueixen `chat/completions`; `OPENAI_FORCE_CHAT_COMPLETIONS=1` força només chat. Legacy `ASSESSMENT_SPEC_OPENAI_MODEL` per ambdues si cal. `callOpenAiCompatibleChatWithMeta` + `onLlmRound` (`endpointKind`). Escript: `npm run calibration:assessment-spec-models -w @profes/frontend` → `hospital-model-calibration-notes.md`. Darrer calibratge hospital: **V1** (mini→`gpt-5.4`) OK; **V2** (mini→pro) pot fallar amb `fetch failed` en Docker si la passada 2 és molt lenta — reexecutar amb xarxa estable per tancar evidència `responses`.
+**Feature 2.2 — Calibratge models (tancat):** decisió de producte — passada 1 defecte `gpt-5.4-mini`, passada 2 defecte **`gpt-5.4`** (`chat/completions`). **`gpt-5.4-pro`** només override experimental (`ASSESSMENT_SPEC_ENRICH_MODEL`, `/v1/responses`). Legacy `ASSESSMENT_SPEC_OPENAI_MODEL` per ambdues si cal. `callOpenAiCompatibleChatWithMeta` + `onLlmRound` (`endpointKind`). Escript: `npm run calibration:assessment-spec-models -w @profes/frontend` → `hospital-model-calibration-notes.md` (comparativa V1 oficial vs V2 pro + decisió documentada).
 
 ---
 
