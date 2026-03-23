@@ -1,5 +1,6 @@
 import type { AssessmentSpec } from '../../../domain/assessment-spec/assessmentSpec.schema'
 import { buildAssessmentSpec } from '../services/buildAssessmentSpec'
+import { buildAssessmentSpecWithPedagogicEnrichment } from '../services/buildAssessmentSpecWithPedagogicEnrichment'
 
 export type AssessmentSpecHttpOutcome =
   | { ok: true; status: 200; body: { result: AssessmentSpec } }
@@ -43,6 +44,11 @@ export async function executeAssessmentSpecBuildFromJsonBody(
 
   const body = parsed as Record<string, unknown>
 
+  const pedagogicEnrichment =
+    body.pedagogic_enrichment === true ||
+    body.pedagogic_enrichment === 'true' ||
+    body.pedagogic_enrichment === 1
+
   if (typeof body.exam_text !== 'string' || typeof body.solution_text !== 'string') {
     return {
       ok: false,
@@ -75,16 +81,26 @@ export async function executeAssessmentSpecBuildFromJsonBody(
   }
 
   try {
-    const result = await buildAssessmentSpec({
+    const buildParams = {
       examText: body.exam_text,
       solutionText: body.solution_text,
       apiKey,
       baseUrl: process.env.ASSESSMENT_SPEC_OPENAI_BASE_URL,
       model: process.env.ASSESSMENT_SPEC_OPENAI_MODEL,
-    })
+    }
+    const result = pedagogicEnrichment
+      ? await buildAssessmentSpecWithPedagogicEnrichment(buildParams)
+      : await buildAssessmentSpec(buildParams)
     return { ok: true, status: 200, body: { result } }
   } catch (e) {
     const msg = e instanceof Error ? e.message : String(e)
+    if (msg.startsWith('Enriqueiment pedagògic:')) {
+      return {
+        ok: false,
+        status: 400,
+        body: { error: { code: 'model_parse_error', message: msg } },
+      }
+    }
     if (msg.startsWith('Resposta del model:')) {
       return {
         ok: false,

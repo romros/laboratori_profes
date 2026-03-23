@@ -27,6 +27,14 @@ Feature 3 → (Feature 0 o 1) + Feature 2 → avaluació per pregunta
 
 Feature 2 és **prerequisit de Feature 3**, però **independent de Feature 0 i Feature 1**.
 
+### Feature 2.1 — Enriqueiment pedagògic (segon prompt)
+
+Amb un `AssessmentSpec` ja vàlid (mateix schema, sense camps nous), el servei `enrichAssessmentSpec` fa una **segona passada LLM** que reescriu només, per pregunta: `what_to_evaluate`, `required_elements`, `important_mistakes` i `teacher_style_notes`. Els camps d’identitat i extracció (`question_id`, `question_text`, `expected_answer`, `max_score`, `question_type`, `accepted_variants`, confiances, etc.) es **conserven del spec base** després de validar la resposta del model (`mergeEnrichmentPedagogyFields`). No s’introdueix scoring ni rúbriques numèriques.
+
+- **Pipeline de codi:** `buildAssessmentSpecWithPedagogicEnrichment` → `buildAssessmentSpec` i després `enrichAssessmentSpec`.
+- **HTTP (JSON):** camp opcional `pedagogic_enrichment: true` al cos de la petició d’`executeAssessmentSpecBuildFromJsonBody` per obtenir directament l’spec enriquit.
+- **Prova d’integració:** `tests/integration/assessment-spec-builder/enrichAssessmentSpec.hospital.test.ts` (fixture `hospitalDawGolden.real-output.json`; requereix clau API com el golden de Feature 2).
+
 ---
 
 ## Inputs

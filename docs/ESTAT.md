@@ -61,6 +61,8 @@ Evidència completa: `docs/benchmarks/ocr-benchmark-2026-03-22.md`.
 
 Converteix materials del professor (enunciat + solucionari) en `AssessmentSpec` (domini `domain/assessment-spec/`, servei `buildAssessmentSpec`, endpoint JSON via `executeAssessmentSpecBuildFromJsonBody`). **No toca dades d'alumnes.** Clau API: `ASSESSMENT_SPEC_OPENAI_API_KEY` o `OPENAI_API_KEY` o (dev) `FEATURE0_OPENAI_API_KEY`. **Golden test:** `tests/integration/assessment-spec-builder/buildAssessmentSpec.hospital.test.ts` (execució real si hi ha clau; sense clau → skip). **Output real** (`hospitalDawGolden.real-output.json`) **alineat amb el prompt vigent** (re-run 2026-03-23: JSON estricte, límits d’inferència, **criteris `what_to_evaluate` observables**, sense subpuntuació/rúbrica numèrica a l’artefacte). Notes: `hospitalDawGolden.validation-notes.md`. Regenerar: `SAVE_ASSESSMENT_SPEC_GOLDEN=1` + clau. Doc canònic: `docs/features/assessment-spec-builder/README.md`. **Prerequisit de Feature 3** (persistència estable d’`exam_id` encara pendent de producte).
 
+**Feature 2.1 — Enriqueiment pedagògic (segon prompt):** `enrichAssessmentSpec` + `buildEnrichAssessmentSpecPrompt`; pipeline `buildAssessmentSpecWithPedagogicEnrichment`; HTTP opcional `pedagogic_enrichment: true`. Fusiona camps no pedagògics des del base (`mergeEnrichmentPedagogyFields`). **Test integració:** `enrichAssessmentSpec.hospital.test.ts` (entrada: `hospitalDawGolden.real-output.json`; sense clau → skip).
+
 ---
 
 ## Falta

@@ -7,35 +7,10 @@ import {
 } from '../../../domain/assessment-spec/assessmentSpec.schema'
 import { callOpenAiCompatibleChat } from '../../template-inference/services/openAiCompatibleChat'
 import { buildAssessmentSpecPrompt } from './buildAssessmentSpecPrompt'
+import { normalizeLlmQuestionListFields } from './normalizeLlmQuestionListFields'
 
 const DEFAULT_BASE_URL = 'https://api.openai.com/v1'
 const DEFAULT_MODEL = 'gpt-4o-mini'
-
-/** Camps que el schema exigeix com a array; el model sovint envia un sol string. */
-const QUESTION_LIST_KEYS = [
-  'what_to_evaluate',
-  'required_elements',
-  'accepted_variants',
-  'important_mistakes',
-  'teacher_style_notes',
-] as const
-
-function normalizeLlmQuestionShape(raw: unknown): unknown {
-  if (raw === null || typeof raw !== 'object' || Array.isArray(raw)) {
-    return raw
-  }
-  const o = { ...(raw as Record<string, unknown>) }
-  for (const key of QUESTION_LIST_KEYS) {
-    const v = o[key]
-    if (typeof v === 'string') {
-      const t = v.trim()
-      o[key] = t.length === 0 ? [] : [t]
-    } else if (v == null) {
-      o[key] = []
-    }
-  }
-  return o
-}
 
 export type BuildAssessmentSpecParams = {
   examText: string
@@ -85,7 +60,7 @@ export async function buildAssessmentSpec(
     throw new Error('Resposta del model: cal un array JSON de preguntes')
   }
 
-  const coerced = parsed.map(normalizeLlmQuestionShape)
+  const coerced = parsed.map(normalizeLlmQuestionListFields)
   const questions = z.array(questionSpecSchema).parse(coerced)
 
   const title = examText
