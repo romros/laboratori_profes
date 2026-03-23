@@ -82,6 +82,7 @@ type QuestionEvaluation = {
 
 type ExamEvaluationResult = {
   exam_id: string
+  student_id: string   // extern i opac — el posa el caller, Feature 3 no interpreta identitat
   questions: QuestionEvaluation[]
 }
 ```
@@ -204,15 +205,15 @@ Feature 3 MVP estarà DONE quan:
 
 ---
 
-## Preguntes obertes (per PM abans d'implementar)
+## Decisions de PM (tancades)
 
-| Pregunta | Impacte |
+| Pregunta | Decisió |
 |----------|---------|
-| Cal retornar un `score` numèric al MVP o és una Feature 3.x? | Complexitat i responsabilitat de nota |
-| El feedback és per al professor o eventual feedback a alumne? | Nivell de detall, to del prompt |
-| Com s'identifica l'alumne al resultat? (`student_id` extern o anònim)? | Schema + privadesa |
-| Batch d'alumnes al MVP o un per un? | Arquitectura d'endpoint i cost API |
-| Cal persistir `ExamEvaluationResult` o és stateless per crida? | Integració amb producte futur |
+| Score numèric al MVP? | **NO** — Feature 3.x. Barreja "avaluar" amb "qualificar"; introdueix policy de nota i pesos. MVP prova: avaluable / veredicte / feedback útil. |
+| Feedback per al professor o per a l'alumne? | **Professor.** To directe, tècnic, orientat a criteri docent. |
+| Com s'identifica l'alumne? | **`student_id` extern i opac.** El posa el caller (pot ser intern o anonimitzat). Feature 3 no interpreta identitat. |
+| Batch d'alumnes al MVP? | **Un per un.** Simplifica endpoint, debugging i cost. Batch = capa d'orquestració posterior. |
+| Persistir `ExamEvaluationResult`? | **Stateless al MVP.** El contracte de sortida encara no és estable; no lligar-se a un model persistent prematur. |
 
 ---
 
