@@ -63,4 +63,19 @@ describe('buildAssessmentSpecPrompt', () => {
     expect(prompt).toContain('cicles formatius')
     expect(prompt).toContain("no assumeixis SQL si l'enunciat no ho és")
   })
+
+  it('MODE OPERATIU: conté bloc de prohibicions explícites de passada 1', () => {
+    const prompt = buildAssessmentSpecPrompt(examText, solutionText)
+    // Bloc mode operatiu present
+    expect(prompt).toContain('MODE OPERATIU')
+    expect(prompt).toContain('ROL: PARSER FIDEL')
+    // Prohibicions explícites
+    expect(prompt).toMatch(/No inventis elements/i)
+    expect(prompt).toMatch(/No completis informaci[oó] que falti/i)
+    expect(prompt).toMatch(/No dedu\w+xis estructures|No dedueixis/i)
+    expect(prompt).toMatch(/No apliquis criteri docent/i)
+    expect(prompt).toMatch(/No reescriguis|text literal de l'enunciat/i)
+    // Prioritat fidelitat sobre completesa
+    expect(prompt).toMatch(/fidelitat documental.*completesa|prioritat.*fidelitat/i)
+  })
 })

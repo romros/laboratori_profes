@@ -1,6 +1,6 @@
 # Feature 2 — Assessment Spec Builder
 
-**Estat: implementada (MVP)** — extracció + enriqueiment pedagògic, schema estable, **dues passades LLM** amb models per fase: passada 1 per defecte `gpt-5.4-mini`, passada 2 per defecte `gpt-5.4`. Client `chat/completions` per a aquests models; **`gpt-5.4-pro`** només com a opció experimental (`/v1/responses`).
+**Estat: implementada (MVP + contracte fort 2.2)** — extracció + enriqueiment pedagògic, schema estable, **dues passades LLM** amb models per fase: passada 1 per defecte `gpt-5.4`, passada 2 per defecte `gpt-5.4`. Client `chat/completions` per a aquests models; **`gpt-5.4-pro`** només com a opció experimental (`/v1/responses`).
 
 ---
 
@@ -36,13 +36,22 @@ Amb un `AssessmentSpec` ja vàlid (mateix schema, sense camps nous), el servei `
 - **HTTP (JSON):** camp opcional `pedagogic_enrichment: true` al cos de la petició d’`executeAssessmentSpecBuildFromJsonBody` per obtenir directament l’spec enriquit.
 - **Prova d’integració:** `tests/integration/assessment-spec-builder/enrichAssessmentSpec.hospital.test.ts` (fixture `hospitalDawGolden.real-output.json`; requereix clau API com el golden de Feature 2).
 
-### Feature 2.2 — Calibratge de models (passada base vs pedagògica)
+### Feature 2.2 — Contracte fort entre passada 1 (operativa) i passada 2 (pedagògica)
 
-Les dues passades poden usar **models diferents** via env:
+Les dues passades tenen **rols explícits i separats** al prompt:
+
+| Passada | Rol | Prompt | Comportament |
+|---------|-----|--------|--------------|
+| 1 (`buildAssessmentSpec`) | **MODE OPERATIU — Parser fidel** | `buildAssessmentSpecPrompt` | Copia el professor: extreu fidelment sense inventar, sense criteris, sense deduir estructures no descrites a l’enunciat. |
+| 2 (`enrichAssessmentSpec`) | **MODE PEDAGÒGIC — Lector docent** | `enrichAssessmentSpecPrompt` | Pensa com el professor: interpreta el model conceptual, accepta variants equivalents, no exigeix literalitat de noms d’implementació absents de l’enunciat. |
+
+**Regla per a `required_elements` (passada 2):** un nom de taula/columna que **no apareix a l’enunciat** no pot ser un `required_element` — ha de ser un `accepted_variant`. Exemple: `tractament_pacient_metge` és una implementació del solucionari; el que cal avaluar és la relació N:M conceptual (veure [anàlisi Q11](q11-contract-analysis.md)).
+
+**Variables de model:**
 
 | Variable | Passada | Per defecte (codi) |
 |----------|---------|---------------------|
-| `ASSESSMENT_SPEC_MODEL` | 1 — extracció / `AssessmentSpec` base | `gpt-5.4-mini` |
+| `ASSESSMENT_SPEC_MODEL` | 1 — extracció / `AssessmentSpec` base | `gpt-5.4` |
 | `ASSESSMENT_SPEC_ENRICH_MODEL` | 2 — enriqueiment pedagògic | `gpt-5.4` |
 
 El client HTTP (`callOpenAiCompatibleChatWithMeta`) enruta automàticament: **`gpt-5.4-pro` (i altres configurats) → `POST /v1/responses`**; la resta → `POST /v1/chat/completions`. **`gpt-5.4-pro` no és el default:** només s’usa si poses `ASSESSMENT_SPEC_ENRICH_MODEL=gpt-5.4-pro` (experimental: latència i cost alts). Models addicionals només Responses: `OPENAI_RESPONSES_API_MODELS` (llista separada per comes). Per forçar sempre chat (p. ex. proxy sense `/responses`): `OPENAI_FORCE_CHAT_COMPLETIONS=1`.

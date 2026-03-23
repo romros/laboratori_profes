@@ -59,4 +59,28 @@ describe('buildEnrichAssessmentSpecPrompt', () => {
     expect(prompt).toContain("(no s'ha facilitat text d'enunciat")
     expect(prompt).toContain("(no s'ha facilitat solucionari")
   })
+
+  it('MODE PEDAGÒGIC: conté bloc de rol docent i acceptació de variants conceptuals', () => {
+    const prompt = buildEnrichAssessmentSpecPrompt({ specJson: '{}' })
+    // Bloc mode pedagògic present
+    expect(prompt).toContain('MODE PEDAGÒGIC')
+    expect(prompt).toContain('ROL: LECTOR DOCENT')
+    // Acceptació de variants equivalents
+    expect(prompt).toMatch(/variants equivalents|variant.*equivalent/i)
+    // No literalitat de noms d'implementació
+    expect(prompt).toMatch(/no exigeixis literalitat|nom.*implementaci[oó]/i)
+    // Validació model conceptual, no sintaxi
+    expect(prompt).toMatch(/model conceptual|criteri docent.*variant/i)
+    // Distinció passada 1 vs passada 2
+    expect(prompt).toMatch(/passada 1.*parser|passada 2.*professor/i)
+  })
+
+  it("MODE PEDAGÒGIC: el contracte exigeix accepted_variants per noms no explícits a l'enunciat", () => {
+    const prompt = buildEnrichAssessmentSpecPrompt({ specJson: '{}' })
+    // No pot exigir com a required_element un nom de taula/columna absent de l'enunciat
+    expect(prompt).toMatch(/accepted_variant|accepted_variants/i)
+    expect(prompt).toMatch(
+      /no.*apareix.*enunciat.*required|nom.*taula.*no.*enunciat|accepted_variant.*no.*required/i,
+    )
+  })
 })

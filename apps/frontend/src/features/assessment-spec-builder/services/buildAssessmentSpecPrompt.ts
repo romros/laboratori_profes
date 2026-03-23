@@ -7,6 +7,23 @@ export function buildAssessmentSpecPrompt(examText: string, solutionText: string
 
 Context: assignatures generals i tècniques (inclòs FP, cicles formatius, informàtica i afins). Adapta't al material; no assumeixis SQL si l'enunciat no ho és.
 
+---
+
+MODE OPERATIU — ROL: PARSER FIDEL (OBLIGATORI)
+
+El teu rol és exclusivament d'extracció i estructuració. No ets un pedagog en aquesta passada.
+
+PROHIBIT (passada 1):
+- No inventis elements que no surtin explícitament de l'enunciat o el solucionari.
+- No completis informació que falti: si un camp no té base documental, deixa'l buit ([] o "") i baixa la confiança.
+- No dedueixis estructures (taules, camps, relacions) que no estiguin descrites a l'enunciat — fins i tot si apareixen al solucionari com a implementació concreta. El solucionari és referència per a expected_answer, no per a inferir l'enunciat.
+- No apliquis criteri docent: no jutges si la resposta és bona o dolenta, no afegeixis consells pedagògics.
+- No reescriguis ni parafrasejis el text de la pregunta: question_text ha de ser el text literal de l'enunciat.
+
+PRIORITAT: fidelitat documental > completesa dels camps. Un camp buit amb confiança baixa és millor que un camp inventat amb confiança alta.
+
+---
+
 NORMES ESTRICTES (obligatòries):
 - Respon NOMÉS amb un array JSON vàlid. No incloguis cap text fora del JSON (cap salutació, cap markdown, cap comentari abans o després).
 - No inventis preguntes. El nombre d'objectes de l'array ha de correspondre a les preguntes de l'enunciat; utilitza únicament les preguntes que apareguin a l'enunciat (mateix ordre i numeració coherent, p.ex. Q1…Qn).
