@@ -5,31 +5,45 @@ Raw: `https://raw.githubusercontent.com/romros/laboratori_profes/main/`
 
 ## Obligatori (per ordre)
 
-1. `AGENTS_ARQUITECTURA.md` — normativa (invariants, capes, imports, DoD)  
+1. `AGENTS_ARQUITECTURA.md` — normativa (invariants, capes, imports, DoD)
    https://raw.githubusercontent.com/romros/laboratori_profes/main/AGENTS_ARQUITECTURA.md
-2. `docs/ESTAT.md` — estat operatiu i com verificar  
+2. `docs/ESTAT.md` — estat operatiu i com verificar
    https://raw.githubusercontent.com/romros/laboratori_profes/main/docs/ESTAT.md
-3. `README.md` — scripts, Docker, requisits  
+3. `README.md` — scripts, Docker, requisits
    https://raw.githubusercontent.com/romros/laboratori_profes/main/README.md
+4. `docs/privacy/PRIVACY_ARCHITECTURE.md` — **model privacy-first obligatori** (local-first, prohibicions, excepcions)
+   https://raw.githubusercontent.com/romros/laboratori_profes/main/docs/privacy/PRIVACY_ARCHITECTURE.md
+
+> ⚠️ **Qualsevol tasca que toqui OCR, servidor, uploads, logs, persistència o connectors externs
+> ha de llegir `docs/privacy/PRIVACY_ARCHITECTURE.md` i `docs/privacy/SELF_AUDIT.md` abans de fer cap canvi.**
 
 ## Recomanat
 
-4. `docs/architecture.md` — mapa del disseny (detall normatiu a AGENTS)  
+5. `docs/architecture.md` — mapa del disseny (detall normatiu a AGENTS)
    https://raw.githubusercontent.com/romros/laboratori_profes/main/docs/architecture.md
-5. `docs/engineering-rules.md` — TypeScript, lint, tests, dependències (complement d’AGENTS)  
+6. `docs/engineering-rules.md` — TypeScript, lint, tests, dependències (complement d’AGENTS)
    https://raw.githubusercontent.com/romros/laboratori_profes/main/docs/engineering-rules.md
-6. `docs/product-context.md`  
+7. `docs/product-context.md`
    https://raw.githubusercontent.com/romros/laboratori_profes/main/docs/product-context.md
-7. `docs/roadmap.md`  
+8. `docs/roadmap.md`
    https://raw.githubusercontent.com/romros/laboratori_profes/main/docs/roadmap.md
-8. `docs/plantilla_tasca.md`  
+9. `docs/plantilla_tasca.md`
    https://raw.githubusercontent.com/romros/laboratori_profes/main/docs/plantilla_tasca.md
-9. `docs/features/template-inference/feasibility-definition.md` — context històric go/no-go; **contracte executable:** `template_feasibility.schema.ts` + `validateTemplateFeasibility` (regions de resposta)  
-   https://raw.githubusercontent.com/romros/laboratori_profes/main/docs/features/template-inference/feasibility-definition.md
-10. `docs/features/question-answer-extraction/README.md` — índex vertical **examen alumne / OCR / text per pregunta** (ortogonal a Feature 0)  
-   https://raw.githubusercontent.com/romros/laboratori_profes/main/docs/features/question-answer-extraction/README.md
-11. `docs/features/question-answer-extraction/mvp-definition.md` — **contracte conceptual MVP** (`question_id`, `answer_text`, `status`); **MVP implementat i validat** (servei Docker, nginx proxy, demo `/demo/qae`, 4 PDFs reals, 122 tests)
-   https://raw.githubusercontent.com/romros/laboratori_profes/main/docs/features/question-answer-extraction/mvp-definition.md
+10. `docs/features/template-inference/feasibility-definition.md` — context històric go/no-go; **contracte executable:** `template_feasibility.schema.ts` + `validateTemplateFeasibility` (regions de resposta)
+    https://raw.githubusercontent.com/romros/laboratori_profes/main/docs/features/template-inference/feasibility-definition.md
+11. `docs/features/question-answer-extraction/README.md` — índex vertical **examen alumne / OCR / text per pregunta** (ortogonal a Feature 0)
+    https://raw.githubusercontent.com/romros/laboratori_profes/main/docs/features/question-answer-extraction/README.md
+12. `docs/features/question-answer-extraction/mvp-definition.md` — **contracte conceptual MVP** (`question_id`, `answer_text`, `status`); **MVP implementat i validat** (servei Docker, nginx proxy, demo `/demo/qae`, 4 PDFs reals, 122 tests)
+    https://raw.githubusercontent.com/romros/laboratori_profes/main/docs/features/question-answer-extraction/mvp-definition.md
+
+## Privadesa (obligatori per tasques amb dades)
+
+13. `docs/privacy/PRIVACY_ARCHITECTURE.md` — model local-first, prohibicions, excepcions documentades
+    https://raw.githubusercontent.com/romros/laboratori_profes/main/docs/privacy/PRIVACY_ARCHITECTURE.md
+14. `docs/privacy/SELF_AUDIT.md` — checklist tècnica de controls de privadesa
+    https://raw.githubusercontent.com/romros/laboratori_profes/main/docs/privacy/SELF_AUDIT.md
+15. `docs/privacy/PRIVACY_REPORT.md` — estat actual dels controls (regenerable amb `npm run privacy:report`)
+    https://raw.githubusercontent.com/romros/laboratori_profes/main/docs/privacy/PRIVACY_REPORT.md
 
 ## Legacy (no oficial — no usar com a base de producte)
 

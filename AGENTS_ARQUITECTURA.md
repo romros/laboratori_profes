@@ -73,6 +73,31 @@ Spike aïllat (`experimental/` o abast mínim reversible a **`main`**); sense br
 
 ---
 
+## 8) Privadesa — guardrail permanent
+
+Aquest producte és **privacy-first, local-first** (versió professor/autònom). És un requisit no negociable.
+
+**Qualsevol tasca que toqui qualsevol d'aquestes àrees ha de llegir primer:**
+- `docs/privacy/PRIVACY_ARCHITECTURE.md` — model, prohibicions, excepcions
+- `docs/privacy/SELF_AUDIT.md` — checklist de controls
+
+**Àrees que requereixen revisió de privadesa:**
+- OCR (motors, configuració, inputs)
+- Servidor / endpoints HTTP
+- Uploads de fitxers
+- Logs i diagnòstics
+- Persistència de qualsevol forma
+- Connectors o integracions externes
+
+**Prohibit sense decisió explícita de PM:**
+- Enviar PDFs o imatges d'alumnes a serveis externs
+- Guardar text OCR d'exàmens al disc de forma persistent
+- Afegir qualsevol servei extern que rebi dades d'alumnes
+
+**En tancar una feature que toqui les àrees anteriors:** regenerar `docs/privacy/PRIVACY_REPORT.md` (`npm run privacy:report`) i actualitzar els controls manuals a `SELF_AUDIT.md`.
+
+---
+
 ## 7) Scripts i validació (arrel)
 
 - **Desenvolupament (opcional al host):** `npm run dev` — workspace `@profes/frontend`.
