@@ -15,7 +15,9 @@ services:
   # API QAE (question-answer-extraction) — servidor Node permanent; nginx fa proxy invers des de /api/
   qae-api:
     restart: unless-stopped
-    image: node:22-alpine
+    build:
+      context: .
+      dockerfile: apps/qae-api/Dockerfile
     working_dir: /app/apps/frontend
     environment:
       QAE_DEV_HOST: "0.0.0.0"

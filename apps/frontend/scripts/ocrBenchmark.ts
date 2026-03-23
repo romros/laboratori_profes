@@ -1,8 +1,8 @@
 /**
  * Benchmark OCR — Feature 1 QAE (iteració de qualitat)
  *
- * Objectiu: comparar configuracions Tesseract.js sobre els 4 PDFs reals
- * per decidir si el tuning és suficient o cal explorar un altre motor.
+ * Objectiu: comparar configuracions Tesseract.js (WASM) i Tesseract CLI natiu
+ * sobre els 4 PDFs reals per decidir quin motor és més adequat.
  *
  * RESTRICCIÓ DE PRIVACITAT:
  * Els PDFs contenen dades personals d'alumnes. Tot el processament OCR
@@ -10,11 +10,15 @@
  * Azure OCR, etc.) és acceptable. Motors vàlids: Tesseract.js (WASM),
  * Tesseract CLI local, easyocr/paddleocr instal·lats localment.
  *
- * Configuracions comparades (totes locals, Tesseract.js WASM):
- *   1. baseline    — cat, PSM AUTO (3)        [actual]
- *   2. cat_spa     — cat+spa, PSM AUTO (3)
- *   3. psm6        — cat, PSM SINGLE_BLOCK (6)
- *   4. cat_spa_p6  — cat+spa, PSM SINGLE_BLOCK (6)
+ * Configuracions comparades:
+ *   Tesseract.js (WASM):
+ *     1. baseline    — cat, PSM AUTO (3)        [referència anterior]
+ *     2. cat_spa     — cat+spa, PSM AUTO (3)
+ *     3. psm6        — cat, PSM SINGLE_BLOCK (6)
+ *     4. cat_spa_p6  — cat+spa, PSM SINGLE_BLOCK (6)
+ *   Tesseract CLI natiu:
+ *     5. cli_cat     — cat, PSM AUTO (3)
+ *     6. cli_cat_spa — cat+spa, PSM AUTO (3)
  *
  * Ús (des de apps/frontend):
  *   npm run benchmark:ocr
@@ -27,6 +31,7 @@ import { resolve } from 'node:path'
 
 import { createWorker, PSM } from 'tesseract.js'
 
+import { ocrPngBuffersWithTesseractCli } from '../src/infrastructure/ocr/tesseractCliOcrPng'
 import { rasterizePdfToPngPages } from '../src/infrastructure/ocr/rasterizePdfToPngPages'
 import {
   dedupeQuestionMarkersByFirstId,
@@ -38,17 +43,22 @@ import { segmentByQuestionMarkers } from '../src/features/question-answer-extrac
 // Configuracions a comparar
 // ---------------------------------------------------------------------------
 
+type OcrEngine = 'tesseract.js' | 'tesseract-cli'
+
 type OcrConfig = {
   id: string
+  engine: OcrEngine
   langs: string
   psm: string
 }
 
 const CONFIGS: OcrConfig[] = [
-  { id: 'baseline', langs: 'cat', psm: PSM.AUTO },
-  { id: 'cat_spa', langs: 'cat+spa', psm: PSM.AUTO },
-  { id: 'psm6', langs: 'cat', psm: PSM.SINGLE_BLOCK },
-  { id: 'cat_spa_p6', langs: 'cat+spa', psm: PSM.SINGLE_BLOCK },
+  { id: 'baseline', engine: 'tesseract.js', langs: 'cat', psm: PSM.AUTO },
+  { id: 'cat_spa', engine: 'tesseract.js', langs: 'cat+spa', psm: PSM.AUTO },
+  { id: 'psm6', engine: 'tesseract.js', langs: 'cat', psm: PSM.SINGLE_BLOCK },
+  { id: 'cat_spa_p6', engine: 'tesseract.js', langs: 'cat+spa', psm: PSM.SINGLE_BLOCK },
+  { id: 'cli_cat', engine: 'tesseract-cli', langs: 'cat', psm: '3' },
+  { id: 'cli_cat_spa', engine: 'tesseract-cli', langs: 'cat+spa', psm: '3' },
 ]
 
 // ---------------------------------------------------------------------------
@@ -77,6 +87,9 @@ const CRITICAL_CASES: Record<string, string[]> = {
 // ---------------------------------------------------------------------------
 
 async function ocrWithConfig(pngs: Buffer[], cfg: OcrConfig): Promise<string[]> {
+  if (cfg.engine === 'tesseract-cli') {
+    return ocrPngBuffersWithTesseractCli(pngs, cfg.langs)
+  }
   const worker = await createWorker(cfg.langs)
   await worker.setParameters({ tessedit_pageseg_mode: cfg.psm as PSM })
   try {

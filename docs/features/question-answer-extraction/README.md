@@ -20,9 +20,9 @@
 
 **Benchmark executat (2026-03-22):** `docs/benchmarks/ocr-benchmark-2026-03-22.md`
 
-**Resultat:** cap configuració Tesseract.js (cat, cat+spa, PSM3, PSM6) millora prou els casos crítics. El text d'`ex_alumne4` és soroll pur per a tots els motors — el tuning de paràmetres no és suficient.
+**Resultat (benchmark complet — WASM + CLI natiu):** cap configuració ni motor Tesseract millora els casos crítics. Text d'`ex_alumne4` és soroll pur independentment del wrapper (WASM vs CLI 5.5.1) o idioma. El bottleneck és la **qualitat d'escaneig d'entrada**, no el motor.
 
-**Decisió:** ⚠️ **explorar motor OCR alternatiu LOCAL** (Tesseract CLI natiu, easyocr local, paddleocr local). Cap API cloud — dades personals d'alumnes.
+**Decisió:** el problema requereix **preprocessing d'imatge** (contrast, binarització, deskew) o acceptar alumne4 com a fora d'abast del MVP. Cap API cloud — dades personals d'alumnes.
 
 **Restricció de privacitat:** tot el processament OCR ha de ser local (servidor o navegador). Cap API cloud acceptable.
 
