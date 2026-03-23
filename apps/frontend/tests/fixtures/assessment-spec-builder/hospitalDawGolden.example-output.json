@@ -1,0 +1,34 @@
+{
+  "exam_id": "exam_example",
+  "title": "F_IT_008_01 — Examen LDD Ordinària — Cas Hospital (DAW)",
+  "questions": [
+    {
+      "question_id": "Q1",
+      "question_text": "Creació Taula 1 (Hospital) amb les restriccions corresponents.",
+      "max_score": 0.33,
+      "question_type": "sql_ddl",
+      "expected_answer": "CREATE TABLE Hospital ( id INT PRIMARY KEY, ... CONSTRAINT chk_hospital_numero_pos CHECK (numero > 0) );",
+      "what_to_evaluate": ["DDL vàlid", "Ús de CHECK"],
+      "required_elements": ["PRIMARY KEY", "CHECK (numero > 0)"],
+      "accepted_variants": [],
+      "important_mistakes": ["Oblidar CHECK"],
+      "teacher_style_notes": [],
+      "extraction_confidence": 0.92,
+      "inference_confidence": 0.78
+    },
+    {
+      "question_id": "Q2",
+      "question_text": "Creació Taula 2 (Pacient) amb les restriccions corresponents.",
+      "max_score": 0.33,
+      "question_type": "sql_ddl",
+      "expected_answer": "CREATE TABLE Pacient ( nif CHAR(9) PRIMARY KEY, ... id_hospital INT REFERENCES Hospital(id) ON DELETE SET NULL );",
+      "what_to_evaluate": ["Clau forana", "ON DELETE SET NULL"],
+      "required_elements": ["ON DELETE SET NULL"],
+      "accepted_variants": [],
+      "important_mistakes": [],
+      "teacher_style_notes": [],
+      "extraction_confidence": 0.88,
+      "inference_confidence": 0.75
+    }
+  ]
+}
