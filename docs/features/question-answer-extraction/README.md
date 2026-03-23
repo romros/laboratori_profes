@@ -40,11 +40,12 @@ S'han provat 3 rondes de benchmark sense millora (evidència: `docs/benchmarks/o
 
 - **`mvp-definition.md`** — contracte conceptual MVP, abast, fora d'abast, decisions de domini, decisions obertes, relació amb Feature 0.
 
-## Relació amb Feature 0 (template-inference)
+## Relació amb Feature 0 (template-inference + layout mapping)
 
-- **Ortogonals:** Feature 0 = plantilla del professor, viabilitat, `answer_regions`, PDF amb text embegut, sense OCR d'alumne.
-- Aquesta vertical = full d'alumne, OCR, `question_id` + `answer_text` + `status` per ítem.
-- Feature 0 **no es substitueix**; en un futur es podria usar com a hint opcional, **no** com a requisit del primer MVP (veure `mvp-definition.md`).
+- **Complementàries:** Feature 0 Capa 1 = viabilitat de plantilla del professor, `answer_regions`, PDF amb text embegut, sense OCR d'alumne. Feature 0 Capa 2 = pipeline anchor→zones→`TemplateMappedAnswersResult` per extreure respostes guiades pel template.
+- Aquesta vertical (Feature 1) = enfoc OCR pur sense template, segmentació per marcadors numèrics (`1.`, `2.`, etc.), `question_id` + `answer_text` + `status` per ítem.
+- Les dues aproximacions **coexisteixen**: Feature 0 Capa 2 és més precisa (guiada per template) però requereix template real; Feature 1 funciona sense template però menys precisa en segmentació. En futur, Feature 0 podria complementar Feature 1 com a hint opcional.
+- **Feature 0 Capa 2 és MVP complet** (`buildTemplateMappedAnswers`, contracte `TemplateMappedAnswersResult`). Veure `docs/ESTAT.md` per detalls.
 
 ## Normativa de codi (quan toqui implementar)
 
