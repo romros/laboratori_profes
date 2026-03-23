@@ -1,20 +1,14 @@
-# I/O reals de la passada 2 (enrich) — al repo
+# Exemples I/O — Assessment Spec Builder
 
-Fitxers **exactes** que es poden revisar a GitHub (sense calibratge local):
+## Cadena passada 1 → passada 2 (recomanat)
 
-| Fitxer | Què és |
-|--------|--------|
-| **`enrich-pass2-user-payload.txt`** | Tot el cos del missatge **`role=user`** enviat a `chat/completions` (o Responses si el model ho exigeix). Inclou blocs ASSESSMENT_SPEC_BASE, ENUNCIAT ORIGINAL, SOLUCIONARI ORIGINAL i regles. |
-| **`enrich-pass2-model-output.json`** | **Resposta JSON del model** (text que retorna l’API abans del `merge` al codi). Origen: captura al fixture `apps/frontend/tests/fixtures/assessment-spec-builder/hospitalDawGolden.enriched-output.json`. |
-
-**Regenerar** el payload (sempre determinista) i copiar el JSON del model des del fixture:
+Carpeta **`hospital-daw-chain/`** — fitxers JSON/text pla amb noms explícits (`pass1-output`, `pass2-llm-response`, `pass2-after-merge`, `pass2-user-payload`). Llegeix el `README.md` d’aquesta carpeta: **no cal OpenAI** per regenerar-los.
 
 ```bash
-npm run write:enrich-pass2-artifacts -w @profes/frontend
+npm run write:assessment-spec-hospital-chain -w @profes/frontend
 ```
 
-Per **tornar a generar** `hospitalDawGolden.enriched-output.json` via API (cal clau): `npm run write:hospital-enriched-fixture -w @profes/frontend`, després torna a executar `write:enrich-pass2-artifacts`.
+## Altres
 
-**Altres** (pipeline complet després de merge): `../quick-sample-v1-output.json`.
-
-Els `calibration-outputs/*.json` segueixen al `.gitignore` (execucions locals).
+- Snapshot pipeline complet (referència): `../quick-sample-v1-output.json`
+- Execucions de calibratge locals: `calibration-outputs/` (gitignored)

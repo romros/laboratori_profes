@@ -21,7 +21,7 @@
     "privacy:report": "tsx --tsconfig tsconfig.app.json scripts/privacyReport.ts",
     "spike:template-mapped-answers": "tsx --tsconfig tsconfig.app.json scripts/buildTemplateMappedAnswersSpike.ts",
     "calibration:assessment-spec-models": "tsx --tsconfig tsconfig.app.json scripts/assessmentSpecHospitalModelCalibration.ts",
-    "write:enrich-pass2-artifacts": "tsx --tsconfig tsconfig.app.json scripts/writeEnrichPass2Artifacts.ts",
+    "write:assessment-spec-hospital-chain": "tsx --tsconfig tsconfig.app.json scripts/writeAssessmentSpecHospitalChainDocs.ts",
     "write:hospital-enriched-fixture": "tsx --tsconfig tsconfig.app.json scripts/writeEnrichedHospitalFixture.ts"
   },
   "dependencies": {

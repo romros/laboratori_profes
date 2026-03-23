@@ -1,0 +1,449 @@
+{
+  "exam_id": "exam_1774283302149",
+  "title": "F_IT_008_01 — Examen LDD Ordinària — Cas Hospital (DAW)",
+  "questions": [
+    {
+      "question_id": "Q1",
+      "question_text": "Creació Taula 1 (Hospital) amb les restriccions corresponents.",
+      "max_score": 0.33,
+      "question_type": "sql_ddl",
+      "expected_answer": "CREATE TABLE Hospital (\n  id INT PRIMARY KEY,\n  carrer VARCHAR(120) NOT NULL,\n  numero INT NOT NULL,\n  codi_postal CHAR(5) NOT NULL,\n  telefon VARCHAR(20) NOT NULL,\n  CONSTRAINT chk_hospital_numero_pos CHECK (numero > 0)\n);",
+      "what_to_evaluate": [
+        "la consulta inclou una clàusula PRIMARY KEY per a 'id'",
+        "la taula inclou una restricció CHECK per a 'numero'",
+        "la sintaxi SQL és correcta"
+      ],
+      "required_elements": [
+        "la definició de la taula amb el nom 'Hospital'",
+        "la columna 'id' com a PRIMARY KEY",
+        "la restricció CHECK per a 'numero'"
+      ],
+      "accepted_variants": [],
+      "important_mistakes": [
+        "no incloure la clàusula PRIMARY KEY",
+        "errors en la definició de tipus de dades",
+        "omissió de restriccions necessàries"
+      ],
+      "teacher_style_notes": [
+        "prioritzar la comprensió de les restriccions",
+        "acceptar variacions raonables en la sintaxi",
+        "tolerar petits errors de format si la lògica és correcta"
+      ],
+      "extraction_confidence": 1,
+      "inference_confidence": 0.9
+    },
+    {
+      "question_id": "Q2",
+      "question_text": "Creació Taula 2 (Pacient) amb les restriccions corresponents.",
+      "max_score": 0.33,
+      "question_type": "sql_ddl",
+      "expected_answer": "CREATE TABLE Pacient (\n  nif CHAR(9) PRIMARY KEY,\n  nom VARCHAR(100) NOT NULL,\n  adreça VARCHAR(150) NOT NULL,\n  numero INT NOT NULL,\n  codi_postal CHAR(5) NOT NULL,\n  telefon VARCHAR(20) NOT NULL,\n  id_hospital INT REFERENCES Hospital(id) ON DELETE SET NULL\n);",
+      "what_to_evaluate": [
+        "la columna 'nif' com a PRIMARY KEY",
+        "la referència a 'Hospital(id)' amb ON DELETE SET NULL",
+        "la sintaxi SQL és correcta"
+      ],
+      "required_elements": [
+        "la definició de la taula amb el nom 'Pacient'",
+        "la columna 'nif' com a PRIMARY KEY",
+        "la referència a 'id_hospital' amb la restricció de referència"
+      ],
+      "accepted_variants": [],
+      "important_mistakes": [
+        "no definir 'nif' com a PRIMARY KEY",
+        "errors en la referència a la taula 'Hospital'",
+        "omissió de restriccions NOT NULL"
+      ],
+      "teacher_style_notes": [
+        "valorar la correcta referència entre taules",
+        "acceptar variacions raonables en la sintaxi",
+        "tolerar petits errors de format si la lògica és correcta"
+      ],
+      "extraction_confidence": 1,
+      "inference_confidence": 0.9
+    },
+    {
+      "question_id": "Q3",
+      "question_text": "Creació Taula 3 (Habitacio) amb les restriccions corresponents.",
+      "max_score": 0.33,
+      "question_type": "sql_ddl",
+      "expected_answer": "CREATE TABLE Habitacio (\n  id_hospital INT NOT NULL REFERENCES Hospital(id) ON DELETE CASCADE,\n  numero_hab INT NOT NULL,\n  tipus VARCHAR(20) NOT NULL,\n  PRIMARY KEY (id_hospital, numero_hab),\n  CONSTRAINT chk_habitacio_tipus CHECK (tipus IN ('individual', 'doble'))\n);",
+      "what_to_evaluate": [
+        "la clàusula PRIMARY KEY inclou 'id_hospital' i 'numero_hab'",
+        "la referència a 'Hospital(id)' amb ON DELETE CASCADE",
+        "la sintaxi SQL és correcta"
+      ],
+      "required_elements": [
+        "la definició de la taula amb el nom 'Habitacio'",
+        "la clàusula PRIMARY KEY per a 'id_hospital' i 'numero_hab'",
+        "la restricció CHECK per a 'tipus'"
+      ],
+      "accepted_variants": [],
+      "important_mistakes": [
+        "no definir la PRIMARY KEY correctament",
+        "errors en la referència a la taula 'Hospital'",
+        "omissió de la restricció CHECK"
+      ],
+      "teacher_style_notes": [
+        "prioritzar la comprensió de les relacions entre taules",
+        "acceptar variacions raonables en la sintaxi",
+        "tolerar petits errors de format si la lògica és correcta"
+      ],
+      "extraction_confidence": 1,
+      "inference_confidence": 0.9
+    },
+    {
+      "question_id": "Q4",
+      "question_text": "Creació Taula 4 (Metge) amb les restriccions corresponents.",
+      "max_score": 0.33,
+      "question_type": "sql_ddl",
+      "expected_answer": "CREATE TABLE Metge (\n  nif CHAR(9) PRIMARY KEY,\n  nom VARCHAR(100) NOT NULL,\n  especialitat VARCHAR(80) NOT NULL,\n  id_hospital INT NOT NULL REFERENCES Hospital(id) ON DELETE CASCADE\n);",
+      "what_to_evaluate": [
+        "la columna 'nif' com a PRIMARY KEY",
+        "la referència a 'Hospital(id)' amb ON DELETE CASCADE",
+        "la sintaxi SQL és correcta"
+      ],
+      "required_elements": [
+        "la definició de la taula amb el nom 'Metge'",
+        "la columna 'nif' com a PRIMARY KEY",
+        "la referència a 'id_hospital' amb la restricció de referència"
+      ],
+      "accepted_variants": [],
+      "important_mistakes": [
+        "no definir 'nif' com a PRIMARY KEY",
+        "errors en la referència a la taula 'Hospital'",
+        "omissió de restriccions NOT NULL"
+      ],
+      "teacher_style_notes": [
+        "valorar la correcta referència entre taules",
+        "acceptar variacions raonables en la sintaxi",
+        "tolerar petits errors de format si la lògica és correcta"
+      ],
+      "extraction_confidence": 1,
+      "inference_confidence": 0.9
+    },
+    {
+      "question_id": "Q5",
+      "question_text": "Creació Taula 5 (Tractament) amb les restriccions corresponents.",
+      "max_score": 0.33,
+      "question_type": "sql_ddl",
+      "expected_answer": "CREATE TABLE Tractament (\n  id_tractament INT PRIMARY KEY,\n  nom VARCHAR(120) NOT NULL,\n  CONSTRAINT chk_tractament_nom CHECK (char_length(trim(nom)) > 0)\n);",
+      "what_to_evaluate": [
+        "la columna 'id_tractament' com a PRIMARY KEY",
+        "la restricció CHECK per a 'nom'",
+        "la sintaxi SQL és correcta"
+      ],
+      "required_elements": [
+        "la definició de la taula amb el nom 'Tractament'",
+        "la columna 'id_tractament' com a PRIMARY KEY",
+        "la restricció CHECK per a 'nom'"
+      ],
+      "accepted_variants": [],
+      "important_mistakes": [
+        "no definir 'id_tractament' com a PRIMARY KEY",
+        "errors en la definició de tipus de dades",
+        "omissió de restriccions necessàries"
+      ],
+      "teacher_style_notes": [
+        "prioritzar la comprensió de les restriccions",
+        "acceptar variacions raonables en la sintaxi",
+        "tolerar petits errors de format si la lògica és correcta"
+      ],
+      "extraction_confidence": 1,
+      "inference_confidence": 0.9
+    },
+    {
+      "question_id": "Q6",
+      "question_text": "Creació Taula 6 (Visita) amb les restriccions corresponents.",
+      "max_score": 0.33,
+      "question_type": "sql_ddl",
+      "expected_answer": "CREATE TABLE Visita (\n  id_visita INT PRIMARY KEY,\n  data_visita DATE NOT NULL,\n  import NUMERIC(10,2) NOT NULL,\n  motiu VARCHAR(200) NOT NULL,\n  tipus VARCHAR(40) NOT NULL,\n  nif_pacient CHAR(9) NOT NULL REFERENCES Pacient(nif),\n  nif_metge CHAR(9) NOT NULL REFERENCES Metge(nif)\n);",
+      "what_to_evaluate": [
+        "la columna 'id_visita' com a PRIMARY KEY",
+        "la referència a 'Pacient(nif)' i 'Metge(nif)'",
+        "la sintaxi SQL és correcta"
+      ],
+      "required_elements": [
+        "la definició de la taula amb el nom 'Visita'",
+        "la columna 'id_visita' com a PRIMARY KEY",
+        "les referències a 'nif_pacient' i 'nif_metge'"
+      ],
+      "accepted_variants": [],
+      "important_mistakes": [
+        "no definir 'id_visita' com a PRIMARY KEY",
+        "errors en les referències a les taules 'Pacient' i 'Metge'",
+        "omissió de restriccions NOT NULL"
+      ],
+      "teacher_style_notes": [
+        "valorar la correcta referència entre taules",
+        "acceptar variacions raonables en la sintaxi",
+        "tolerar petits errors de format si la lògica és correcta"
+      ],
+      "extraction_confidence": 1,
+      "inference_confidence": 0.9
+    },
+    {
+      "question_id": "Q7",
+      "question_text": "Inserir un hospital amb codi 1 ubicat al carrer Sant Joan, número 50, codi postal 08001, telèfon 932223344.",
+      "max_score": 0.33,
+      "question_type": "sql_insert",
+      "expected_answer": "INSERT INTO Hospital (id, carrer, numero, codi_postal, telefon)\nVALUES (1, 'Sant Joan', 50, '08001', '932223344');",
+      "what_to_evaluate": [
+        "la sintaxi SQL és correcta",
+        "els valors són coherents amb l'enunciat",
+        "la taula 'Hospital' s'actualitza correctament"
+      ],
+      "required_elements": [
+        "la instrucció INSERT INTO per a 'Hospital'",
+        "els valors per a 'id', 'carrer', 'numero', 'codi_postal' i 'telefon'"
+      ],
+      "accepted_variants": [],
+      "important_mistakes": [
+        "errors en la sintaxi de la instrucció INSERT",
+        "valors incorrectes o incoherents amb l'enunciat",
+        "omissió de columnes necessàries"
+      ],
+      "teacher_style_notes": [
+        "prioritzar la coherència dels valors amb l'enunciat",
+        "acceptar variacions raonables en la sintaxi",
+        "tolerar petits errors de format si la lògica és correcta"
+      ],
+      "extraction_confidence": 1,
+      "inference_confidence": 0.9
+    },
+    {
+      "question_id": "Q8",
+      "question_text": "Inserir un pacient anomenat Pere Torres Font, amb adreça Passeig de Gràcia, número 12, codi postal 08001, telèfon 934445566 i NIF 12345678A.",
+      "max_score": 0.33,
+      "question_type": "sql_insert",
+      "expected_answer": "INSERT INTO Pacient (nif, nom, adreça, numero, codi_postal, telefon, id_hospital)\nVALUES ('12345678A', 'Pere Torres Font', 'Passeig de Gràcia', 12, '08001', '934445566', NULL);",
+      "what_to_evaluate": [
+        "la sintaxi SQL és correcta",
+        "els valors són coherents amb l'enunciat",
+        "la taula 'Pacient' s'actualitza correctament"
+      ],
+      "required_elements": [
+        "la instrucció INSERT INTO per a 'Pacient'",
+        "els valors per a 'nif', 'nom', 'adreça', 'numero', 'codi_postal', 'telefon' i 'id_hospital'"
+      ],
+      "accepted_variants": [],
+      "important_mistakes": [
+        "errors en la sintaxi de la instrucció INSERT",
+        "valors incorrectes o incoherents amb l'enunciat",
+        "omissió de columnes necessàries"
+      ],
+      "teacher_style_notes": [
+        "prioritzar la coherència dels valors amb l'enunciat",
+        "acceptar variacions raonables en la sintaxi",
+        "tolerar petits errors de format si la lògica és correcta"
+      ],
+      "extraction_confidence": 1,
+      "inference_confidence": 0.9
+    },
+    {
+      "question_id": "Q9",
+      "question_text": "Assignar una habitació número 101, de tipus individual, a l'hospital 1 per al pacient amb NIF 12345678A.",
+      "max_score": 0.33,
+      "question_type": "sql_insert",
+      "expected_answer": "INSERT INTO Habitacio (id_hospital, numero_hab, tipus)\nVALUES (1, 101, 'individual');\nUPDATE Pacient SET id_hospital = 1 WHERE nif = '12345678A';",
+      "what_to_evaluate": [
+        "la sintaxi SQL és correcta",
+        "els valors són coherents amb l'enunciat",
+        "la taula 'Habitacio' s'actualitza correctament"
+      ],
+      "required_elements": [
+        "la instrucció INSERT INTO per a 'Habitacio'",
+        "els valors per a 'id_hospital', 'numero_hab' i 'tipus'",
+        "la instrucció UPDATE per a 'Pacient'"
+      ],
+      "accepted_variants": [],
+      "important_mistakes": [
+        "errors en la sintaxi de la instrucció INSERT",
+        "valors incorrectes o incoherents amb l'enunciat",
+        "omissió de columnes necessàries"
+      ],
+      "teacher_style_notes": [
+        "prioritzar la coherència dels valors amb l'enunciat",
+        "acceptar variacions raonables en la sintaxi",
+        "tolerar petits errors de format si la lògica és correcta"
+      ],
+      "extraction_confidence": 1,
+      "inference_confidence": 0.9
+    },
+    {
+      "question_id": "Q10",
+      "question_text": "Afegir un metge amb NIF 98765432B, nom Dr. Laura López, especialitat Cardiologia, associada a l'hospital 1.",
+      "max_score": 0.33,
+      "question_type": "sql_insert",
+      "expected_answer": "INSERT INTO Metge (nif, nom, especialitat, id_hospital)\nVALUES ('98765432B', 'Dr. Laura López', 'Cardiologia', 1);",
+      "what_to_evaluate": [
+        "la sintaxi SQL és correcta",
+        "els valors són coherents amb l'enunciat",
+        "la taula 'Metge' s'actualitza correctament"
+      ],
+      "required_elements": [
+        "la instrucció INSERT INTO per a 'Metge'",
+        "els valors per a 'nif', 'nom', 'especialitat' i 'id_hospital'"
+      ],
+      "accepted_variants": [],
+      "important_mistakes": [
+        "errors en la sintaxi de la instrucció INSERT",
+        "valors incorrectes o incoherents amb l'enunciat",
+        "omissió de columnes necessàries"
+      ],
+      "teacher_style_notes": [
+        "prioritzar la coherència dels valors amb l'enunciat",
+        "acceptar variacions raonables en la sintaxi",
+        "tolerar petits errors de format si la lògica és correcta"
+      ],
+      "extraction_confidence": 1,
+      "inference_confidence": 0.9
+    },
+    {
+      "question_id": "Q11",
+      "question_text": "Assignar un tractament anomenat Rehabilitació Cardíaca, amb idTractament 1, per al pacient 12345678A, assignat al metge 98765432B.",
+      "max_score": 0.33,
+      "question_type": "sql_insert",
+      "expected_answer": "INSERT INTO Tractament (id_tractament, nom) VALUES (1, 'Rehabilitació Cardíaca');\nINSERT INTO tractament_pacient_metge (nif_pacient, id_tractament, nif_metge)\nVALUES ('12345678A', 1, '98765432B');",
+      "what_to_evaluate": [
+        "la sintaxi SQL és correcta",
+        "els valors són coherents amb l'enunciat",
+        "la taula 'Tractament' i 'tractament_pacient_metge' s'actualitzen correctament"
+      ],
+      "required_elements": [
+        "la instrucció INSERT INTO per a 'Tractament'",
+        "els valors per a 'id_tractament' i 'nom'",
+        "la instrucció INSERT INTO per a 'tractament_pacient_metge'"
+      ],
+      "accepted_variants": [],
+      "important_mistakes": [
+        "errors en la sintaxi de la instrucció INSERT",
+        "valors incorrectes o incoherents amb l'enunciat",
+        "omissió de columnes necessàries"
+      ],
+      "teacher_style_notes": [
+        "prioritzar la coherència dels valors amb l'enunciat",
+        "acceptar variacions raonables en la sintaxi",
+        "tolerar petits errors de format si la lògica és correcta"
+      ],
+      "extraction_confidence": 1,
+      "inference_confidence": 0.9
+    },
+    {
+      "question_id": "Q12",
+      "question_text": "Registrar una visita amb idVisita 1, data 2024-02-01, import 100€, motiu Revisió postoperatòria, tipus consulta, per al pacient 12345678A, atès pel metge 98765432B.",
+      "max_score": 0.33,
+      "question_type": "sql_insert",
+      "expected_answer": "INSERT INTO Visita (id_visita, data_visita, import, motiu, tipus, nif_pacient, nif_metge)\nVALUES (1, DATE '2024-02-01', 100.00, 'Revisió postoperatòria', 'consulta', '12345678A', '98765432B');",
+      "what_to_evaluate": [
+        "la sintaxi SQL és correcta",
+        "els valors són coherents amb l'enunciat",
+        "la taula 'Visita' s'actualitza correctament"
+      ],
+      "required_elements": [
+        "la instrucció INSERT INTO per a 'Visita'",
+        "els valors per a 'id_visita', 'data_visita', 'import', 'motiu', 'tipus', 'nif_pacient' i 'nif_metge'"
+      ],
+      "accepted_variants": [],
+      "important_mistakes": [
+        "errors en la sintaxi de la instrucció INSERT",
+        "valors incorrectes o incoherents amb l'enunciat",
+        "omissió de columnes necessàries"
+      ],
+      "teacher_style_notes": [
+        "prioritzar la coherència dels valors amb l'enunciat",
+        "acceptar variacions raonables en la sintaxi",
+        "tolerar petits errors de format si la lògica és correcta"
+      ],
+      "extraction_confidence": 1,
+      "inference_confidence": 0.9
+    },
+    {
+      "question_id": "Q13",
+      "question_text": "Incrementar en un 15% l'import de totes les visites registrades.",
+      "max_score": 0.33,
+      "question_type": "sql_update",
+      "expected_answer": "UPDATE Visita SET import = import * 1.15;",
+      "what_to_evaluate": [
+        "la sintaxi SQL és correcta",
+        "l'operació d'increment és correcta",
+        "la taula 'Visita' s'actualitza correctament"
+      ],
+      "required_elements": [
+        "la instrucció UPDATE per a 'Visita'",
+        "l'operació d'increment per a 'import'"
+      ],
+      "accepted_variants": [],
+      "important_mistakes": [
+        "errors en la sintaxi de la instrucció UPDATE",
+        "l'operació d'increment no és correcta",
+        "omissió de la taula a actualitzar"
+      ],
+      "teacher_style_notes": [
+        "prioritzar la comprensió de l'operació d'increment",
+        "acceptar variacions raonables en la sintaxi",
+        "tolerar petits errors de format si la lògica és correcta"
+      ],
+      "extraction_confidence": 1,
+      "inference_confidence": 0.9
+    },
+    {
+      "question_id": "Q14",
+      "question_text": "Canviar el tipus de dades del codi postal de Pacient de numèric a caràcter.",
+      "max_score": 0.33,
+      "question_type": "sql_alter",
+      "expected_answer": "ALTER TABLE Pacient ALTER COLUMN codi_postal TYPE VARCHAR(5) USING codi_postal::varchar;",
+      "what_to_evaluate": [
+        "la sintaxi SQL és correcta",
+        "el canvi de tipus és correcte",
+        "la taula 'Pacient' s'actualitza correctament"
+      ],
+      "required_elements": [
+        "la instrucció ALTER TABLE per a 'Pacient'",
+        "el canvi de tipus per a 'codi_postal'"
+      ],
+      "accepted_variants": [],
+      "important_mistakes": [
+        "errors en la sintaxi de la instrucció ALTER",
+        "el canvi de tipus no és correcte",
+        "omissió de la taula a modificar"
+      ],
+      "teacher_style_notes": [
+        "prioritzar la comprensió del canvi de tipus de dades",
+        "acceptar variacions raonables en la sintaxi",
+        "tolerar petits errors de format si la lògica és correcta"
+      ],
+      "extraction_confidence": 1,
+      "inference_confidence": 0.9
+    },
+    {
+      "question_id": "Q15",
+      "question_text": "Esborrar totes les visites on el tipus sigui consulta.",
+      "max_score": 0.33,
+      "question_type": "sql_delete",
+      "expected_answer": "DELETE FROM Visita WHERE tipus = 'consulta';",
+      "what_to_evaluate": [
+        "la sintaxi SQL és correcta",
+        "la condició de la consulta és correcta",
+        "la taula 'Visita' s'actualitza correctament"
+      ],
+      "required_elements": [
+        "la instrucció DELETE FROM per a 'Visita'",
+        "la condició WHERE per a 'tipus'"
+      ],
+      "accepted_variants": [],
+      "important_mistakes": [
+        "errors en la sintaxi de la instrucció DELETE",
+        "la condició WHERE no és correcta",
+        "omissió de la taula a esborrar"
+      ],
+      "teacher_style_notes": [
+        "prioritzar la comprensió de la condició de la consulta",
+        "acceptar variacions raonables en la sintaxi",
+        "tolerar petits errors de format si la lògica és correcta"
+      ],
+      "extraction_confidence": 1,
+      "inference_confidence": 0.9
+    }
+  ]
+}

@@ -1,5 +1,5 @@
-# Cos exacte enviat a l'API com a missatge d'usuari (role=user), passada 2 enrich.
-# Generat: npm run write:enrich-pass2-artifacts -w @profes/frontend
+# Passada 2 — cos exacte del missatge role=user (sense cridar cap API).
+# Regenera tota la carpeta hospital-daw-chain: npm run write:assessment-spec-hospital-chain -w @profes/frontend
 
 ---
 

@@ -1,7 +1,9 @@
 /**
- * Escriu només l’AssessmentSpec enriquit (Feature 2.1) a
+ * Escriu només la resposta de la passada 2 (enrich) a
  * tests/fixtures/assessment-spec-builder/hospitalDawGolden.enriched-output.json
  * sense modificar hospitalDawGolden.real-output.json.
+ *
+ * Després (sense API): npm run write:assessment-spec-hospital-chain -w @profes/frontend
  *
  * Clau: ASSESSMENT_SPEC_OPENAI_API_KEY | OPENAI_API_KEY | FEATURE0_OPENAI_API_KEY
  */

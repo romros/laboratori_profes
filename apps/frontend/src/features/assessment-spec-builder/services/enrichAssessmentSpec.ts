@@ -90,7 +90,10 @@ export function mergeEnrichmentPedagogyFields(
   }
 }
 
-function parseEnrichmentPedagogyFromModelJson(parsed: unknown): EnrichmentPedagogyQuestion[] {
+/** Extreu només els camps pedagògics del JSON que retorna el model (objecte amb `questions` o array). */
+export function parseEnrichmentPedagogyFromModelJson(
+  parsed: unknown,
+): EnrichmentPedagogyQuestion[] {
   let questionsRaw: unknown
   if (Array.isArray(parsed)) {
     questionsRaw = parsed
