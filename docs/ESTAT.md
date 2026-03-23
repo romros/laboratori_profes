@@ -57,17 +57,25 @@ Dues capes:
 
 Evidència completa: `docs/benchmarks/ocr-benchmark-2026-03-22.md`.
 
+**Feature 2 — Assessment Spec Builder: DEFINIDA — pendent d'implementació.**
+
+Converteix materials del professor (enunciat + solucionari) en un artefacte estructurat canònic: `AssessmentSpec` (`exam_id`, `questions[]` amb `question_id`, `question_text`, `max_score`, `question_type`, `expected_answer`, `what_to_evaluate`, `required_elements`, `accepted_variants`, `important_mistakes`, `teacher_style_notes`, `confidence`). **No toca dades d'alumnes.** LLM extern permès (materials del professor, no personals). **MVP assumeix text embegut** (sense OCR de solucionari). Output persistent (calculat un cop per convocatòria). **Prerequisit de Feature 3.** Doc canònic: `docs/features/assessment-spec-builder/README.md`. Artefactes de codi pendents: schema TS (`domain/assessment-spec/`), primer prompt LLM, harness de validació.
+
+---
+
 ## Falta
 
 - **Feature 0 (coordenades físiques):** geometria en coordenades de pàgina reals (x/y bbox) — fora d'abast del MVP actual. La lògica `ok/ko` + pipeline anchor/zones/mapping ja són funcionals; les coordenades físiques requeririen un backend fora del middleware Vite i integració amb rasteritzador. No prioritat fins que PM ho demani.
 - **Feature 0 (backend Capa 1):** ruta `/api/feature0/analysis` funciona via plugin Vite; en producció caldria backend Node independent. Pendent PM.
+- **Feature 2:** implementació (schema TS + LLM prompt + harness). Definició formal completa a `docs/features/assessment-spec-builder/README.md`.
+- **Feature 3:** avaluació de respostes (scoring, correcció assistida) — pendent Feature 2.
 
 ---
 
 ## Següent pas
 
-**Feature 0 i Feature 1 tancades com a MVP** (validació amb evidència real). Decidir amb PM:
+**Feature 0 i Feature 1 tancades com a MVP.** Feature 2 definida formalment.
 
-- **Feature 2** — avaluació de respostes basada en context (scoring, correcció assistida). Aquí és on hi ha el diferencial real del producte.
+- **Feature 2 (implementació)** — schema TypeScript `AssessmentSpec` + primer prompt LLM + harness sobre examen DAW real.
 
 Validació habitual: `./scripts/run_frontend.sh …` (Docker).
