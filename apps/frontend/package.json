@@ -18,7 +18,8 @@
     "spike:template-anchor": "tsx --tsconfig tsconfig.app.json scripts/templateAnchorSpike.ts",
     "spike:answer-zones": "tsx --tsconfig tsconfig.app.json scripts/answerZonesSpike.ts",
     "spike:template-verification": "tsx --tsconfig tsconfig.app.json scripts/templateVerificationSpike.ts",
-    "privacy:report": "tsx --tsconfig tsconfig.app.json scripts/privacyReport.ts"
+    "privacy:report": "tsx --tsconfig tsconfig.app.json scripts/privacyReport.ts",
+    "spike:template-mapped-answers": "tsx --tsconfig tsconfig.app.json scripts/buildTemplateMappedAnswersSpike.ts"
   },
   "dependencies": {
     "busboy": "^1.6.0",
