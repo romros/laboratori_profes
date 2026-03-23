@@ -19,6 +19,7 @@ import { ocrPngBuffersWithTesseract } from '../../../infrastructure/ocr/tesserac
 import { detectTemplateQuestionAnchors } from '../../template-anchor-detection/detectTemplateQuestionAnchors'
 import { verifyScanMatchesTemplate } from '../../template-verification/verifyScanMatchesTemplate'
 import { deriveAnswerZonesFromAnchors } from '../../template-answer-zones/deriveAnswerZonesFromAnchors'
+import { cleanAnswerZoneLines } from '../../template-answer-zones/cleanAnswerZoneText'
 import type { TemplateQuestion } from '../../template-anchor-detection/types'
 import type { OcrPageLines } from '../../template-answer-zones/types'
 import type { AnswerZoneRange } from '../../template-answer-zones/types'
@@ -39,8 +40,10 @@ function loadTemplate(): { questions: TemplateQuestion[]; source: string } {
 }
 
 export type ZoneDetail = AnswerZoneRange & {
-  /** Text concatenat de les línies del rang (truncat a 500 chars). */
+  /** Text brut del rang (truncat a 500 chars). */
   zone_text: string
+  /** Text net del rang (boilerplate eliminat). */
+  zone_text_clean: string
   /** Avís si l'anchor és compartit amb una altra pregunta (possible error de detecció). */
   shared_anchor_warning: boolean
 }
@@ -72,7 +75,7 @@ export type TemplateDebugHttpOutcome =
   | { ok: true; status: 200; body: TemplateDebugHttpSuccessBody }
   | { ok: false; status: 400 | 413 | 500; body: TemplateDebugHttpErrBody }
 
-function extractZoneText(zone: AnswerZoneRange, ocrPages: OcrPageLines[]): string {
+function extractZoneLines(zone: AnswerZoneRange, ocrPages: OcrPageLines[]): string[] {
   const pageMap = new Map<number, OcrPageLines>()
   for (const p of ocrPages) pageMap.set(p.pageIndex, p)
 
@@ -94,11 +97,7 @@ function extractZoneText(zone: AnswerZoneRange, ocrPages: OcrPageLines[]): strin
     if (endPage) lines.push(...endPage.lines.slice(0, zone.end_line_index + 1))
   }
 
-  return lines
-    .map((l) => l.trim())
-    .filter((l) => l.length > 0)
-    .join('\n')
-    .slice(0, 500)
+  return lines.map((l) => l.trim()).filter((l) => l.length > 0)
 }
 
 export async function executeTemplateDebugForPdfBuffer(
@@ -163,12 +162,19 @@ export async function executeTemplateDebugForPdfBuffer(
       }
     })
 
-    const zones: ZoneDetail[] = zonesResult.zones.map((z) => ({
-      ...z,
-      zone_text: extractZoneText(z, ocrPages),
-      shared_anchor_warning:
-        anchors.find((a) => a.question_id === z.question_id)?.shared_anchor_warning ?? false,
-    }))
+    const allDocLines = ocrPages.flatMap((p) => p.lines)
+
+    const zones: ZoneDetail[] = zonesResult.zones.map((z) => {
+      const rawLines = extractZoneLines(z, ocrPages)
+      const cleanLines = cleanAnswerZoneLines(rawLines, allDocLines)
+      return {
+        ...z,
+        zone_text: rawLines.join('\n').slice(0, 500),
+        zone_text_clean: cleanLines.join('\n').slice(0, 500),
+        shared_anchor_warning:
+          anchors.find((a) => a.question_id === z.question_id)?.shared_anchor_warning ?? false,
+      }
+    })
 
     const result: TemplateDebugResult = {
       template_source: source,

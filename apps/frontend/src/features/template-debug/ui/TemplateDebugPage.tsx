@@ -97,13 +97,29 @@ function AnchorRow({ a }: { a: TemplateDebugResult['anchors'][number] }) {
 
 function ZoneCard({ z }: { z: TemplateDebugResult['zones'][number] }) {
   const [open, setOpen] = useState(false)
+  const [showRaw, setShowRaw] = useState(false)
   const lineCount = z.zone_text.split('\n').length
+  const cleanLineCount = z.zone_text_clean.split('\n').filter(Boolean).length
   const tooLong = lineCount > 30
+  const removedLines = lineCount - cleanLineCount
 
   const rangeStr =
     z.start_page_index === z.end_page_index
       ? `p${z.start_page_index}  L${z.start_line_index}–${z.end_line_index}`
       : `p${z.start_page_index}:L${z.start_line_index} → p${z.end_page_index}:L${z.end_line_index}`
+
+  const preStyle: React.CSSProperties = {
+    margin: 0,
+    padding: '8px 12px',
+    borderTop: '1px solid #ddd',
+    fontFamily: 'monospace',
+    fontSize: 12,
+    whiteSpace: 'pre-wrap',
+    wordBreak: 'break-word',
+    background: '#f5f5f5',
+    maxHeight: 400,
+    overflow: 'auto',
+  }
 
   return (
     <div
@@ -133,6 +149,9 @@ function ZoneCard({ z }: { z: TemplateDebugResult['zones'][number] }) {
         <span style={{ fontWeight: 700, minWidth: 32 }}>{z.question_id}</span>
         <span style={{ color: '#666', fontSize: 12 }}>{rangeStr}</span>
         <span style={{ color: '#888', fontSize: 12 }}>sim={z.anchor_similarity.toFixed(2)}</span>
+        {removedLines > 0 && (
+          <span style={{ color: '#1a7a1a', fontSize: 12 }}>🧹 -{removedLines} línies</span>
+        )}
         {z.shared_anchor_warning && (
           <span style={{ color: '#b86000', fontSize: 12 }}>⚠️ anchor compartit</span>
         )}
@@ -142,22 +161,48 @@ function ZoneCard({ z }: { z: TemplateDebugResult['zones'][number] }) {
         <span style={{ marginLeft: 'auto', color: '#888' }}>{open ? '▲' : '▼'}</span>
       </div>
       {open && (
-        <pre
-          style={{
-            margin: 0,
-            padding: '8px 12px',
-            borderTop: '1px solid #ddd',
-            fontFamily: 'monospace',
-            fontSize: 12,
-            whiteSpace: 'pre-wrap',
-            wordBreak: 'break-word',
-            background: '#f5f5f5',
-            maxHeight: 400,
-            overflow: 'auto',
-          }}
-        >
-          {z.zone_text || '(buit)'}
-        </pre>
+        <>
+          <div
+            style={{
+              padding: '4px 12px',
+              borderTop: '1px solid #ddd',
+              background: '#f0f0f0',
+              display: 'flex',
+              gap: 8,
+              fontSize: 12,
+            }}
+          >
+            <button
+              type="button"
+              onClick={() => setShowRaw(false)}
+              style={{
+                cursor: 'pointer',
+                fontWeight: showRaw ? 'normal' : 700,
+                border: 'none',
+                background: 'none',
+                padding: '2px 4px',
+                color: showRaw ? '#666' : '#000',
+              }}
+            >
+              Net ({cleanLineCount}L)
+            </button>
+            <button
+              type="button"
+              onClick={() => setShowRaw(true)}
+              style={{
+                cursor: 'pointer',
+                fontWeight: showRaw ? 700 : 'normal',
+                border: 'none',
+                background: 'none',
+                padding: '2px 4px',
+                color: showRaw ? '#000' : '#666',
+              }}
+            >
+              Brut ({lineCount}L)
+            </button>
+          </div>
+          <pre style={preStyle}>{(showRaw ? z.zone_text : z.zone_text_clean) || '(buit)'}</pre>
+        </>
       )}
     </div>
   )
