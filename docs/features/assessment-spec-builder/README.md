@@ -1,6 +1,6 @@
 # Feature 2 — Assessment Spec Builder
 
-**Estat: implementada (MVP + contracte fort 2.2)** — extracció + enriqueiment pedagògic, schema estable, **dues passades LLM** amb models per fase: passada 1 per defecte `gpt-5.4`, passada 2 per defecte `gpt-5.4`. Client `chat/completions` per a aquests models; **`gpt-5.4-pro`** només com a opció experimental (`/v1/responses`).
+**Estat: DONE — congelada (2026-03-23)** — extracció + enriqueiment pedagògic + context global del document, schema estable, **dues passades LLM** amb contractes explícits. Passada 1 per defecte `gpt-5.4`, passada 2 per defecte `gpt-5.4`. Client `chat/completions`; **`gpt-5.4-pro`** només experimental.
 
 ---
 
@@ -61,6 +61,26 @@ Compatibilitat: si només existeix `ASSESSMENT_SPEC_OPENAI_MODEL`, s’aplica a 
 Telemetria opcional per calibratge: callback `onLlmRound` (fase, model resolt, `endpointKind` `chat_completions` | `responses`, `latencyMs`, `usage` si l’API el retorna). El client HTTP del producte no l’activa.
 
 **Escript de calibratge (cas hospital, 2 variants per defecte):** `npm run calibration:assessment-spec-models -w @profes/frontend` (requereix clau API; escriu `hospital-model-calibration-notes.md` amb tokens i temps). Amb `CALIBRATION_SAVE_ASSESSMENT_SPEC_JSON=1` es desen **base** (passada 1) i **enriquit** (passada 2) per variant a `calibration-outputs/` (vegeu `calibration-outputs/README.md`). **Cost USD:** no ve al cos de l’API; cal multiplicar tokens per tarifes vigents o mirar el dashboard OpenAI (ho resumeix el mateix fitxer de notes).
+
+### Feature 2.3 — Context global del document del professor (`examDocumentContext`)
+
+La passada 2 ara pot rebre un quart bloc de context: **`CONTEXT_DOCUMENT_PROFESSOR`**, que conté el text anterior al llistat de preguntes (model relacional, restriccions globals, instruccions generals de l’exercici).
+
+**Extracció determinista:** `extractDocumentContext(text)` talla per `"Es demana:"` (fallback: primer ítem numerat). Retorna `pre_questions_text` i `questions_start_index`. Fixtures: `hospitalDawExamDocumentContext` (preàmbul real del PDF) i `hospitalDawExamTextFull`.
+
+**Wiring:**
+- `enrichAssessmentSpec` accepta `examDocumentContext?: string`
+- `buildAssessmentSpecWithPedagogicEnrichment` el propaga automàticament
+- HTTP: camp opcional `exam_document_context` al JSON (passada 2 si `pedagogic_enrichment: true`)
+- La passada 1 (`buildAssessmentSpec`) **no** canvia — el context no arriba al parser
+
+**Guardrails explícits al prompt:**
+- `CONTEXT_DOCUMENT_PROFESSOR` és suport **interpretatiu**: ajuda a entendre el model conceptual i les restriccions del domini.
+- **No** pot generar `required_elements` que no es puguin verificar a la resposta de l’alumne.
+- **No** pot reescriure cap camp del base spec.
+- Si no es facilita, el prompt usa placeholder explícit (no inventa context).
+
+**Cas Q11 amb context:** el model relacional del preàmbul conté `Tractament(idTractament, nomTractament, nifPacient, nifMetge)` — la relació N:M queda justificada pel context, no pel nom literal del solucionari. Millora el `required_elements` conceptual sense literalisme.
 
 ---
 
@@ -206,17 +226,48 @@ Feature 2 **no depèn** de Feature 0 ni Feature 1. Es pot construir l'`Assessmen
 
 ---
 
-## Tancament de Feature 2 — DONE (2026-03-23)
+## Tancament de Feature 2 — DONE / CONGELADA (2026-03-23)
+
+Feature 2 queda **congelada**. Excepte bugs o ajustos menors de wiring, no s'hi ha d'afegir nova funcionalitat. El proper pas és Feature 3.
+
+### Declaració de congelació
+
+**Obert (acceptat):**
+- Correccions de bugs
+- Ajustos menors de wiring (p.ex. nous camps opcionals de context)
+- Correccions documentals
+
+**Tancat (no entrar sense decisió explícita de PM):**
+- Nous experiments de prompts
+- Nous camps de scoring o nota
+- Calibratge continu de models
+- Criteris de puntuació parcial
+- Feedback final a l'alumne
+- Grading de qualsevol tipus
 
 ### Què queda resolt
 
 - `AssessmentSpec` complet amb dues passades LLM i contractes explícits.
 - Passada 1 (MODE OPERATIU): extracció fidel, zero inferència no explícita, `question_text` literal de l'enunciat.
 - Passada 2 (MODE PEDAGÒGIC): interpretació conceptual, `accepted_variants` per noms d'implementació absents de l'enunciat, no literalisme innecessari.
+- Context global del document (`examDocumentContext`): model relacional, restriccions globals — suport interpretatiu per a la passada 2. Extracció determinista via `extractDocumentContext`. Guardrail explícit: no pot generar criteris no verificables.
 - Golden hospital validat (15 preguntes, `gpt-5.4` les dues passades).
 - Chain versionada a `examples/hospital-daw-chain/`.
 - Q11 resolt conceptualment: `tractament_pacient_metge` és `accepted_variant`, no `required_element` (veure [q11-contract-analysis.md](q11-contract-analysis.md)).
 - Tests de contracte de prompt garanteixen que els rols no regressin.
+
+### Revisió funcional del context (2026-03-23)
+
+Revisió estàtica sobre el cas hospital:
+
+| Cas | Millora amb `examDocumentContext` | Guardrail verificat |
+|-----|----------------------------------|---------------------|
+| Q1-Q6 (DDL) | ✅ Les restriccions del model relacional estan al context — `required_elements` conceptuals sense inventar | ✅ No reescriu base spec |
+| Q7-Q12 (INSERT) | ✅ marginal — relacions FK disponibles al context | ✅ No afegeix `required_elements` extra |
+| Q11 (N:M) | ✅ El context descriu `Tractament(idTractament, nomTractament, nifPacient, nifMetge)` — la relació N:M queda justificada sense el nom literal del solucionari | ✅ `tractament_pacient_metge` segueix com `accepted_variant` |
+| Passada 1 | ✅ No canvia — el context no arriba al parser | ✅ Wiring verificat |
+
+**Conclusió:** el context ajuda en els casos DDL i Q11 sense contaminar. El pipeline és estable.
 
 ### Què NO resol Feature 2
 
@@ -235,15 +286,19 @@ Feature 3 necessita un `AssessmentSpec` vàlid per pregunta: `question_id`, `exp
 
 - Barrejar el rol de passada 1 i passada 2 (p.ex. afegir criteri pedagògic a passada 1).
 - Reintroduir literalisme a passada 2 (p.ex. fer `required_element` d'un nom de taula absent de l'enunciat).
+- Usar `examDocumentContext` per afegir `required_elements` que no es puguin verificar a la resposta de l'alumne.
 - Fer grading directament des del solucionari sense passar per `AssessmentSpec` — Feature 2 és la capa d'abstracció.
 - Recalcular `AssessmentSpec` en cada avaluació (ha de ser persistent per convocatòria).
 
-### Evidència de tancament
+### Evidència de tancament final
 
 | Verificació | Commit | Resultat |
 |-------------|--------|---------|
 | Prompts MODE OPERATIU / MODE PEDAGÒGIC | `cf20c32` | ✅ |
-| Tests de contracte (8 nous asserts) | `cf20c32` | ✅ 241 tests OK |
+| Tests de contracte prompts | `cf20c32` | ✅ 241 tests |
 | Q11 analitzat i documentat | `cf20c32` | ✅ |
 | Golden hospital `gpt-5.4` × 2 passades | `bbb905b` / `355a091` | ✅ |
-| Validació Docker (`test lint typecheck`) | 2026-03-23 | ✅ |
+| `extractDocumentContext` + fixture hospital real | `dc508ab` | ✅ 256 tests |
+| Wiring `examDocumentContext` passada 2 | `dc508ab` | ✅ |
+| Revisió funcional estàtica (cas hospital) | 2026-03-23 | ✅ |
+| Validació Docker final (`test lint typecheck`) | 2026-03-23 | ✅ |

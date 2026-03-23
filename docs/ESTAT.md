@@ -1,6 +1,6 @@
 # Estat del projecte (operatiu)
 
-**Darrera actualització:** 2026-03-23 (Feature 2.3: tancament formal — Feature 2 DONE, preparat Feature 3)
+**Darrera actualització:** 2026-03-23 (Feature 2.4: revisió final + context document + Feature 2 CONGELADA)
 
 Només **estat i verificació**. Normativa: **`AGENTS_ARQUITECTURA.md`**. Ordre de lectura: **`llm.txt`**.
 
@@ -72,17 +72,34 @@ Evidència completa: `docs/benchmarks/ocr-benchmark-2026-03-22.md`.
 
 **Regla de `required_elements` (passada 2):** un nom de taula/columna absent de l’enunciat → `accepted_variant`, no `required_element`.
 
-### Evidència de tancament (2026-03-23)
+### Arquitectura final (Feature 2 congelada)
 
-| Verificació | Estat |
-|-------------|-------|
-| Prompts reforçats amb rols explícits (MODE OPERATIU / MODE PEDAGÒGIC) | ✅ |
-| Tests de contracte de prompt (`buildAssessmentSpecPrompt.test.ts`, `enrichAssessmentSpecPrompt.test.ts`) | ✅ |
-| Golden hospital (passada 1 `gpt-5.4`, passada 2 `gpt-5.4`) — 15 preguntes OK | ✅ |
-| Chain hospital versionada (`examples/hospital-daw-chain/`) | ✅ |
-| Anàlisi Q11 documentada (`q11-contract-analysis.md`) | ✅ |
-| Validació Docker: `./scripts/run_frontend.sh test lint typecheck` — 241 tests OK | ✅ |
-| Codi a `main` (commit `cf20c32`) | ✅ |
+| Capa | Component | Rol | Input |
+|------|-----------|-----|-------|
+| Passada 1 | `buildAssessmentSpec` | MODE OPERATIU — parser fidel | `examText`, `solutionText` |
+| Passada 2 | `enrichAssessmentSpec` | MODE PEDAGÒGIC — lector docent | base spec + `examText` + `solutionText` + `examDocumentContext` (opcional) |
+| Context | `extractDocumentContext` | Tall determinista pre-"Es demana" | `examText` complet |
+
+**`examDocumentContext`:** text anterior al llistat de preguntes (model relacional, restriccions globals). Suport interpretatiu per a passada 2. Guardrail: no pot generar `required_elements` no verificables. HTTP: `exam_document_context` (opcional, JSON).
+
+### Evidència de tancament final (2026-03-23)
+
+| Verificació | Commit | Resultat |
+|-------------|--------|---------|
+| Prompts MODE OPERATIU / MODE PEDAGÒGIC | `cf20c32` | ✅ |
+| Tests de contracte (8 asserts prompts) | `cf20c32` | ✅ 241 tests |
+| Q11 analitzat (`q11-contract-analysis.md`) | `cf20c32` | ✅ |
+| Golden hospital `gpt-5.4` × 2 passades | `bbb905b`/`355a091` | ✅ |
+| `extractDocumentContext` + fixture hospital real | `dc508ab` | ✅ 256 tests |
+| Wiring `examDocumentContext` a passada 2 | `dc508ab` | ✅ |
+| Revisió funcional estàtica (cas hospital) | 2026-03-23 | ✅ |
+| Validació Docker final (`test lint typecheck`) | 2026-03-23 | ✅ |
+
+### Declaració de congelació (Feature 2)
+
+**Acceptat:** bugs, ajustos menors de wiring, correccions documentals.
+
+**Tancat fins a decisió PM:** nous experiments de prompts, scoring, calibratge, criteris de nota, feedback a l'alumne, grading de qualsevol tipus.
 
 ### Feature 2 NO inclou
 
@@ -117,8 +134,8 @@ Evidència completa: `docs/benchmarks/ocr-benchmark-2026-03-22.md`.
 
 ## Següent pas
 
-**Feature 0, Feature 1 i Feature 2 tancades. El següent pas és Feature 3 MVP.**
+**Feature 0, Feature 1 i Feature 2 tancades i congelades. El següent pas és Feature 3 MVP.**
 
-- **Feature 3 MVP** — avaluació de respostes d'alumnes sobre `AssessmentSpec` validat. Feature 2 és prerequisit complet.
+- **Feature 3 MVP** — avaluació de respostes d'alumnes sobre `AssessmentSpec` validat. Feature 2 és prerequisit complet i estable.
 
 Validació habitual: `./scripts/run_frontend.sh …` (Docker).
