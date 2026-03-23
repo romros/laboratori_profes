@@ -43,11 +43,12 @@ describe('buildAssessmentSpecPrompt', () => {
     expect(prompt).toMatch(/arrays? JSON|array JSON/i)
   })
 
-  it('enmarca el domini com a generic; SQL nomes com a exemple opcional', () => {
+  it('menciona FP, cicles formatius i informatica; SQL com a subdomini opcional', () => {
     const prompt = buildAssessmentSpecPrompt(examText, solutionText)
-    expect(prompt).toMatch(/genèric|domini del material/i)
+    expect(prompt).toMatch(/genèric|qualsevol assignatur/i)
+    expect(prompt).toMatch(/formació professional|cicles formatius|informàtic/i)
     expect(prompt).toMatch(/no assumeixis|no hi ha llista tancada|text lliure coherent/i)
     expect(prompt).toMatch(/sql_ddl|sql_insert/i)
-    expect(prompt).toMatch(/il·lustratiu|adequad/i)
+    expect(prompt).toMatch(/il·lustratiu|adequad|no forcis SQL/i)
   })
 })

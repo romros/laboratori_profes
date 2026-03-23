@@ -8,6 +8,8 @@
 
 Feature 2 converteix els materials del professor (enunciat + solucionari) en un artefacte estructurat canònic: l'`AssessmentSpec`.
 
+Està pensat per ser **transversal** (qualsevol assignatura), amb especial atenció als casos **tècnics i de FP** (cicles formatius, mòduls d’informàtica i afins: programació, sistemes, xarxes, web, dades, etc.): el solucionari pot ser codi, SQL, configuracions, text tècnic o respostes obertes — el model ha d’inferir el domini a partir del material, **sense assumir que tot és SQL**.
+
 L'`AssessmentSpec` és la representació oficial del criteri d'avaluació del professor. Es calcula un cop i es reutilitza en totes les avaluacions posteriors (Feature 3).
 
 **No és avaluació.** No toca dades d'alumnes. És una transformació sobre materials del professor.
@@ -66,10 +68,9 @@ type QuestionSpec = {
   max_score: number | null
 
   /**
-   * Tipus de pregunta — camp obert (string); el producte és transversal.
-   * El model infereix l'etiqueta segons el domini (humanitats, codi, etc.).
-   * Exemples il·lustratius: 'short_text', 'essay', 'numeric_problem', 'diagram';
-   * en exàmens SQL podrien aparèixer 'sql_ddl', 'sql_insert', etc., però no són el cas per defecte.
+   * Tipus de pregunta — camp obert (string); el producte és transversal (FP, tècniques, general).
+   * El model infereix l'etiqueta segons el domini (programació, xarxes, web, dades/SQL, text obert, etc.).
+   * Exemples il·lustratius: 'short_text', 'code_python', 'markup_html', 'sql_insert', 'network_subnetting'.
    */
   question_type: string
 

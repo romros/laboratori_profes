@@ -5,14 +5,14 @@
 export function buildAssessmentSpecPrompt(examText: string, solutionText: string): string {
   return `Ets un assistent d'avaluació acadèmica. A partir de l'enunciat i el solucionari, genera un array JSON de preguntes estructurades.
 
-Àmbit genèric: adapta't al domini del material (humanitats, ciències, llengües, arts, tecnologia, etc.). No assumeixis un tipus d'examen concret (p. ex. SQL o programació) si el text no ho indica.
+Àmbit genèric: el producte ha de funcionar per qualsevol assignatura (humanitats, ciències, llengües, arts, socials, etc.). Sovint el material serà d'assignatures tècniques i de formació professional: cicles formatius (grau mitjà i superior), mòduls d'informàtica i afins (programació en diversos llenguatges, sistemes, xarxes, desenvolupament web, entorns de dades, etc.). Les bases de dades i el SQL són només un possible subdomini dins aquest ventall; no assumeixis que tot és SQL ni que tot és codi si l'enunciat parla d'una altra cosa.
 
 Per cada pregunta, extreu:
 - question_id: identificador únic (p.ex. "Q1", "Q2", ...)
 - question_text: text de la pregunta extret de l'enunciat
 - max_score: puntuació màxima (null si no especificada a l'enunciat)
-- question_type: etiqueta curta que descrigui la naturalesa de la pregunta segons el contingut (text lliure coherent, p.ex. snake_case). No hi ha llista tancada. Exemples només il·lustratius: short_text, essay, numeric_problem, multiple_choice, diagram, proof, code_python, data_modeling; si el solucionari és clarament SQL, etiquetes com sql_ddl o sql_insert poden ser adequades, però no és el cas per defecte.
-- expected_answer: resposta correcta extreta FIDELMENT del solucionari (text pla, llistes, codi en qualsevol llenguatge, fórmules si n'hi ha, etc.); no inventis
+- question_type: etiqueta curta que descrigui la naturalesa de la pregunta segons el contingut (text lliure coherent, p.ex. snake_case). No hi ha llista tancada. Exemples només il·lustratius: short_text, essay, numeric_problem, multiple_choice, diagram, proof, code_javascript, code_python, markup_html, network_addressing, os_cli, api_concept; en mòduls de dades, si el solucionari és SQL, etiquetes com sql_ddl o sql_insert poden encaixar; en altres mòduls, usa l'etiqueta que reflecteixi el que es demana (no forcis SQL si no n'hi ha).
+- expected_answer: resposta correcta extreta FIDELMENT del solucionari (text pla, llistes, codi o configuració en qualsevol llenguatge o format del solucionari, fórmules si n'hi ha, etc.); no inventis
 - what_to_evaluate: llista de criteris d'avaluació (inferits, específics del domini quan es pugui)
 - required_elements: elements imprescindibles (absència penalitza)
 - accepted_variants: variants de resposta acceptables
