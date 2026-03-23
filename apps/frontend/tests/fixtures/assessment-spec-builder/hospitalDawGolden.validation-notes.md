@@ -1,23 +1,29 @@
 # Validació manual — Feature 2 golden hospital (`buildAssessmentSpec`)
 
-**Run capturat:** `hospitalDawGolden.real-output.json` (2026-03-23, Docker + `FEATURE0_OPENAI_API_KEY`).  
-**Model per defecte:** `gpt-4o-mini` (API OpenAI).
+**Run capturat:** `hospitalDawGolden.real-output.json` (2026-03-23, re-run després del **prompt estricte** alineat al codi).  
+**Model per defecte:** `gpt-4o-mini` (API OpenAI).  
+**Com regenerar:** `LOG_ASSESSMENT_SPEC_GOLDEN=1 SAVE_ASSESSMENT_SPEC_GOLDEN=1` + clau (veure comentaris al test d’integració).
 
-## Comprovacions
+## Canvis al prompt (aquest cicle)
 
-- **5.1 Preguntes:** 15 ítems Q1–Q15, sense duplicats (revisat).
-- **5.2 Puntuació:** totes amb `max_score` 0.33, coherent amb «(0,33 punts)» a l’enunciat.
-- **5.3 Tipus:** `sql_ddl` Q1–Q6, `sql_insert` Q7–Q12, `sql_update` Q13, `sql_alter` Q14, `sql_delete` Q15.
-- **5.4 Expected answer:** SQL reconeixible, no buit; Q9 combina INSERT+UPDATE com al solucionari (un sol bloc, acceptable). Sense barreja de blocs «Qx.» d’altres preguntes dins una mateixa resposta.
-- **5.5 Elements crítics:** `ON DELETE SET NULL` (Q2), `ON DELETE CASCADE` (Q3/Q4), `CHECK` (Q1/Q3/Q5).
-- **5.6 Qualitat:** `what_to_evaluate` és repetitiu («sintaxi SQL», «coherència amb l’enunciat») però no buit i útil com a MVP; es pot refinar el prompt si cal més variació.
+- JSON **només** array (sense text fora, sense markdown).
+- No inventar preguntes; alineació `expected_answer` ↔ pregunta; separació extracció / inferència.
+- Incertesa: camps inferits buits + confiança baixa.
+- Soroll limitat: `what_to_evaluate` 3–5 ítems; `teacher_style_notes` màx. 2–3 strings.
+- `question_type` simple (`sql_*`, `code_generic`, `unknown`, …).
+
+## Comprovacions (última inspecció)
+
+- **Preguntes:** 15 (Q1–Q15), sense duplicats.
+- **Puntuació:** totes `max_score` 0.33.
+- **Tipus:** coherents amb SQL del solucionari (`sql_ddl` … `sql_delete`).
+- **Expected answer:** SQL present, no buit; fragments ON DELETE / CHECK presents al blob global.
+- **Qualitat post-prompt:** `what_to_evaluate` curt (p. ex. sintaxi / restriccions / coherència); `required_elements` i similars sovint `[]` quan el model aplica la regla d’incertesa — acceptable per MVP; es pot demanar més detall en una iteració futura sense trencar l’estabilitat.
 
 ## Implementació
 
-Els models sovint envien `teacher_style_notes` com a string: es normalitza a array a `buildAssessmentSpec` abans del parse Zod (sense canviar el contracte del domini).
-
-El prompt d’`buildAssessmentSpecPrompt` és **transversal** (FP, assignatures tècniques i generals; SQL només un subdomini quan el material ho és). El cas hospital és una prova d’acceptació amb solucionari SQL.
+Normalització de llistes abans de Zod (`buildAssessmentSpec`) sense canvi de schema.
 
 ## Feature 3
 
-L’artefacte és usable com a criteri + `expected_answer` per pregunta; en producte caldria `exam_id` estable per convocatòria (avui el servei genera `exam_<timestamp>`).
+Artefacte usable com a `expected_answer` + criteris per pregunta; `exam_id` estable per convocatòria pendent de producte.

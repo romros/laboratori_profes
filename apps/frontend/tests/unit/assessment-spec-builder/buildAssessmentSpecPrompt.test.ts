@@ -31,10 +31,11 @@ describe('buildAssessmentSpecPrompt', () => {
     expect(prompt).toContain('SOLUCIONARI')
   })
 
-  it('indica que cal respondre unicament amb array JSON sense markdown', () => {
+  it('exigeix JSON estricte sense text fora ni markdown', () => {
     const prompt = buildAssessmentSpecPrompt(examText, solutionText)
-    expect(prompt).toContain('\u00danicament'.toUpperCase())
-    expect(prompt).toContain('markdown')
+    expect(prompt).toMatch(/NOM\u00c9S amb un array JSON|Respon NOM\u00c9S/i)
+    expect(prompt).toMatch(/fora del JSON|cap text fora/i)
+    expect(prompt).toMatch(/markdown/i)
   })
 
   it('recorda que els camps llista han de ser arrays JSON (no string sol)', () => {
@@ -43,12 +44,21 @@ describe('buildAssessmentSpecPrompt', () => {
     expect(prompt).toMatch(/arrays? JSON|array JSON/i)
   })
 
-  it('menciona FP, cicles formatius i informatica; SQL com a subdomini opcional', () => {
+  it('normes estrictes: no inventar preguntes, alineació, extracció vs inferència, límits', () => {
     const prompt = buildAssessmentSpecPrompt(examText, solutionText)
-    expect(prompt).toMatch(/genèric|qualsevol assignatur/i)
-    expect(prompt).toMatch(/formació professional|cicles formatius|informàtic/i)
-    expect(prompt).toMatch(/no assumeixis|no hi ha llista tancada|text lliure coherent/i)
-    expect(prompt).toMatch(/sql_ddl|sql_insert/i)
-    expect(prompt).toMatch(/il·lustratiu|adequad|no forcis SQL/i)
+    expect(prompt).toContain('No inventis preguntes')
+    expect(prompt).toContain('No barregis')
+    expect(prompt).toContain('Extracció vs inferència')
+    expect(prompt).toContain('com a màxim 3 a 5 elements')
+    expect(prompt).toContain('com a màxim 2 o 3 strings')
+    expect(prompt).toContain('unknown')
+    expect(prompt).toContain('sql_ddl')
+  })
+
+  it('context FP i tecniques (sense centrar el producte en SQL)', () => {
+    const prompt = buildAssessmentSpecPrompt(examText, solutionText)
+    expect(prompt).toContain('FP')
+    expect(prompt).toContain('cicles formatius')
+    expect(prompt).toContain("no assumeixis SQL si l'enunciat no ho és")
   })
 })

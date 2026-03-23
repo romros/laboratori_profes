@@ -67,7 +67,7 @@ export async function buildAssessmentSpec(
       {
         role: 'system',
         content:
-          "Ets un extractor estructurat d'avaluació acadèmica (assignatures generals i tècniques, FP, informàtica, etc.). Respon únicament amb un array JSON vàlid, sense markdown.",
+          "Ets un extractor estructurat d'avaluació acadèmica. Respon NOMÉS amb un array JSON vàlid: cap text fora del JSON, sense markdown ni codi de blocs.",
       },
       { role: 'user', content: prompt },
     ],

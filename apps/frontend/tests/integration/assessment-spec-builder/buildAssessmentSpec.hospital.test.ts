@@ -98,6 +98,8 @@ describe('buildAssessmentSpec — golden hospital DAW', () => {
         expect(q.question_type?.trim().length ?? 0).toBeGreaterThan(0)
         expect(Array.isArray(q.what_to_evaluate)).toBe(true)
         expect(q.what_to_evaluate.length).toBeGreaterThan(0)
+        expect(q.what_to_evaluate.length).toBeLessThanOrEqual(5)
+        expect(q.teacher_style_notes.length).toBeLessThanOrEqual(3)
         for (const w of q.what_to_evaluate) {
           expect(typeof w).toBe('string')
           expect(w.trim().length).toBeGreaterThanOrEqual(3)
@@ -131,8 +133,9 @@ describe('buildAssessmentSpec — golden hospital DAW', () => {
       expect(answersBlob).toContain('on delete cascade')
       expect(answersBlob).toMatch(/\bcheck\s*\(/i)
 
+      // Amb prompt de criteris curts (3–5 ítems), exigim text útil però no frases llargues
       const questionsWithUsefulCriteria = spec.questions.filter((q) =>
-        q.what_to_evaluate.some((w) => w.trim().length >= 15),
+        q.what_to_evaluate.some((w) => w.trim().length >= 8),
       )
       expect(questionsWithUsefulCriteria.length).toBeGreaterThanOrEqual(12)
 

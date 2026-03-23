@@ -47,6 +47,8 @@ Feature 2 és **prerequisit de Feature 3**, però **independent de Feature 0 i F
 > **MVP assumeix materials textuals llegibles sense OCR addicional.**
 > Solucionaris escanejats a mà queden fora d'abast del MVP (mateix límit que Feature 0 Capa 1).
 
+El **prompt** del servei (`buildAssessmentSpecPrompt`) exigeix sortida JSON estricta, preguntes només de l’enunciat, separació extracció/inferència i límits de tamany en criteris inferits; el golden hospital i `hospitalDawGolden.real-output.json` es regeneren amb clau API quan calgui alinear snapshot i codi.
+
 ---
 
 ## Output: `AssessmentSpec`
