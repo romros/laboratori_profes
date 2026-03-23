@@ -1,6 +1,10 @@
 import { describe, expect, it } from 'vitest'
 
 import { buildEnrichAssessmentSpecPrompt } from '../../../src/features/assessment-spec-builder/services/enrichAssessmentSpecPrompt'
+import {
+  hospitalDawExamText,
+  hospitalDawSolutionText,
+} from '../../fixtures/assessment-spec-builder/hospitalDawGolden'
 
 describe('buildEnrichAssessmentSpecPrompt', () => {
   it('inclou regles clau (observables, alumne, sense scoring, immutabilitat)', () => {
@@ -34,5 +38,25 @@ describe('buildEnrichAssessmentSpecPrompt', () => {
     const prompt = buildEnrichAssessmentSpecPrompt('{"q":1}')
     expect(prompt).toContain('## ASSESSMENT_SPEC_BASE')
     expect(prompt).toContain('"q"')
+  })
+
+  it('amb fixture hospital real: enunciat i solucionari al cos del prompt (blocs ORIGINAL; cablejat 2.1b)', () => {
+    const prompt = buildEnrichAssessmentSpecPrompt({
+      specJson: '{"exam_id":"golden"}',
+      examText: hospitalDawExamText,
+      solutionText: hospitalDawSolutionText,
+    })
+    expect(prompt).toContain('## ENUNCIAT ORIGINAL')
+    expect(prompt).toContain('## SOLUCIONARI ORIGINAL')
+    expect(prompt).toContain('F_IT_008_01 — Examen LDD Ordinària — Cas Hospital (DAW)')
+    expect(prompt).toContain('SOLUCIONARI — Examen Hospital (DAW)')
+    expect(prompt).toContain('Creació Taula 1 (Hospital)')
+    expect(prompt).toContain('CREATE TABLE Hospital')
+  })
+
+  it('sense examText ni solutionText: placeholders explícits (no inventar context)', () => {
+    const prompt = buildEnrichAssessmentSpecPrompt({ specJson: '{}' })
+    expect(prompt).toContain("(no s'ha facilitat text d'enunciat")
+    expect(prompt).toContain("(no s'ha facilitat solucionari")
   })
 })

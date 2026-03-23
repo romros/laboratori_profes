@@ -118,6 +118,7 @@ export async function enrichAssessmentSpec(
   const baseUrl = resolveAssessmentSpecOpenAiBaseUrl(params.baseUrl)
   const model = resolveAssessmentSpecEnrichModel(params.model)
 
+  /** Cos usuari: ASSESSMENT_SPEC_BASE + ENUNCIAT ORIGINAL + SOLUCIONARI ORIGINAL (veure `buildEnrichAssessmentSpecPrompt`). */
   const userContent = buildEnrichAssessmentSpecPrompt({
     specJson: JSON.stringify(spec, null, 2),
     examText,

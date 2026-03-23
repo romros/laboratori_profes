@@ -19,6 +19,7 @@ export async function buildAssessmentSpecWithPedagogicEnrichment(
   const { enrichModel, onAfterBaseSpec, ...baseParams } = params
   const base = await buildAssessmentSpec(baseParams)
   onAfterBaseSpec?.(base)
+  /** Passada 2: mateixos `examText` / `solutionText` que la passada 1 → blocs ORIGINAL al prompt d’enriqueiment. */
   return enrichAssessmentSpec({
     spec: base,
     apiKey: baseParams.apiKey,
