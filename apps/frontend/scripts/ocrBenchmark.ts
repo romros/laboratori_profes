@@ -32,6 +32,7 @@ import { resolve } from 'node:path'
 import { createWorker, PSM } from 'tesseract.js'
 
 import { ocrPngBuffersWithTesseractCli } from '../src/infrastructure/ocr/tesseractCliOcrPng'
+import { preprocessPngForOcr } from '../src/infrastructure/ocr/preprocessPngForOcr'
 import { rasterizePdfToPngPages } from '../src/infrastructure/ocr/rasterizePdfToPngPages'
 import {
   dedupeQuestionMarkersByFirstId,
@@ -50,15 +51,16 @@ type OcrConfig = {
   engine: OcrEngine
   langs: string
   psm: string
+  preprocess?: boolean
 }
 
 const CONFIGS: OcrConfig[] = [
+  // Referència anterior (sense preprocessing)
   { id: 'baseline', engine: 'tesseract.js', langs: 'cat', psm: PSM.AUTO },
-  { id: 'cat_spa', engine: 'tesseract.js', langs: 'cat+spa', psm: PSM.AUTO },
-  { id: 'psm6', engine: 'tesseract.js', langs: 'cat', psm: PSM.SINGLE_BLOCK },
-  { id: 'cat_spa_p6', engine: 'tesseract.js', langs: 'cat+spa', psm: PSM.SINGLE_BLOCK },
-  { id: 'cli_cat', engine: 'tesseract-cli', langs: 'cat', psm: '3' },
-  { id: 'cli_cat_spa', engine: 'tesseract-cli', langs: 'cat+spa', psm: '3' },
+  // Preprocessing: grayscale + contrast + threshold (default opts)
+  { id: 'pre_cat', engine: 'tesseract.js', langs: 'cat', psm: PSM.AUTO, preprocess: true },
+  { id: 'pre_cat_spa', engine: 'tesseract.js', langs: 'cat+spa', psm: PSM.AUTO, preprocess: true },
+  { id: 'pre_cli_cat', engine: 'tesseract-cli', langs: 'cat', psm: '3', preprocess: true },
 ]
 
 // ---------------------------------------------------------------------------
@@ -86,15 +88,21 @@ const CRITICAL_CASES: Record<string, string[]> = {
 // OCR amb configuració
 // ---------------------------------------------------------------------------
 
+async function applyPreprocess(pngs: Buffer[], cfg: OcrConfig): Promise<Buffer[]> {
+  if (!cfg.preprocess) return pngs
+  return Promise.all(pngs.map((png) => preprocessPngForOcr(png)))
+}
+
 async function ocrWithConfig(pngs: Buffer[], cfg: OcrConfig): Promise<string[]> {
+  const processed = await applyPreprocess(pngs, cfg)
   if (cfg.engine === 'tesseract-cli') {
-    return ocrPngBuffersWithTesseractCli(pngs, cfg.langs)
+    return ocrPngBuffersWithTesseractCli(processed, cfg.langs)
   }
   const worker = await createWorker(cfg.langs)
   await worker.setParameters({ tessedit_pageseg_mode: cfg.psm as PSM })
   try {
     const texts: string[] = []
-    for (const png of pngs) {
+    for (const png of processed) {
       const { data } = await worker.recognize(png)
       texts.push(data.text ?? '')
     }

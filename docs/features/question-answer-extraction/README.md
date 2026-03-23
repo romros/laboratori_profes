@@ -20,9 +20,14 @@
 
 **Benchmark executat (2026-03-22):** `docs/benchmarks/ocr-benchmark-2026-03-22.md`
 
-**Resultat (benchmark complet — WASM + CLI natiu):** cap configuració ni motor Tesseract millora els casos crítics. Text d'`ex_alumne4` és soroll pur independentment del wrapper (WASM vs CLI 5.5.1) o idioma. El bottleneck és la **qualitat d'escaneig d'entrada**, no el motor.
+**Benchmark complet (3 rondes, 2026-03-22/23):** `docs/benchmarks/ocr-benchmark-2026-03-22.md`
 
-**Decisió:** el problema requereix **preprocessing d'imatge** (contrast, binarització, deskew) o acceptar alumne4 com a fora d'abast del MVP. Cap API cloud — dades personals d'alumnes.
+Hipòtesis tancades:
+- Tuning WASM (idioma, PSM) → ❌ no millora
+- Tesseract CLI natiu 5.5.1 → ❌ equivalent a WASM
+- Preprocessing simple (grayscale + contrast + threshold) → ❌ empitjora casos bons
+
+**Decisió final:** ✅ **iteració OCR tancada** — `ex_alumne4` queda com a limitació coneguda del MVP per qualitat d'escaneig insuficient. Cap API cloud — dades personals d'alumnes.
 
 **Restricció de privacitat:** tot el processament OCR ha de ser local (servidor o navegador). Cap API cloud acceptable.
 
