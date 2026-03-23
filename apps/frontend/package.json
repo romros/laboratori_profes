@@ -14,7 +14,8 @@
     "spike:qae": "tsx --tsconfig tsconfig.app.json scripts/questionAnswerSpike.ts",
     "smoke:qae-facade": "tsx --tsconfig tsconfig.app.json scripts/qaeFacadeSmoke.ts",
     "dev:qae-api": "tsx --tsconfig tsconfig.app.json scripts/qaeLocalApiServer.ts",
-    "benchmark:ocr": "tsx --tsconfig tsconfig.app.json scripts/ocrBenchmark.ts"
+    "benchmark:ocr": "tsx --tsconfig tsconfig.app.json scripts/ocrBenchmark.ts",
+    "spike:template-anchor": "tsx --tsconfig tsconfig.app.json scripts/templateAnchorSpike.ts"
   },
   "dependencies": {
     "busboy": "^1.6.0",
