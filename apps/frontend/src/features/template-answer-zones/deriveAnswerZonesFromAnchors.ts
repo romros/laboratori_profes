@@ -1,6 +1,7 @@
 import type { DetectedQuestionAnchor, TemplateQuestion } from '../template-anchor-detection/types'
 import { normalizeText } from '../template-anchor-detection/normalizeText'
 import { scoreKeywordOverlap } from '../template-anchor-detection/scoreSimilarity'
+import { isGraphicalAnswer } from './isGraphicalAnswer'
 import type { AnswerZoneRange, AnswerZonesResult, OcrPageLines } from './types'
 
 /**
@@ -128,6 +129,17 @@ export function deriveAnswerZonesFromAnchors(
       endPage = docEndPage
       endLine = docEndLine
     }
+
+    // Punt d'extensió de privadesa: diferenciació textual vs gràfic.
+    // Veure docs/privacy/PRIVACY_ARCHITECTURE.md §8 i isGraphicalAnswer.ts.
+    const question = templateQuestions.find((q) => q.id === current.questionId)
+    if (question && isGraphicalAnswer(question)) {
+      // FUTUR: possible enviament de crop mínim (REVISAR PRIVACY_ARCHITECTURE §8)
+      // Requereix decisió de PM + condicions estrictes (local inviable, config explícita,
+      // crop limitat a la zona, no persistit, eliminació immediata).
+      // Per ara: tractament idèntic al textual (local).
+    }
+    // else: mai enviar imatge — tractament local sempre.
 
     zones.push({
       question_id: current.questionId,

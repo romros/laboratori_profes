@@ -2,6 +2,18 @@
 export type TemplateQuestion = {
   id: string
   text: string
+  /**
+   * Tipus de resposta esperada.
+   * - `'text'` (per defecte): resposta escrita, codi, càlculs → processament local, mai imatge externa.
+   * - `'diagram'`: resposta gràfica (ERD, UML, esquema) → pot requerir crop en futur (veure PRIVACY_ARCHITECTURE §8).
+   * Si absent, es tracta com `'text'` (conservador).
+   */
+  type?: 'text' | 'diagram'
+  /**
+   * Etiquetes opcionals per classificació addicional.
+   * `'graphical'` és equivalent a `type: 'diagram'` (veure `isGraphicalAnswer`).
+   */
+  tags?: string[]
 }
 
 /** Resultat de detecció d'un anchor per una pregunta del template. */

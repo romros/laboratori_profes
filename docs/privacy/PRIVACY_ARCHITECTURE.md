@@ -119,7 +119,43 @@ Cap dada surt de Docker. Cap fitxer persistent.
 
 ---
 
-## 8. Decisions preses
+## 8. Tipus de resposta i tractament diferencial
+
+El sistema distingeix entre dos tipus de resposta d'alumne. Aquesta diferenciació és **obligatòria** i ha de respectar-se en qualsevol futur canvi al pipeline.
+
+### Respostes textuals (tipus per defecte)
+
+- Processament **local** per defecte: OCR → text → extracció
+- **Mai** s'envia cap imatge ni crop a cap servei extern
+- Cobreix: SQL, codi, respostes escrites, càlculs numèrics
+
+### Respostes gràfiques (diagrames, esquemes, ERD, UML…)
+
+- L'OCR local pot no ser suficient per interpretar el contingut
+- Es **pot** requerir l'enviament d'un fragment mínim (crop de la zona de resposta) a un servei extern, **únicament si**:
+  - el processament local no és viable
+  - el professor ho ha configurat explícitament
+  - el crop está limitat estrictament a la zona de resposta derivada
+  - el fragment no es guarda ni es reutilitza
+  - s'elimina immediatament després del processament
+- **Cap implementació d'aquest flux existeix encara.** El hook `isGraphicalAnswer` marca el punt d'extensió futur.
+
+### Regla operativa
+
+```
+if (isGraphicalAnswer(question)) {
+  // FUTUR: possible enviament de crop mínim (REVISAR PRIVACY_ARCHITECTURE §8)
+  // Condicions: local inviable + config explícita + crop limitat + no persistit
+} else {
+  // SEMPRE local. Mai enviar imatge.
+}
+```
+
+Qualsevol implementació del flux gràfic requereix **decisió explícita de PM** i actualització d'aquest document i de `SELF_AUDIT.md`.
+
+---
+
+## 9. Decisions preses
 
 | Data | Decisió | Motiu |
 |------|---------|-------|
@@ -127,6 +163,7 @@ Cap dada surt de Docker. Cap fitxer persistent.
 | 2026-03-22 | Descartar Google Vision / AWS Textract | Enviaria PDFs alumnes a núvol; inacceptable |
 | 2026-03-22 | Tesseract local (WASM + CLI) com a motor definitiu del MVP | Privadesa + llicència permissiva |
 | 2026-03-23 | LLM extern només per template del professor (Feature 0), mai per exàmens | Dades del template no són personals |
+| 2026-03-23 | Diferenciació formal textual vs gràfic: hook `isGraphicalAnswer` com a punt d'extensió | Respostes gràfiques poden requerir crop extern en futur; cal guardrail explícit ara |
 
 ---
 

@@ -93,6 +93,13 @@ Aquest producte és **privacy-first, local-first** (versió professor/autònom).
 - Enviar PDFs o imatges d'alumnes a serveis externs
 - Guardar text OCR d'exàmens al disc de forma persistent
 - Afegir qualsevol servei extern que rebi dades d'alumnes
+- Enviar crops o imatges per respostes **textuals** (mai, cap excepció)
+
+**Diferenciació textual vs gràfic (contracte de privadesa):**
+- Respostes textuals → local sempre, mai imatge externa
+- Respostes gràfiques → pot requerir crop en futur, **únicament** amb condicions estrictes documentades a `PRIVACY_ARCHITECTURE.md §8`
+- Hook existent: `isGraphicalAnswer(question)` a `template-answer-zones/isGraphicalAnswer.ts`
+- Qualsevol implementació del flux gràfic requereix PM + actualització de `SELF_AUDIT.md`
 
 **En tancar una feature que toqui les àrees anteriors:** regenerar `docs/privacy/PRIVACY_REPORT.md` (`npm run privacy:report`) i actualitzar els controls manuals a `SELF_AUDIT.md`.
 

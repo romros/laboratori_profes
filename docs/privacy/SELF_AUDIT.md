@@ -90,6 +90,18 @@ Revisar abans de tancar qualsevol feature que toqui OCR, servidor, uploads, logs
 
 ---
 
+## H. Tipus de resposta — Tractament diferencial textual vs gràfic
+
+| # | Control | Estat | Notes |
+|---|---------|-------|-------|
+| H1 | Respostes textuals no envien cap imatge a cap servei extern | ✅ | Cap path de codi envia crop d'alumne; `isGraphicalAnswer` retorna sempre `false` fins que s'implementi |
+| H2 | Cap crop d'imatge s'envia per respostes textuals | ✅ | Flux gràfic no implementat; hook existent a `isGraphicalAnswer.ts` com a punt d'extensió |
+| H3 | Qualsevol implementació del flux gràfic passa per PM + actualització d'aquest doc | ✅ documentat | Condicions documentades a `PRIVACY_ARCHITECTURE.md §8`; requereix decisió explícita |
+| H4 | Crops (quan s'implementin) estaran limitats a la zona de resposta derivada | ⏳ FUTUR | No implementat; condició obligatòria documentada per quan s'implementi |
+| H5 | Crops (quan s'implementin) no es guardarien ni reutilitzarien | ⏳ FUTUR | No implementat; condició obligatòria documentada per quan s'implementi |
+
+---
+
 ## Quan re-revisar
 
 Revisar i actualitzar `PRIVACY_REPORT.md` quan:
