@@ -204,10 +204,46 @@ Feature 2 **no depèn** de Feature 0 ni Feature 1. Es pot construir l'`Assessmen
 
 ---
 
-## Quan implementar
+---
 
-El primer artefacte de codi serà:
+## Tancament de Feature 2 — DONE (2026-03-23)
 
-1. **Schema TypeScript** — `domain/assessment-spec/assessmentSpec.schema.ts`
-2. **Primer prompt LLM controlat** — extracció estructurada sobre solucionari de prova
-3. **Harness** — validació manual sobre l'examen real (DAW SQL)
+### Què queda resolt
+
+- `AssessmentSpec` complet amb dues passades LLM i contractes explícits.
+- Passada 1 (MODE OPERATIU): extracció fidel, zero inferència no explícita, `question_text` literal de l'enunciat.
+- Passada 2 (MODE PEDAGÒGIC): interpretació conceptual, `accepted_variants` per noms d'implementació absents de l'enunciat, no literalisme innecessari.
+- Golden hospital validat (15 preguntes, `gpt-5.4` les dues passades).
+- Chain versionada a `examples/hospital-daw-chain/`.
+- Q11 resolt conceptualment: `tractament_pacient_metge` és `accepted_variant`, no `required_element` (veure [q11-contract-analysis.md](q11-contract-analysis.md)).
+- Tests de contracte de prompt garanteixen que els rols no regressin.
+
+### Què NO resol Feature 2
+
+- **Grading real** de respostes d'alumnes → Feature 3.
+- **Scoring / nota final** → Feature 3.
+- **Feedback a l'alumne** → Feature 3.
+- Calibratge continu de models (la decisió model és a `hospital-model-calibration-notes.md`).
+- Persistència estable per convocatòria → pendent PM.
+- UI de revisió del professor → pendent PM.
+
+### Per què és suficient per passar a Feature 3
+
+Feature 3 necessita un `AssessmentSpec` vàlid per pregunta: `question_id`, `expected_answer`, `what_to_evaluate`, `required_elements`, `accepted_variants`, `important_mistakes`. Feature 2 els genera, els valida via Zod, i els deixa persistits al golden. El contracte fort entre passades garanteix que `required_elements` sigui conceptual (no literal), cosa que evita falsos negatius en Feature 3.
+
+### Anti-patterns a evitar a partir d'ara
+
+- Barrejar el rol de passada 1 i passada 2 (p.ex. afegir criteri pedagògic a passada 1).
+- Reintroduir literalisme a passada 2 (p.ex. fer `required_element` d'un nom de taula absent de l'enunciat).
+- Fer grading directament des del solucionari sense passar per `AssessmentSpec` — Feature 2 és la capa d'abstracció.
+- Recalcular `AssessmentSpec` en cada avaluació (ha de ser persistent per convocatòria).
+
+### Evidència de tancament
+
+| Verificació | Commit | Resultat |
+|-------------|--------|---------|
+| Prompts MODE OPERATIU / MODE PEDAGÒGIC | `cf20c32` | ✅ |
+| Tests de contracte (8 nous asserts) | `cf20c32` | ✅ 241 tests OK |
+| Q11 analitzat i documentat | `cf20c32` | ✅ |
+| Golden hospital `gpt-5.4` × 2 passades | `bbb905b` / `355a091` | ✅ |
+| Validació Docker (`test lint typecheck`) | 2026-03-23 | ✅ |

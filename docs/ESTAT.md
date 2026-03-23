@@ -1,6 +1,6 @@
 # Estat del projecte (operatiu)
 
-**Darrera actualització:** 2026-03-23 (Feature 2.2: contracte fort passada 1 operativa / passada 2 pedagògica)
+**Darrera actualització:** 2026-03-23 (Feature 2.3: tancament formal — Feature 2 DONE, preparat Feature 3)
 
 Només **estat i verificació**. Normativa: **`AGENTS_ARQUITECTURA.md`**. Ordre de lectura: **`llm.txt`**.
 
@@ -57,13 +57,52 @@ Dues capes:
 
 Evidència completa: `docs/benchmarks/ocr-benchmark-2026-03-22.md`.
 
-**Feature 2 — Assessment Spec Builder: implementada — golden hospital validat amb LLM real.**
+---
 
-Converteix materials del professor (enunciat + solucionari) en `AssessmentSpec` (domini `domain/assessment-spec/`, servei `buildAssessmentSpec`, endpoint JSON via `executeAssessmentSpecBuildFromJsonBody`). **No toca dades d'alumnes.** Clau API: `ASSESSMENT_SPEC_OPENAI_API_KEY` o `OPENAI_API_KEY` o (dev) `FEATURE0_OPENAI_API_KEY`. **Golden test:** `tests/integration/assessment-spec-builder/buildAssessmentSpec.hospital.test.ts` (execució real si hi ha clau; sense clau → skip). **Output real** (`hospitalDawGolden.real-output.json`) **alineat amb el prompt vigent** (re-run 2026-03-23: JSON estricte, límits d’inferència, **criteris `what_to_evaluate` observables**, sense subpuntuació/rúbrica numèrica a l’artefacte). Notes: `hospitalDawGolden.validation-notes.md`. Regenerar: `SAVE_ASSESSMENT_SPEC_GOLDEN=1` + clau. Doc canònic: `docs/features/assessment-spec-builder/README.md`. **Prerequisit de Feature 3** (persistència estable d’`exam_id` encara pendent de producte).
+## Feature 2 — Assessment Spec Builder — **DONE** (2026-03-23)
 
-**Feature 2.1 — Enriqueiment pedagògic (segon prompt):** `enrichAssessmentSpec` + `buildEnrichAssessmentSpecPrompt`; pipeline `buildAssessmentSpecWithPedagogicEnrichment`; HTTP opcional `pedagogic_enrichment: true`. **2.1b:** prompt amb **immutabilitat** del spec base; **examText** / **solutionText** als blocs ORIGINAL del cos usuari (prova unitària amb sentinels hospital: `enrichAssessmentSpecPrompt.test.ts`); merge pedagògic (`mergeEnrichmentPedagogyFields`, incl. `accepted_variants` controlat). **I/O cadena 1→2 al repo:** `docs/features/assessment-spec-builder/examples/hospital-daw-chain/` (pass1, payload pass2, resposta LLM, després merge). **Test integració:** `enrichAssessmentSpec.hospital.test.ts` (golden + enunciat/solucionari hospital; sense clau → skip).
+**Construeix `AssessmentSpec` a partir de materials del professor (enunciat + solucionari). Prerequisit de Feature 3. No toca dades d’alumnes.**
 
-**Feature 2.2 — Contracte fort passada 1 / passada 2 (tancat 2026-03-23):** rols explícits als prompts: passada 1 = **MODE OPERATIU** (parser fidel — prohibit inventar, completar, deduir estructures no descrites a l'enunciat); passada 2 = **MODE PEDAGÒGIC** (lector docent — accepta variants equivalents, no exigeix literalitat de noms d'implementació absents de l'enunciat). **Regla `required_elements`:** nom de taula/columna que no apareix a l'enunciat → `accepted_variant`, no `required_element`. Validació Q11 documentada: `docs/features/assessment-spec-builder/q11-contract-analysis.md`. Tests de contracte als prompts: `buildAssessmentSpecPrompt.test.ts` (test MODE OPERATIU) + `enrichAssessmentSpecPrompt.test.ts` (tests MODE PEDAGÒGIC). Models vigents: passada 1 `gpt-5.4`, passada 2 `gpt-5.4` (decisions anterior 2026-03-23, vegeu `hospital-model-calibration-notes.md`).
+### Arquitectura de les dues passades
+
+| Passada | Servei | Rol al prompt | Comportament |
+|---------|--------|---------------|--------------|
+| 1 | `buildAssessmentSpec` | **MODE OPERATIU** — parser fidel | Copia el professor: extreu fidelment, zero inferència no explícita |
+| 2 | `enrichAssessmentSpec` | **MODE PEDAGÒGIC** — lector docent | Pensa com el professor: interpreta model conceptual, accepta variants, no exigeix literalitat |
+
+**Regla de `required_elements` (passada 2):** un nom de taula/columna absent de l’enunciat → `accepted_variant`, no `required_element`.
+
+### Evidència de tancament (2026-03-23)
+
+| Verificació | Estat |
+|-------------|-------|
+| Prompts reforçats amb rols explícits (MODE OPERATIU / MODE PEDAGÒGIC) | ✅ |
+| Tests de contracte de prompt (`buildAssessmentSpecPrompt.test.ts`, `enrichAssessmentSpecPrompt.test.ts`) | ✅ |
+| Golden hospital (passada 1 `gpt-5.4`, passada 2 `gpt-5.4`) — 15 preguntes OK | ✅ |
+| Chain hospital versionada (`examples/hospital-daw-chain/`) | ✅ |
+| Anàlisi Q11 documentada (`q11-contract-analysis.md`) | ✅ |
+| Validació Docker: `./scripts/run_frontend.sh test lint typecheck` — 241 tests OK | ✅ |
+| Codi a `main` (commit `cf20c32`) | ✅ |
+
+### Feature 2 NO inclou
+
+- Grading real de respostes d’alumnes → **Feature 3**
+- Scoring / nota final → **Feature 3**
+- Calibratge continu de models
+- Policy de puntuació parcial
+- Feedback final a l’alumne
+- UI de gestió d’specs (pendent PM)
+- Persistència estable per convocatòria (pendent PM)
+
+### Refs
+
+- **Schema:** `domain/assessment-spec/assessmentSpec.schema.ts`
+- **Serveis:** `features/assessment-spec-builder/services/`
+- **Endpoint HTTP:** `executeAssessmentSpecBuildFromJsonBody` (`pedagogic_enrichment: true` per pipeline complet)
+- **Docs:** `docs/features/assessment-spec-builder/README.md`, `q11-contract-analysis.md`, `hospital-model-calibration-notes.md`
+- **Clau API:** `ASSESSMENT_SPEC_OPENAI_API_KEY` o `OPENAI_API_KEY` o (dev) `FEATURE0_OPENAI_API_KEY`
+- **Regenerar golden passada 1:** `SAVE_ASSESSMENT_SPEC_GOLDEN=1` + clau
+- **Regenerar golden passada 2:** `npm run write:hospital-enriched-fixture -w @profes/frontend` + clau
 
 ---
 
@@ -71,15 +110,15 @@ Converteix materials del professor (enunciat + solucionari) en `AssessmentSpec` 
 
 - **Feature 0 (coordenades físiques):** geometria en coordenades de pàgina reals (x/y bbox) — fora d'abast del MVP actual. La lògica `ok/ko` + pipeline anchor/zones/mapping ja són funcionals; les coordenades físiques requeririen un backend fora del middleware Vite i integració amb rasteritzador. No prioritat fins que PM ho demani.
 - **Feature 0 (backend Capa 1):** ruta `/api/feature0/analysis` funciona via plugin Vite; en producció caldria backend Node independent. Pendent PM.
-- **Feature 2 (producte):** persistència estable d’`AssessmentSpec` per convocatòria, UI de revisió (segons PM).
-- **Feature 3:** avaluació de respostes (scoring, correcció assistida) — pendent Feature 2.
+- **Feature 2 (producte):** persistència estable d’`AssessmentSpec` per convocatòria, UI de revisió (pendent PM). No bloqueja Feature 3.
+- **Feature 3:** avaluació de respostes (scoring, correcció assistida) — **Feature 2 ja és prerequisit complet**.
 
 ---
 
 ## Següent pas
 
-**Feature 0, Feature 1 i Feature 2 (MVP + 2.1 + 2.2 contracte fort) tancades en codi i docs canòniques.** Feature 2: dues passades LLM amb contractes explícits (MODE OPERATIU / MODE PEDAGÒGIC); chain hospital coherent; anàlisi Q11 documentada.
+**Feature 0, Feature 1 i Feature 2 tancades. El següent pas és Feature 3 MVP.**
 
-- **Feature 2 (producte)** — persistència estable per convocatòria, UI de revisió (segons PM) i/o **Feature 3** sobre `AssessmentSpec` validat.
+- **Feature 3 MVP** — avaluació de respostes d'alumnes sobre `AssessmentSpec` validat. Feature 2 és prerequisit complet.
 
 Validació habitual: `./scripts/run_frontend.sh …` (Docker).
