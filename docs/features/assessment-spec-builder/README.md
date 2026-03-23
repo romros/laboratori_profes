@@ -42,7 +42,9 @@ Les dues passades poden usar **models diferents** via env:
 | Variable | Passada | Per defecte |
 |----------|---------|-------------|
 | `ASSESSMENT_SPEC_MODEL` | 1 — extracció / `AssessmentSpec` base | `gpt-5.4-mini` |
-| `ASSESSMENT_SPEC_ENRICH_MODEL` | 2 — enriqueiment pedagògic | `gpt-5.4` |
+| `ASSESSMENT_SPEC_ENRICH_MODEL` | 2 — enriqueiment pedagògic | `gpt-5.4-pro` |
+
+El client HTTP (`callOpenAiCompatibleChatWithMeta`) enruta automàticament: **`gpt-5.4-pro` → `POST /v1/responses`**; la resta de models → `POST /v1/chat/completions`. Models addicionals només Responses: `OPENAI_RESPONSES_API_MODELS` (llista separada per comes). Per forçar sempre chat (p. ex. proxy sense `/responses`): `OPENAI_FORCE_CHAT_COMPLETIONS=1`.
 
 Compatibilitat: si només existeix `ASSESSMENT_SPEC_OPENAI_MODEL`, s’aplica a **ambdues** passades (comportament legacy).
 

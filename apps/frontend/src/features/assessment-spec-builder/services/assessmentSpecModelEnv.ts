@@ -4,10 +4,10 @@ import type { OpenAiChatUsage } from '../../template-inference/services/openAiCo
 export const DEFAULT_ASSESSMENT_SPEC_BASE_MODEL = 'gpt-5.4-mini'
 
 /**
- * Passada 2 (enriqueiment pedagògic): model fort dins `v1/chat/completions`.
- * `gpt-5.4-pro` (març 2026) pot no estar exposat a aquest endpoint — usar env si cal.
+ * Passada 2 (enriqueiment pedagògic): per defecte `gpt-5.4-pro` (via `/v1/responses` al client HTTP).
+ * Per evitar Responses API: `ASSESSMENT_SPEC_ENRICH_MODEL=gpt-5.4` o `OPENAI_FORCE_CHAT_COMPLETIONS=1`.
  */
-export const DEFAULT_ASSESSMENT_SPEC_ENRICH_MODEL = 'gpt-5.4'
+export const DEFAULT_ASSESSMENT_SPEC_ENRICH_MODEL = 'gpt-5.4-pro'
 
 export type AssessmentSpecLlmTelemetry = {
   phase: 'assessment_spec_base' | 'assessment_spec_enrich'

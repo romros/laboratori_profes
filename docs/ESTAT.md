@@ -63,7 +63,7 @@ Converteix materials del professor (enunciat + solucionari) en `AssessmentSpec` 
 
 **Feature 2.1 — Enriqueiment pedagògic (segon prompt):** `enrichAssessmentSpec` + `buildEnrichAssessmentSpecPrompt`; pipeline `buildAssessmentSpecWithPedagogicEnrichment`; HTTP opcional `pedagogic_enrichment: true`. Fusiona camps no pedagògics des del base (`mergeEnrichmentPedagogyFields`). **Test integració:** `enrichAssessmentSpec.hospital.test.ts` (entrada: `hospitalDawGolden.real-output.json`; sense clau → skip).
 
-**Feature 2.2 — Calibratge models:** `ASSESSMENT_SPEC_MODEL` (passada 1, defecte `gpt-5.4-mini`) i `ASSESSMENT_SPEC_ENRICH_MODEL` (passada 2, defecte `gpt-5.4`; `gpt-5.4-pro` pot no estar disponible a `chat/completions`). Legacy `ASSESSMENT_SPEC_OPENAI_MODEL` per ambdues si cal. `callOpenAiCompatibleChatWithMeta` + `onLlmRound`. Escript: `npm run calibration:assessment-spec-models -w @profes/frontend` → `hospital-model-calibration-notes.md` (telemetria real V1/V2 al repo).
+**Feature 2.2 — Calibratge models:** `ASSESSMENT_SPEC_MODEL` (passada 1, defecte `gpt-5.4-mini`) i `ASSESSMENT_SPEC_ENRICH_MODEL` (passada 2, defecte `gpt-5.4-pro` via `/v1/responses`). Altres models segueixen `chat/completions`; `OPENAI_FORCE_CHAT_COMPLETIONS=1` força només chat. Legacy `ASSESSMENT_SPEC_OPENAI_MODEL` per ambdues si cal. `callOpenAiCompatibleChatWithMeta` + `onLlmRound`. Escript: `npm run calibration:assessment-spec-models -w @profes/frontend` → `hospital-model-calibration-notes.md`.
 
 ---
 

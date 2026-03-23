@@ -4,6 +4,8 @@ Data execució: 2026-03-23T17:08:09.681Z
 
 Pipeline: `buildAssessmentSpec` (passada 1) + `enrichAssessmentSpec` (passada 2).
 
+**Actualització client HTTP:** `gpt-5.4-pro` es crida amb **`POST /v1/responses`** (no `chat/completions`). Les dades d’aquest fitxer són d’abans d’aquest canvi; per recalibrar, torna a executar `npm run calibration:assessment-spec-models -w @profes/frontend`.
+
 ## Telemetria per variant
 
 ### V1: base `gpt-5.4-mini` → enrich `gpt-5.4`
