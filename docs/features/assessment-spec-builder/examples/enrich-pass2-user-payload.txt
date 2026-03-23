@@ -1,0 +1,543 @@
+# Cos exacte enviat a l'API com a missatge d'usuari (role=user), passada 2 enrich.
+# Generat: npm run write:enrich-pass2-artifacts -w @profes/frontend
+
+---
+
+Ets un professor expert que ha dissenyat aquest examen.
+
+El teu objectiu és transformar uns criteris d'avaluació genèrics en criteris pedagògics concrets, útils per avaluar correctament un alumne.
+
+Treballes amb:
+- el nivell d'una classe real de FP d'informàtica (i, si el contingut no és tècnic, adapta el to al domini de l'examen)
+- alumnes amb errors habituals
+- un context docent real (no teòric)
+
+Els exemples següents amb SQL són només il·lustratius quan la pregunta és de bases de dades; per a altres tipus de pregunta, genera criteris observables del mateix estil per al domini concret.
+
+---
+
+REGLA ZERO — IMMUTABILITAT DEL SPEC BASE (VERITAT DOCUMENTAL DEL PROFESSOR)
+
+Els camps ja plens a l'AssessmentSpec base (bloc ASSESSMENT_SPEC_BASE) representen la **veritat documental** extreta del material del professor. **No els reobris.**
+
+No has de:
+- reinterpretar-los
+- corregir-los
+- normalitzar-los cap a un altre esquema
+- adaptar-los al teu criteri
+- substituir-los per variants teves
+
+Això aplica **especialment** a:
+- question_text
+- max_score
+- question_type
+- expected_answer
+- extraction_confidence
+- inference_confidence
+
+El sistema **no** aplicarà cap canvi teu en aquests camps: es descarten. La teva responsabilitat és **no** proposar-ne de contradictoris al JSON (evita confusió al model).
+
+La teva feina és **només** enriquir pedagògicament aquests camps (per cada pregunta, mateix question_id):
+- what_to_evaluate
+- required_elements
+- important_mistakes
+- teacher_style_notes
+- accepted_variants: **només** si afegeixes variants **realment compatibles** amb la resposta esperada del base (mai substitueixis la solució del professor ni contradiguis expected_answer)
+
+---
+
+CONTEXT ORIGINAL (NOMÉS SUPORT PEDAGÒGIC)
+
+Els blocs ENUNCIAT ORIGINAL i SOLUCIONARI ORIGINAL (si n'hi ha) serveixen **únicament** per entendre millor:
+- què vol avaluar el professor
+- quin nivell exigeix
+- què és important conceptualment
+
+**No** els facis servir per reescriure question_text, expected_answer ni cap altre camp del spec base.
+Si detectes contradicció entre el context i el spec base, **no corregeixis el base**: limita't a enriquir amb prudència dins dels camps pedagògics permès.
+
+---
+
+ORDRE DE LECTURA
+
+1. ASSESSMENT_SPEC_BASE (font canònica)
+2. ENUNCIAT ORIGINAL / SOLUCIONARI ORIGINAL (context)
+3. Regles següents i format de sortida
+
+## ASSESSMENT_SPEC_BASE
+
+{
+  "exam_id": "exam_1774283302149",
+  "title": "F_IT_008_01 — Examen LDD Ordinària — Cas Hospital (DAW)",
+  "questions": [
+    {
+      "question_id": "Q1",
+      "question_text": "Creació Taula 1 (Hospital) amb les restriccions corresponents.",
+      "max_score": 0.33,
+      "question_type": "sql_ddl",
+      "expected_answer": "CREATE TABLE Hospital (\n  id INT PRIMARY KEY,\n  carrer VARCHAR(120) NOT NULL,\n  numero INT NOT NULL,\n  codi_postal CHAR(5) NOT NULL,\n  telefon VARCHAR(20) NOT NULL,\n  CONSTRAINT chk_hospital_numero_pos CHECK (numero > 0)\n);",
+      "what_to_evaluate": [
+        "sintaxi SQL",
+        "restriccions correctes",
+        "coherència amb l'enunciat"
+      ],
+      "required_elements": [],
+      "accepted_variants": [],
+      "important_mistakes": [],
+      "teacher_style_notes": [],
+      "extraction_confidence": 1,
+      "inference_confidence": 0.9
+    },
+    {
+      "question_id": "Q2",
+      "question_text": "Creació Taula 2 (Pacient) amb les restriccions corresponents.",
+      "max_score": 0.33,
+      "question_type": "sql_ddl",
+      "expected_answer": "CREATE TABLE Pacient (\n  nif CHAR(9) PRIMARY KEY,\n  nom VARCHAR(100) NOT NULL,\n  adreça VARCHAR(150) NOT NULL,\n  numero INT NOT NULL,\n  codi_postal CHAR(5) NOT NULL,\n  telefon VARCHAR(20) NOT NULL,\n  id_hospital INT REFERENCES Hospital(id) ON DELETE SET NULL\n);",
+      "what_to_evaluate": [
+        "sintaxi SQL",
+        "restriccions correctes",
+        "coherència amb l'enunciat"
+      ],
+      "required_elements": [],
+      "accepted_variants": [],
+      "important_mistakes": [],
+      "teacher_style_notes": [],
+      "extraction_confidence": 1,
+      "inference_confidence": 0.9
+    },
+    {
+      "question_id": "Q3",
+      "question_text": "Creació Taula 3 (Habitacio) amb les restriccions corresponents.",
+      "max_score": 0.33,
+      "question_type": "sql_ddl",
+      "expected_answer": "CREATE TABLE Habitacio (\n  id_hospital INT NOT NULL REFERENCES Hospital(id) ON DELETE CASCADE,\n  numero_hab INT NOT NULL,\n  tipus VARCHAR(20) NOT NULL,\n  PRIMARY KEY (id_hospital, numero_hab),\n  CONSTRAINT chk_habitacio_tipus CHECK (tipus IN ('individual', 'doble'))\n);",
+      "what_to_evaluate": [
+        "sintaxi SQL",
+        "restriccions correctes",
+        "coherència amb l'enunciat"
+      ],
+      "required_elements": [],
+      "accepted_variants": [],
+      "important_mistakes": [],
+      "teacher_style_notes": [],
+      "extraction_confidence": 1,
+      "inference_confidence": 0.9
+    },
+    {
+      "question_id": "Q4",
+      "question_text": "Creació Taula 4 (Metge) amb les restriccions corresponents.",
+      "max_score": 0.33,
+      "question_type": "sql_ddl",
+      "expected_answer": "CREATE TABLE Metge (\n  nif CHAR(9) PRIMARY KEY,\n  nom VARCHAR(100) NOT NULL,\n  especialitat VARCHAR(80) NOT NULL,\n  id_hospital INT NOT NULL REFERENCES Hospital(id) ON DELETE CASCADE\n);",
+      "what_to_evaluate": [
+        "sintaxi SQL",
+        "restriccions correctes",
+        "coherència amb l'enunciat"
+      ],
+      "required_elements": [],
+      "accepted_variants": [],
+      "important_mistakes": [],
+      "teacher_style_notes": [],
+      "extraction_confidence": 1,
+      "inference_confidence": 0.9
+    },
+    {
+      "question_id": "Q5",
+      "question_text": "Creació Taula 5 (Tractament) amb les restriccions corresponents.",
+      "max_score": 0.33,
+      "question_type": "sql_ddl",
+      "expected_answer": "CREATE TABLE Tractament (\n  id_tractament INT PRIMARY KEY,\n  nom VARCHAR(120) NOT NULL,\n  CONSTRAINT chk_tractament_nom CHECK (char_length(trim(nom)) > 0)\n);",
+      "what_to_evaluate": [
+        "sintaxi SQL",
+        "restriccions correctes",
+        "coherència amb l'enunciat"
+      ],
+      "required_elements": [],
+      "accepted_variants": [],
+      "important_mistakes": [],
+      "teacher_style_notes": [],
+      "extraction_confidence": 1,
+      "inference_confidence": 0.9
+    },
+    {
+      "question_id": "Q6",
+      "question_text": "Creació Taula 6 (Visita) amb les restriccions corresponents.",
+      "max_score": 0.33,
+      "question_type": "sql_ddl",
+      "expected_answer": "CREATE TABLE Visita (\n  id_visita INT PRIMARY KEY,\n  data_visita DATE NOT NULL,\n  import NUMERIC(10,2) NOT NULL,\n  motiu VARCHAR(200) NOT NULL,\n  tipus VARCHAR(40) NOT NULL,\n  nif_pacient CHAR(9) NOT NULL REFERENCES Pacient(nif),\n  nif_metge CHAR(9) NOT NULL REFERENCES Metge(nif)\n);",
+      "what_to_evaluate": [
+        "sintaxi SQL",
+        "restriccions correctes",
+        "coherència amb l'enunciat"
+      ],
+      "required_elements": [],
+      "accepted_variants": [],
+      "important_mistakes": [],
+      "teacher_style_notes": [],
+      "extraction_confidence": 1,
+      "inference_confidence": 0.9
+    },
+    {
+      "question_id": "Q7",
+      "question_text": "Inserir un hospital amb codi 1 ubicat al carrer Sant Joan, número 50, codi postal 08001, telèfon 932223344.",
+      "max_score": 0.33,
+      "question_type": "sql_insert",
+      "expected_answer": "INSERT INTO Hospital (id, carrer, numero, codi_postal, telefon)\nVALUES (1, 'Sant Joan', 50, '08001', '932223344');",
+      "what_to_evaluate": [
+        "sintaxi SQL",
+        "valors correctes",
+        "coherència amb l'enunciat"
+      ],
+      "required_elements": [],
+      "accepted_variants": [],
+      "important_mistakes": [],
+      "teacher_style_notes": [],
+      "extraction_confidence": 1,
+      "inference_confidence": 0.9
+    },
+    {
+      "question_id": "Q8",
+      "question_text": "Inserir un pacient anomenat Pere Torres Font, amb adreça Passeig de Gràcia, número 12, codi postal 08001, telèfon 934445566 i NIF 12345678A.",
+      "max_score": 0.33,
+      "question_type": "sql_insert",
+      "expected_answer": "INSERT INTO Pacient (nif, nom, adreça, numero, codi_postal, telefon, id_hospital)\nVALUES ('12345678A', 'Pere Torres Font', 'Passeig de Gràcia', 12, '08001', '934445566', NULL);",
+      "what_to_evaluate": [
+        "sintaxi SQL",
+        "valors correctes",
+        "coherència amb l'enunciat"
+      ],
+      "required_elements": [],
+      "accepted_variants": [],
+      "important_mistakes": [],
+      "teacher_style_notes": [],
+      "extraction_confidence": 1,
+      "inference_confidence": 0.9
+    },
+    {
+      "question_id": "Q9",
+      "question_text": "Assignar una habitació número 101, de tipus individual, a l'hospital 1 per al pacient amb NIF 12345678A.",
+      "max_score": 0.33,
+      "question_type": "sql_insert",
+      "expected_answer": "INSERT INTO Habitacio (id_hospital, numero_hab, tipus)\nVALUES (1, 101, 'individual');\nUPDATE Pacient SET id_hospital = 1 WHERE nif = '12345678A';",
+      "what_to_evaluate": [
+        "sintaxi SQL",
+        "valors correctes",
+        "coherència amb l'enunciat"
+      ],
+      "required_elements": [],
+      "accepted_variants": [],
+      "important_mistakes": [],
+      "teacher_style_notes": [],
+      "extraction_confidence": 1,
+      "inference_confidence": 0.9
+    },
+    {
+      "question_id": "Q10",
+      "question_text": "Afegir un metge amb NIF 98765432B, nom Dr. Laura López, especialitat Cardiologia, associada a l'hospital 1.",
+      "max_score": 0.33,
+      "question_type": "sql_insert",
+      "expected_answer": "INSERT INTO Metge (nif, nom, especialitat, id_hospital)\nVALUES ('98765432B', 'Dr. Laura López', 'Cardiologia', 1);",
+      "what_to_evaluate": [
+        "sintaxi SQL",
+        "valors correctes",
+        "coherència amb l'enunciat"
+      ],
+      "required_elements": [],
+      "accepted_variants": [],
+      "important_mistakes": [],
+      "teacher_style_notes": [],
+      "extraction_confidence": 1,
+      "inference_confidence": 0.9
+    },
+    {
+      "question_id": "Q11",
+      "question_text": "Assignar un tractament anomenat Rehabilitació Cardíaca, amb idTractament 1, per al pacient 12345678A, assignat al metge 98765432B.",
+      "max_score": 0.33,
+      "question_type": "sql_insert",
+      "expected_answer": "INSERT INTO Tractament (id_tractament, nom) VALUES (1, 'Rehabilitació Cardíaca');\nINSERT INTO tractament_pacient_metge (nif_pacient, id_tractament, nif_metge)\nVALUES ('12345678A', 1, '98765432B');",
+      "what_to_evaluate": [
+        "sintaxi SQL",
+        "valors correctes",
+        "coherència amb l'enunciat"
+      ],
+      "required_elements": [],
+      "accepted_variants": [],
+      "important_mistakes": [],
+      "teacher_style_notes": [],
+      "extraction_confidence": 1,
+      "inference_confidence": 0.9
+    },
+    {
+      "question_id": "Q12",
+      "question_text": "Registrar una visita amb idVisita 1, data 2024-02-01, import 100€, motiu Revisió postoperatòria, tipus consulta, per al pacient 12345678A, atès pel metge 98765432B.",
+      "max_score": 0.33,
+      "question_type": "sql_insert",
+      "expected_answer": "INSERT INTO Visita (id_visita, data_visita, import, motiu, tipus, nif_pacient, nif_metge)\nVALUES (1, DATE '2024-02-01', 100.00, 'Revisió postoperatòria', 'consulta', '12345678A', '98765432B');",
+      "what_to_evaluate": [
+        "sintaxi SQL",
+        "valors correctes",
+        "coherència amb l'enunciat"
+      ],
+      "required_elements": [],
+      "accepted_variants": [],
+      "important_mistakes": [],
+      "teacher_style_notes": [],
+      "extraction_confidence": 1,
+      "inference_confidence": 0.9
+    },
+    {
+      "question_id": "Q13",
+      "question_text": "Incrementar en un 15% l'import de totes les visites registrades.",
+      "max_score": 0.33,
+      "question_type": "sql_update",
+      "expected_answer": "UPDATE Visita SET import = import * 1.15;",
+      "what_to_evaluate": [
+        "sintaxi SQL",
+        "operació correcta",
+        "coherència amb l'enunciat"
+      ],
+      "required_elements": [],
+      "accepted_variants": [],
+      "important_mistakes": [],
+      "teacher_style_notes": [],
+      "extraction_confidence": 1,
+      "inference_confidence": 0.9
+    },
+    {
+      "question_id": "Q14",
+      "question_text": "Canviar el tipus de dades del codi postal de Pacient de numèric a caràcter.",
+      "max_score": 0.33,
+      "question_type": "sql_alter",
+      "expected_answer": "ALTER TABLE Pacient ALTER COLUMN codi_postal TYPE VARCHAR(5) USING codi_postal::varchar;",
+      "what_to_evaluate": [
+        "sintaxi SQL",
+        "canvi de tipus correcte",
+        "coherència amb l'enunciat"
+      ],
+      "required_elements": [],
+      "accepted_variants": [],
+      "important_mistakes": [],
+      "teacher_style_notes": [],
+      "extraction_confidence": 1,
+      "inference_confidence": 0.9
+    },
+    {
+      "question_id": "Q15",
+      "question_text": "Esborrar totes les visites on el tipus sigui consulta.",
+      "max_score": 0.33,
+      "question_type": "sql_delete",
+      "expected_answer": "DELETE FROM Visita WHERE tipus = 'consulta';",
+      "what_to_evaluate": [
+        "sintaxi SQL",
+        "condició correcta",
+        "coherència amb l'enunciat"
+      ],
+      "required_elements": [],
+      "accepted_variants": [],
+      "important_mistakes": [],
+      "teacher_style_notes": [],
+      "extraction_confidence": 1,
+      "inference_confidence": 0.9
+    }
+  ]
+}
+
+
+## ENUNCIAT ORIGINAL
+
+F_IT_008_01 — Examen LDD Ordinària — Cas Hospital (DAW)
+
+Instruccions: responeu en SQL PostgreSQL. Es valorarà sintaxi, restriccions i coherència amb l’enunciat.
+
+1. (0,33 punts) Creació Taula 1 (Hospital) amb les restriccions corresponents.
+2. (0,33 punts) Creació Taula 2 (Pacient) amb les restriccions corresponents.
+3. (0,33 punts) Creació Taula 3 (Habitacio) amb les restriccions corresponents.
+4. (0,33 punts) Creació Taula 4 (Metge) amb les restriccions corresponents.
+5. (0,33 punts) Creació Taula 5 (Tractament) amb les restriccions corresponents.
+6. (0,33 punts) Creació Taula 6 (Visita) amb les restriccions corresponents.
+7. (0,33 punts) Inserir un hospital amb codi 1 ubicat al carrer Sant Joan, número 50, codi postal 08001, telèfon 932223344.
+8. (0,33 punts) Inserir un pacient anomenat Pere Torres Font, amb adreça Passeig de Gràcia, número 12, codi postal 08001, telèfon 934445566 i NIF 12345678A.
+9. (0,33 punts) Assignar una habitació número 101, de tipus individual, a l'hospital 1 per al pacient amb NIF 12345678A.
+10. (0,33 punts) Afegir un metge amb NIF 98765432B, nom Dr. Laura López, especialitat Cardiologia, associada a l'hospital 1.
+11. (0,33 punts) Assignar un tractament anomenat Rehabilitació Cardíaca, amb idTractament 1, per al pacient 12345678A, assignat al metge 98765432B.
+12. (0,33 punts) Registrar una visita amb idVisita 1, data 2024-02-01, import 100€, motiu Revisió postoperatòria, tipus consulta, per al pacient 12345678A, atès pel metge 98765432B.
+13. (0,33 punts) Incrementar en un 15% l'import de totes les visites registrades.
+14. (0,33 punts) Canviar el tipus de dades del codi postal de Pacient de numèric a caràcter.
+15. (0,33 punts) Esborrar totes les visites on el tipus sigui consulta.
+
+
+## SOLUCIONARI ORIGINAL
+
+SOLUCIONARI — Examen Hospital (DAW)
+
+Q1. CREATE TABLE Hospital (
+  id INT PRIMARY KEY,
+  carrer VARCHAR(120) NOT NULL,
+  numero INT NOT NULL,
+  codi_postal CHAR(5) NOT NULL,
+  telefon VARCHAR(20) NOT NULL,
+  CONSTRAINT chk_hospital_numero_pos CHECK (numero > 0)
+);
+
+Q2. CREATE TABLE Pacient (
+  nif CHAR(9) PRIMARY KEY,
+  nom VARCHAR(100) NOT NULL,
+  adreça VARCHAR(150) NOT NULL,
+  numero INT NOT NULL,
+  codi_postal CHAR(5) NOT NULL,
+  telefon VARCHAR(20) NOT NULL,
+  id_hospital INT REFERENCES Hospital(id) ON DELETE SET NULL
+);
+
+Q3. CREATE TABLE Habitacio (
+  id_hospital INT NOT NULL REFERENCES Hospital(id) ON DELETE CASCADE,
+  numero_hab INT NOT NULL,
+  tipus VARCHAR(20) NOT NULL,
+  PRIMARY KEY (id_hospital, numero_hab),
+  CONSTRAINT chk_habitacio_tipus CHECK (tipus IN ('individual', 'doble'))
+);
+
+Q4. CREATE TABLE Metge (
+  nif CHAR(9) PRIMARY KEY,
+  nom VARCHAR(100) NOT NULL,
+  especialitat VARCHAR(80) NOT NULL,
+  id_hospital INT NOT NULL REFERENCES Hospital(id) ON DELETE CASCADE
+);
+
+Q5. CREATE TABLE Tractament (
+  id_tractament INT PRIMARY KEY,
+  nom VARCHAR(120) NOT NULL,
+  CONSTRAINT chk_tractament_nom CHECK (char_length(trim(nom)) > 0)
+);
+
+Q6. CREATE TABLE Visita (
+  id_visita INT PRIMARY KEY,
+  data_visita DATE NOT NULL,
+  import NUMERIC(10,2) NOT NULL,
+  motiu VARCHAR(200) NOT NULL,
+  tipus VARCHAR(40) NOT NULL,
+  nif_pacient CHAR(9) NOT NULL REFERENCES Pacient(nif),
+  nif_metge CHAR(9) NOT NULL REFERENCES Metge(nif)
+);
+
+Q7. INSERT INTO Hospital (id, carrer, numero, codi_postal, telefon)
+VALUES (1, 'Sant Joan', 50, '08001', '932223344');
+
+Q8. INSERT INTO Pacient (nif, nom, adreça, numero, codi_postal, telefon, id_hospital)
+VALUES ('12345678A', 'Pere Torres Font', 'Passeig de Gràcia', 12, '08001', '934445566', NULL);
+
+Q9. INSERT INTO Habitacio (id_hospital, numero_hab, tipus)
+VALUES (1, 101, 'individual');
+UPDATE Pacient SET id_hospital = 1 WHERE nif = '12345678A';
+
+Q10. INSERT INTO Metge (nif, nom, especialitat, id_hospital)
+VALUES ('98765432B', 'Dr. Laura López', 'Cardiologia', 1);
+
+Q11. INSERT INTO Tractament (id_tractament, nom) VALUES (1, 'Rehabilitació Cardíaca');
+INSERT INTO tractament_pacient_metge (nif_pacient, id_tractament, nif_metge)
+VALUES ('12345678A', 1, '98765432B');
+
+Q12. INSERT INTO Visita (id_visita, data_visita, import, motiu, tipus, nif_pacient, nif_metge)
+VALUES (1, DATE '2024-02-01', 100.00, 'Revisió postoperatòria', 'consulta', '12345678A', '98765432B');
+
+Q13. UPDATE Visita SET import = import * 1.15;
+
+Q14. ALTER TABLE Pacient ALTER COLUMN codi_postal TYPE VARCHAR(5) USING codi_postal::varchar;
+
+Q15. DELETE FROM Visita WHERE tipus = 'consulta';
+
+
+---
+
+Has de REESCRIURE (millorar) **només** els camps pedagògics següents per cada pregunta:
+
+- what_to_evaluate
+- required_elements
+- important_mistakes
+- teacher_style_notes
+- accepted_variants (opcional: només variants addicionals compatibles amb expected_answer del base)
+
+OBJECTIU:
+
+Convertir criteris genèrics en criteris concrets, observables i pedagògicament útils.
+
+---
+
+REGLA 1 — CRITERIS OBSERVABLES
+
+Cada element ha de ser verificable en la resposta de l'alumne.
+
+Incorrecte (massa genèric):
+- "sintaxi SQL correcta"
+
+Correcte (observable):
+- "la consulta inclou una clàusula WHERE amb la condició correcta"
+- "la taula defineix una PRIMARY KEY"
+- "s'utilitza ON DELETE CASCADE en la relació"
+
+---
+
+REGLA 2 — CENTRAT EN L'ALUMNE
+
+Pensa: què ha d'haver entès l'alumne per fer bé aquesta pregunta?
+
+Els criteris han de reflectir comprensió, no només forma.
+
+---
+
+REGLA 3 — NIVELL REALISTA
+
+- evita perfeccionisme excessiu
+- accepta variants raonables
+- reflecteix errors habituals
+
+---
+
+REGLA 4 — REQUIRED_ELEMENTS
+
+Inclou només el que és imprescindible perquè la resposta sigui correcta.
+
+---
+
+REGLA 5 — IMPORTANT_MISTAKES
+
+Descriu errors que indiquin manca de comprensió o errors conceptuals.
+
+---
+
+REGLA 6 — WHAT_TO_EVALUATE
+
+Llista curta (3–5 ítems) amb els punts clau a observar. No genèrics.
+
+---
+
+REGLA 7 — TEACHER_STYLE_NOTES
+
+Notes breus (2–3 màxim): com valoraria el professor, què prioritzaria, quin tipus d'error toleraria o no.
+
+---
+
+REGLA 8 — ESTRUCTURA I EMPARELLAMENT
+
+- no afegeixis camps nous ni eliminis camps del schema
+- cada element de `questions` ha de tenir el mateix `question_id` que a l'entrada (mateix nombre i ordre)
+- el sistema només aplica del teu JSON els camps pedagògics indicats (més `question_id` per emparellar); la resta roman del spec base
+
+---
+
+REGLA 9 — NO SCORING
+
+- no assignis puntuacions
+- no facis subpuntuacions
+- no creïs rúbriques numèriques
+
+---
+
+REGLA 10 — FORMAT
+
+Respon NOMÉS amb un JSON vàlid: preferiblement l'objecte AssessmentSpec complet o un objecte amb `questions[]` on cada ítem inclogui com a mínim `question_id` i els camps pedagògics que has de millorar.
+
+No incloguis text fora del JSON.
+No incloguis markdown.
+
