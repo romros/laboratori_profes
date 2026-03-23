@@ -1,8 +1,11 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import {
+  DEFAULT_ASSESSMENT_SPEC_BASE_MODEL,
+  DEFAULT_ASSESSMENT_SPEC_ENRICH_MODEL,
   resolveAssessmentSpecBaseModel,
   resolveAssessmentSpecEnrichModel,
+  resolveAssessmentSpecOpenAiBaseUrl,
 } from '../../../src/features/assessment-spec-builder/services/assessmentSpecModelEnv'
 
 describe('assessmentSpecModelEnv', () => {
@@ -31,5 +34,15 @@ describe('assessmentSpecModelEnv', () => {
     vi.stubEnv('ASSESSMENT_SPEC_OPENAI_MODEL', 'same-old')
     expect(resolveAssessmentSpecBaseModel()).toBe('same-old')
     expect(resolveAssessmentSpecEnrichModel()).toBe('same-old')
+  })
+
+  it('defaults de producte (constants)', () => {
+    expect(DEFAULT_ASSESSMENT_SPEC_BASE_MODEL).toBe('gpt-5.4-mini')
+    expect(DEFAULT_ASSESSMENT_SPEC_ENRICH_MODEL).toBe('gpt-5.4-pro')
+  })
+
+  it('resolveAssessmentSpecOpenAiBaseUrl: override explícit', () => {
+    vi.stubEnv('ASSESSMENT_SPEC_OPENAI_BASE_URL', 'https://from-env/v1')
+    expect(resolveAssessmentSpecOpenAiBaseUrl('https://explicit/v1')).toBe('https://explicit/v1')
   })
 })

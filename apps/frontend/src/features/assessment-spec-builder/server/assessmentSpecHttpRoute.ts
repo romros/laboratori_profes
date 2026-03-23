@@ -85,7 +85,6 @@ export async function executeAssessmentSpecBuildFromJsonBody(
       examText: body.exam_text,
       solutionText: body.solution_text,
       apiKey,
-      baseUrl: process.env.ASSESSMENT_SPEC_OPENAI_BASE_URL,
     }
     const result = pedagogicEnrichment
       ? await buildAssessmentSpecWithPedagogicEnrichment(buildParams)

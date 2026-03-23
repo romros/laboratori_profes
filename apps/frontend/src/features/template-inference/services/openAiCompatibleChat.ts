@@ -16,10 +16,14 @@ export type OpenAiChatUsage = {
   total_tokens?: number
 }
 
+export type OpenAiLlmEndpointKind = 'chat_completions' | 'responses'
+
 export type CallOpenAiCompatibleChatMetaResult = {
   content: string
   latencyMs: number
   usage?: OpenAiChatUsage
+  /** Endpoint HTTP usat (observabilitat / calibratge). */
+  endpointKind: OpenAiLlmEndpointKind
 }
 
 function parseUsageFromBody(body: unknown): OpenAiChatUsage | undefined {
@@ -155,7 +159,7 @@ async function postOpenAiChatCompletionsWithMeta(
   }
 
   const usage = parseUsageFromBody(body)
-  return { content, latencyMs, usage }
+  return { content, latencyMs, usage, endpointKind: 'chat_completions' }
 }
 
 /**
@@ -177,7 +181,7 @@ async function postOpenAiResponsesWithMeta(
     body: JSON.stringify({
       model,
       input: messages,
-      temperature: 0,
+      /** `gpt-5.4-pro` (Responses API) rebutja `temperature`; no l’enviem. */
       store: false,
     }),
   })
@@ -208,7 +212,7 @@ async function postOpenAiResponsesWithMeta(
   }
 
   const usage = parseUsageFromBody(body)
-  return { content: extracted.trim(), latencyMs, usage }
+  return { content: extracted.trim(), latencyMs, usage, endpointKind: 'responses' }
 }
 
 /**

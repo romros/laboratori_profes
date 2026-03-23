@@ -63,7 +63,9 @@ describe('enrichAssessmentSpec — golden hospital DAW (segona passada)', () => 
         spec: base,
         apiKey,
         baseUrl: process.env.ASSESSMENT_SPEC_OPENAI_BASE_URL,
-        model: process.env.ASSESSMENT_SPEC_OPENAI_MODEL,
+        model:
+          process.env.ASSESSMENT_SPEC_ENRICH_MODEL?.trim() ||
+          process.env.ASSESSMENT_SPEC_OPENAI_MODEL,
       })
 
       if (process.env.LOG_ENRICH_ASSESSMENT_SPEC === '1') {

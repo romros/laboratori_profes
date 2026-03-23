@@ -71,6 +71,7 @@ describe('callOpenAiCompatibleChat', () => {
     })
     expect(r.content).toBe('ok')
     expect(r.latencyMs).toBeGreaterThanOrEqual(0)
+    expect(r.endpointKind).toBe('chat_completions')
     expect(r.usage).toEqual({
       prompt_tokens: 10,
       completion_tokens: 20,
@@ -97,6 +98,7 @@ describe('callOpenAiCompatibleChat', () => {
       fetchImpl,
     })
     expect(r.content).toBe('{"x":1}')
+    expect(r.endpointKind).toBe('responses')
     expect(fetchImpl).toHaveBeenCalledWith(
       'https://api.example.com/v1/responses',
       expect.objectContaining({ method: 'POST' }),
@@ -106,6 +108,7 @@ describe('callOpenAiCompatibleChat', () => {
     expect(rawBody.model).toBe('gpt-5.4-pro')
     expect(rawBody.input).toHaveLength(2)
     expect(rawBody.store).toBe(false)
+    expect('temperature' in rawBody).toBe(false)
   })
 
   it('Responses: extreu text de output[].content output_text', () => {

@@ -1,6 +1,6 @@
 # Feature 2 — Assessment Spec Builder
 
-**Estat: definició formal — no implementada**
+**Estat: implementada (MVP)** — extracció + enriqueiment pedagògic, schema estable, models per fase (`gpt-5.4-mini` / `gpt-5.4-pro`), client amb `chat/completions` i `responses`.
 
 ---
 
@@ -29,7 +29,7 @@ Feature 2 és **prerequisit de Feature 3**, però **independent de Feature 0 i F
 
 ### Feature 2.1 — Enriqueiment pedagògic (segon prompt)
 
-Amb un `AssessmentSpec` ja vàlid (mateix schema, sense camps nous), el servei `enrichAssessmentSpec` fa una **segona passada LLM** que reescriu només, per pregunta: `what_to_evaluate`, `required_elements`, `important_mistakes` i `teacher_style_notes`. Els camps d’identitat i extracció (`question_id`, `question_text`, `expected_answer`, `max_score`, `question_type`, `accepted_variants`, confiances, etc.) es **conserven del spec base** després de validar la resposta del model (`mergeEnrichmentPedagogyFields`). No s’introdueix scoring ni rúbriques numèriques.
+Amb un `AssessmentSpec` ja vàlid (mateix schema, sense camps nous), el servei `enrichAssessmentSpec` fa una **segona passada LLM** que reescriu només, per pregunta: `what_to_evaluate`, `required_elements`, `important_mistakes` i `teacher_style_notes`. Els camps d’identitat i extracció (`question_id`, `question_text`, `expected_answer`, `max_score`, `question_type`, `accepted_variants`, confiances, etc.) es **conserven del spec base** després de validar, per pregunta, només els quatre camps pedagògics del JSON del model (`mergeEnrichmentPedagogyFields`). No s’introdueix scoring ni rúbriques numèriques.
 
 - **Pipeline de codi:** `buildAssessmentSpecWithPedagogicEnrichment` → `buildAssessmentSpec` i després `enrichAssessmentSpec`.
 - **HTTP (JSON):** camp opcional `pedagogic_enrichment: true` al cos de la petició d’`executeAssessmentSpecBuildFromJsonBody` per obtenir directament l’spec enriquit.
@@ -48,7 +48,7 @@ El client HTTP (`callOpenAiCompatibleChatWithMeta`) enruta automàticament: **`g
 
 Compatibilitat: si només existeix `ASSESSMENT_SPEC_OPENAI_MODEL`, s’aplica a **ambdues** passades (comportament legacy).
 
-Telemetria opcional per calibratge: callback `onLlmRound` a `BuildAssessmentSpecParams` / `EnrichAssessmentSpecParams` (fase, model resolt, `latencyMs`, `usage` si l’API el retorna). El client HTTP del producte no l’activa.
+Telemetria opcional per calibratge: callback `onLlmRound` (fase, model resolt, `endpointKind` `chat_completions` | `responses`, `latencyMs`, `usage` si l’API el retorna). El client HTTP del producte no l’activa.
 
 **Escript de calibratge (cas hospital, 2 variants per defecte):** `npm run calibration:assessment-spec-models -w @profes/frontend` (requereix clau API; escriu `docs/features/assessment-spec-builder/hospital-model-calibration-notes.md`).
 
@@ -165,7 +165,7 @@ Feature 2 no processa cap document d'alumne. Els materials d'entrada (enunciat, 
 - OCR de solucionari manuscrit
 - UI final de gestió d'specs
 - Rúbriques amb ponderació complexa per subapartats
-- Optimització pedagògica automàtica
+- Optimització pedagògica més enllà del pipeline 2.0+2.1 (sense revisió humana obligatòria)
 - Versionat d'`AssessmentSpec` entre convocatòries
 
 ---

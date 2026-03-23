@@ -63,7 +63,7 @@ Converteix materials del professor (enunciat + solucionari) en `AssessmentSpec` 
 
 **Feature 2.1 — Enriqueiment pedagògic (segon prompt):** `enrichAssessmentSpec` + `buildEnrichAssessmentSpecPrompt`; pipeline `buildAssessmentSpecWithPedagogicEnrichment`; HTTP opcional `pedagogic_enrichment: true`. Fusiona camps no pedagògics des del base (`mergeEnrichmentPedagogyFields`). **Test integració:** `enrichAssessmentSpec.hospital.test.ts` (entrada: `hospitalDawGolden.real-output.json`; sense clau → skip).
 
-**Feature 2.2 — Calibratge models:** `ASSESSMENT_SPEC_MODEL` (passada 1, defecte `gpt-5.4-mini`) i `ASSESSMENT_SPEC_ENRICH_MODEL` (passada 2, defecte `gpt-5.4-pro` via `/v1/responses`). Altres models segueixen `chat/completions`; `OPENAI_FORCE_CHAT_COMPLETIONS=1` força només chat. Legacy `ASSESSMENT_SPEC_OPENAI_MODEL` per ambdues si cal. `callOpenAiCompatibleChatWithMeta` + `onLlmRound`. Escript: `npm run calibration:assessment-spec-models -w @profes/frontend` → `hospital-model-calibration-notes.md`.
+**Feature 2.2 — Calibratge models:** `ASSESSMENT_SPEC_MODEL` (passada 1, defecte `gpt-5.4-mini`) i `ASSESSMENT_SPEC_ENRICH_MODEL` (passada 2, defecte `gpt-5.4-pro` via `/v1/responses`, **sense** `temperature` al cos). Altres models segueixen `chat/completions`; `OPENAI_FORCE_CHAT_COMPLETIONS=1` força només chat. Legacy `ASSESSMENT_SPEC_OPENAI_MODEL` per ambdues si cal. `callOpenAiCompatibleChatWithMeta` + `onLlmRound` (`endpointKind`). Escript: `npm run calibration:assessment-spec-models -w @profes/frontend` → `hospital-model-calibration-notes.md`. Darrer calibratge hospital: **V1** (mini→`gpt-5.4`) OK; **V2** (mini→pro) pot fallar amb `fetch failed` en Docker si la passada 2 és molt lenta — reexecutar amb xarxa estable per tancar evidència `responses`.
 
 ---
 
@@ -78,8 +78,8 @@ Converteix materials del professor (enunciat + solucionari) en `AssessmentSpec` 
 
 ## Següent pas
 
-**Feature 0 i Feature 1 tancades com a MVP.** Feature 2 definida formalment.
+**Feature 0, Feature 1 i Feature 2 (MVP + 2.1 + 2.2 models) tancades en codi i docs canòniques** (calibratge hospital quan hi ha clau API).
 
-- **Feature 2 (producte)** — flux professor (guardar/reutilitzar spec) i/o **Feature 3** sobre base `AssessmentSpec` validada.
+- **Feature 2 (producte)** — persistència estable per convocatòria, UI de revisió (segons PM) i/o **Feature 3** sobre `AssessmentSpec` validat.
 
 Validació habitual: `./scripts/run_frontend.sh …` (Docker).

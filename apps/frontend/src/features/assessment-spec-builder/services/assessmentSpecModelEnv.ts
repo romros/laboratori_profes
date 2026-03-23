@@ -1,19 +1,39 @@
-import type { OpenAiChatUsage } from '../../template-inference/services/openAiCompatibleChat'
+import type {
+  OpenAiChatUsage,
+  OpenAiLlmEndpointKind,
+} from '../../template-inference/services/openAiCompatibleChat'
 
 /** Passada 1 (extracció / AssessmentSpec base): model eficient per defecte. */
 export const DEFAULT_ASSESSMENT_SPEC_BASE_MODEL = 'gpt-5.4-mini'
 
 /**
- * Passada 2 (enriqueiment pedagògic): per defecte `gpt-5.4-pro` (via `/v1/responses` al client HTTP).
- * Per evitar Responses API: `ASSESSMENT_SPEC_ENRICH_MODEL=gpt-5.4` o `OPENAI_FORCE_CHAT_COMPLETIONS=1`.
+ * Passada 2 (enriqueiment pedagògic): màxima qualitat — `gpt-5.4-pro` via `/v1/responses`.
+ * Escape hatch (proxy sense Responses): `ASSESSMENT_SPEC_ENRICH_MODEL=gpt-5.4` o `OPENAI_FORCE_CHAT_COMPLETIONS=1`.
  */
 export const DEFAULT_ASSESSMENT_SPEC_ENRICH_MODEL = 'gpt-5.4-pro'
+
+/** Base URL OpenAI (o compatible): una sola font per als serveis Feature 2. */
+export const DEFAULT_ASSESSMENT_SPEC_OPENAI_BASE_URL = 'https://api.openai.com/v1'
 
 export type AssessmentSpecLlmTelemetry = {
   phase: 'assessment_spec_base' | 'assessment_spec_enrich'
   model: string
   latencyMs: number
   usage?: OpenAiChatUsage
+  endpointKind: OpenAiLlmEndpointKind
+}
+
+/**
+ * URL base per a crides LLM Feature 2: paràmetre explícit → `ASSESSMENT_SPEC_OPENAI_BASE_URL` → defecte.
+ */
+export function resolveAssessmentSpecOpenAiBaseUrl(explicit?: string | null): string {
+  const t = explicit?.trim()
+  if (t) {
+    return t
+  }
+  return (
+    process.env.ASSESSMENT_SPEC_OPENAI_BASE_URL?.trim() || DEFAULT_ASSESSMENT_SPEC_OPENAI_BASE_URL
+  )
 }
 
 /**

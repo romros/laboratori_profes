@@ -13,11 +13,10 @@ import {
 import {
   type AssessmentSpecLlmTelemetry,
   resolveAssessmentSpecBaseModel,
+  resolveAssessmentSpecOpenAiBaseUrl,
 } from './assessmentSpecModelEnv'
 import { buildAssessmentSpecPrompt } from './buildAssessmentSpecPrompt'
 import { normalizeLlmQuestionListFields } from './normalizeLlmQuestionListFields'
-
-const DEFAULT_BASE_URL = 'https://api.openai.com/v1'
 
 export type BuildAssessmentSpecParams = {
   examText: string
@@ -39,7 +38,7 @@ export async function buildAssessmentSpec(
   params: BuildAssessmentSpecParams,
 ): Promise<AssessmentSpec> {
   const { examText, solutionText, apiKey, fetchImpl, onLlmRound } = params
-  const baseUrl = params.baseUrl?.trim() || DEFAULT_BASE_URL
+  const baseUrl = resolveAssessmentSpecOpenAiBaseUrl(params.baseUrl)
   const model = resolveAssessmentSpecBaseModel(params.model)
 
   const prompt = buildAssessmentSpecPrompt(examText, solutionText)
@@ -69,6 +68,7 @@ export async function buildAssessmentSpec(
       model,
       latencyMs: r.latencyMs,
       usage: r.usage,
+      endpointKind: r.endpointKind,
     })
     rawContent = r.content
   } else {

@@ -1,10 +1,10 @@
 # Calibratge models — Assessment Spec (cas hospital DAW)
 
-Data execució: 2026-03-23T17:08:09.681Z
+Data execució: 2026-03-23T18:31:23.530Z
 
 Pipeline: `buildAssessmentSpec` (passada 1) + `enrichAssessmentSpec` (passada 2).
 
-**Actualització client HTTP:** `gpt-5.4-pro` es crida amb **`POST /v1/responses`** (no `chat/completions`). Les dades d’aquest fitxer són d’abans d’aquest canvi; per recalibrar, torna a executar `npm run calibration:assessment-spec-models -w @profes/frontend`.
+**Defaults producte:** passada 1 → `gpt-5.4-mini` (`ASSESSMENT_SPEC_MODEL`); passada 2 → `gpt-5.4-pro` (`ASSESSMENT_SPEC_ENRICH_MODEL`, endpoint `POST /v1/responses`).
 
 ## Telemetria per variant
 
@@ -12,45 +12,44 @@ Pipeline: `buildAssessmentSpec` (passada 1) + `enrichAssessmentSpec` (passada 2)
 
 - **Schema OK:** sí
 - **Preguntes:** 15
-- **Temps total (wall):** 90846 ms
-- **Tokens (suma passes):** prompt 8223 · completion 10122 · total 18345
+- **Temps total (wall):** 65973 ms
+- **Mètriques heurístiques:** preguntes amb required_elements: 15/15; important_mistakes: 15/15; teacher_style_notes: 15/15; mitjana chars what_to_evaluate (totes juntes): 209
+- **Tokens (suma passes):** prompt 8849 · completion 8193 · total 17042
 
-| Fase | Model | Latència ms | prompt_tok | completion_tok | total_tok |
-|------|-------|------------:|-----------:|---------------:|----------:|
-| assessment_spec_base | gpt-5.4-mini | 16549 | 2514 | 3878 | 6392 |
-| assessment_spec_enrich | gpt-5.4 | 74280 | 5709 | 6244 | 11953 |
+| Fase | Model | Endpoint | Latència ms | prompt_tok | completion_tok | total_tok |
+|------|-------|----------|------------:|-----------:|---------------:|----------:|
+| assessment_spec_base | gpt-5.4-mini | chat_completions | 20147 | 2514 | 4353 | 6867 |
+| assessment_spec_enrich | gpt-5.4 | chat_completions | 45806 | 6335 | 3840 | 10175 |
 
-### V2: base `gpt-5.4-mini` → enrich `gpt-5.4-mini`
+### V2: base `gpt-5.4-mini` → enrich `gpt-5.4-pro`
 
-- **Schema OK:** sí
-- **Preguntes:** 15
-- **Temps total (wall):** 43422 ms
-- **Tokens (suma passes):** prompt 8514 · completion 10363 · total 18877
+- **Schema OK:** no
+- **Preguntes:** 0
+- **Temps total (wall):** 320145 ms
+- **Error:** `fetch failed`
+- **Tokens (suma passes):** prompt 2514 · completion 3904 · total 6418
 
-| Fase | Model | Latència ms | prompt_tok | completion_tok | total_tok |
-|------|-------|------------:|-----------:|---------------:|----------:|
-| assessment_spec_base | gpt-5.4-mini | 21240 | 2514 | 5134 | 7648 |
-| assessment_spec_enrich | gpt-5.4-mini | 22165 | 6000 | 5229 | 11229 |
+| Fase | Model | Endpoint | Latència ms | prompt_tok | completion_tok | total_tok |
+|------|-------|----------|------------:|-----------:|---------------:|----------:|
+| assessment_spec_base | gpt-5.4-mini | chat_completions | 19341 | 2514 | 3904 | 6418 |
 
-## Intent `gpt-5.4-pro` a passada 2
+## Evidència `gpt-5.4-pro` (passada 2)
 
-El model `gpt-5.4-pro` ha fallat en proves amb `v1/chat/completions` (missatge: no és model de chat en aquest endpoint). El defecte de passada 2 al codi és `gpt-5.4`. La taula V1/V2 contrasta enriqueidor `gpt-5.4` vs `gpt-5.4-mini`.
+- **V2 fallida:** revisar error amunt. Per diagnòstic: endpoint esperat `POST …/v1/responses`, model `gpt-5.4-pro`, cos amb `input` = missatges sistema+usuari (guia migració OpenAI).
+- **Nota operativa:** `fetch failed` sovint indica tall de xarxa o timeout intermedi (el model **pro** pot trigar molts minuts). Prova de nou fora de Docker o amb sortida estable a `api.openai.com`.
 
 ## Qualitat (revisió manual)
 
-| Variant | Passada 2 | Observacions pedagògiques |
-|---------|-----------|---------------------------|
-| V1 | gpt-5.4 | Criteris més específics (restriccions, claus, coherència amb enunciat). |
-| V2 | gpt-5.4-mini | Sovint acceptable però més genèric en blocs DDL repetitius. |
+| Variant | Enrich | Pregunta clau |
+|---------|--------|---------------|
+| V1 | gpt-5.4 | Schema OK, 15 preguntes; heurístiques plenes (required_elements / mistakes / notes); comparar to amb V2 quan pro completi. |
+| V2 | gpt-5.4-pro | ¿Criteris més específics / menys genèrics que V1? |
 
-## Cost estimat (orientatiu)
-
-Mini a la passada 1 redueix cost; reservar model gran només per la passada 2 equilibra qualitat i preu.
-
-## Decisió MVP
+## Decisió defaults (MVP)
 
 - **Passada 1:** `gpt-5.4-mini`.
-- **Passada 2:** `gpt-5.4` (`ASSESSMENT_SPEC_ENRICH_MODEL`). Reavaluar `gpt-5.4-pro` quan sigui invocable al mateix client HTTP o es migri API.
+- **Passada 2:** `gpt-5.4-pro` (màxima qualitat pedagògica; `POST /v1/responses`). Comparar qualitat vs V1 abans de canviar.
+- **Alternativa econòmica:** `ASSESSMENT_SPEC_ENRICH_MODEL=gpt-5.4` si V1 és suficient.
+- **Compatibilitat:** `OPENAI_FORCE_CHAT_COMPLETIONS=1` només si el proveïdor no implementa `/v1/responses` (no és el camí principal OpenAI).
 
-
-**Evidència git:** el commit que introdueix aquesta nota és el que conté `Feature 2.2: models separats` al missatge (`git log --grep=2.2`).
+**Evidència git:** commit amb missatge que inclogui `Feature 2.2` o `calibratge` / `gpt-5.4-pro` (`git log --oneline --grep=2.2`).

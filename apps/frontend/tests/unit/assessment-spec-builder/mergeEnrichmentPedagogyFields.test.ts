@@ -1,7 +1,10 @@
 import { describe, expect, it } from 'vitest'
 
 import type { AssessmentSpec } from '../../../src/domain/assessment-spec/assessmentSpec.schema'
-import { mergeEnrichmentPedagogyFields } from '../../../src/features/assessment-spec-builder/services/enrichAssessmentSpec'
+import {
+  type EnrichmentPedagogyQuestion,
+  mergeEnrichmentPedagogyFields,
+} from '../../../src/features/assessment-spec-builder/services/enrichAssessmentSpec'
 
 function q(
   id: string,
@@ -38,28 +41,17 @@ describe('mergeEnrichmentPedagogyFields', () => {
         }),
       ],
     }
-    const enrichedParsed: AssessmentSpec = {
-      exam_id: 'WRONG',
-      title: 'WRONG',
-      questions: [
-        {
-          ...base.questions[0],
-          question_text: 'hacked',
-          expected_answer: 'hacked',
-          max_score: 99,
-          question_type: 'hacked',
-          accepted_variants: ['x'],
-          extraction_confidence: 0,
-          inference_confidence: 0,
-          what_to_evaluate: ['nou 1', 'nou 2'],
-          required_elements: ['req'],
-          important_mistakes: ['err'],
-          teacher_style_notes: ['nota'],
-        },
-      ],
-    }
+    const enrichedQs: EnrichmentPedagogyQuestion[] = [
+      {
+        question_id: 'Q1',
+        what_to_evaluate: ['nou 1', 'nou 2'],
+        required_elements: ['req'],
+        important_mistakes: ['err'],
+        teacher_style_notes: ['nota'],
+      },
+    ]
 
-    const out = mergeEnrichmentPedagogyFields(base, enrichedParsed)
+    const out = mergeEnrichmentPedagogyFields(base, enrichedQs)
     expect(out.exam_id).toBe('e1')
     expect(out.title).toBe('T')
     expect(out.questions[0].question_text).toBe('original')
@@ -80,10 +72,22 @@ describe('mergeEnrichmentPedagogyFields', () => {
       exam_id: 'e',
       questions: [q('Q1'), q('Q2')],
     }
-    const bad: AssessmentSpec = {
-      exam_id: 'e',
-      questions: [q('Q1', { what_to_evaluate: ['a'] }), q('Q99', { what_to_evaluate: ['b'] })],
-    }
+    const bad: EnrichmentPedagogyQuestion[] = [
+      {
+        question_id: 'Q1',
+        what_to_evaluate: ['a'],
+        required_elements: [],
+        important_mistakes: [],
+        teacher_style_notes: [],
+      },
+      {
+        question_id: 'Q99',
+        what_to_evaluate: ['b'],
+        required_elements: [],
+        important_mistakes: [],
+        teacher_style_notes: [],
+      },
+    ]
     expect(() => mergeEnrichmentPedagogyFields(base, bad)).toThrow(/falta question_id/)
   })
 })

@@ -1,3 +1,5 @@
+import { z } from 'zod'
+
 import {
   assessmentSpecSchema,
   type AssessmentSpec,
@@ -10,11 +12,21 @@ import {
 import {
   type AssessmentSpecLlmTelemetry,
   resolveAssessmentSpecEnrichModel,
+  resolveAssessmentSpecOpenAiBaseUrl,
 } from './assessmentSpecModelEnv'
 import { buildEnrichAssessmentSpecPrompt } from './enrichAssessmentSpecPrompt'
-import { normalizeAssessmentSpecQuestionsInRaw } from './normalizeLlmQuestionListFields'
+import { normalizeLlmQuestionListFields } from './normalizeLlmQuestionListFields'
 
-const DEFAULT_BASE_URL = 'https://api.openai.com/v1'
+/** Només els camps pedagògics que el segon model ha de retornar (la resta ve del base). */
+const enrichmentPedagogyQuestionSchema = z.object({
+  question_id: z.string(),
+  what_to_evaluate: z.array(z.string()),
+  required_elements: z.array(z.string()),
+  important_mistakes: z.array(z.string()),
+  teacher_style_notes: z.array(z.string()),
+})
+
+export type EnrichmentPedagogyQuestion = z.infer<typeof enrichmentPedagogyQuestionSchema>
 
 export type EnrichAssessmentSpecParams = {
   spec: AssessmentSpec
@@ -31,15 +43,15 @@ export type EnrichAssessmentSpecParams = {
  */
 export function mergeEnrichmentPedagogyFields(
   base: AssessmentSpec,
-  enrichedParsed: AssessmentSpec,
+  enrichmentQuestions: EnrichmentPedagogyQuestion[],
 ): AssessmentSpec {
-  if (base.questions.length !== enrichedParsed.questions.length) {
+  if (base.questions.length !== enrichmentQuestions.length) {
     throw new Error(
-      `Enriqueiment pedagògic: nombre de preguntes diferent (${base.questions.length} vs ${enrichedParsed.questions.length})`,
+      `Enriqueiment pedagògic: nombre de preguntes diferent (${base.questions.length} vs ${enrichmentQuestions.length})`,
     )
   }
 
-  const enrichedById = new Map(enrichedParsed.questions.map((q) => [q.question_id, q]))
+  const enrichedById = new Map(enrichmentQuestions.map((q) => [q.question_id, q]))
   const baseIds = new Set(base.questions.map((q) => q.question_id))
 
   const questions = base.questions.map((q) => {
@@ -70,6 +82,24 @@ export function mergeEnrichmentPedagogyFields(
   }
 }
 
+function parseEnrichmentPedagogyFromModelJson(parsed: unknown): EnrichmentPedagogyQuestion[] {
+  let questionsRaw: unknown
+  if (Array.isArray(parsed)) {
+    questionsRaw = parsed
+  } else if (typeof parsed === 'object' && parsed !== null && 'questions' in parsed) {
+    questionsRaw = (parsed as { questions: unknown }).questions
+  } else {
+    throw new Error(
+      'Enriqueiment pedagògic: cal un objecte JSON amb clau `questions` o un array de preguntes',
+    )
+  }
+  if (!Array.isArray(questionsRaw)) {
+    throw new Error('Enriqueiment pedagògic: `questions` ha de ser un array')
+  }
+  const normalized = questionsRaw.map(normalizeLlmQuestionListFields)
+  return z.array(enrichmentPedagogyQuestionSchema).parse(normalized)
+}
+
 /**
  * Segon pas: enriqueix what_to_evaluate, required_elements, important_mistakes i teacher_style_notes
  * via LLM; la resta del AssessmentSpec roman igual que `spec`.
@@ -78,7 +108,7 @@ export async function enrichAssessmentSpec(
   params: EnrichAssessmentSpecParams,
 ): Promise<AssessmentSpec> {
   const { spec, apiKey, fetchImpl, onLlmRound } = params
-  const baseUrl = params.baseUrl?.trim() || DEFAULT_BASE_URL
+  const baseUrl = resolveAssessmentSpecOpenAiBaseUrl(params.baseUrl)
   const model = resolveAssessmentSpecEnrichModel(params.model)
 
   const userContent = buildEnrichAssessmentSpecPrompt(JSON.stringify(spec, null, 2))
@@ -87,7 +117,7 @@ export async function enrichAssessmentSpec(
     {
       role: 'system',
       content:
-        'Ets un assistent que millora criteris pedagògics. Respon NOMÉS amb un objecte JSON vàlid (AssessmentSpec complet), sense markdown ni text fora del JSON.',
+        'Ets un assistent que millora criteris pedagògics. Respon NOMÉS amb JSON vàlid (AssessmentSpec complet o objecte amb questions[] i els camps pedagògics), sense markdown ni text fora del JSON.',
     },
     { role: 'user', content: userContent },
   ]
@@ -108,6 +138,7 @@ export async function enrichAssessmentSpec(
       model,
       latencyMs: r.latencyMs,
       usage: r.usage,
+      endpointKind: r.endpointKind,
     })
     rawContent = r.content
   } else {
@@ -121,9 +152,8 @@ export async function enrichAssessmentSpec(
     throw new Error('Enriqueiment pedagògic: JSON invàlid del model')
   }
 
-  const coerced = normalizeAssessmentSpecQuestionsInRaw(parsed)
-  const enrichedDraft = assessmentSpecSchema.parse(coerced)
+  const pedagogyQuestions = parseEnrichmentPedagogyFromModelJson(parsed)
 
-  const merged = mergeEnrichmentPedagogyFields(spec, enrichedDraft)
+  const merged = mergeEnrichmentPedagogyFields(spec, pedagogyQuestions)
   return assessmentSpecSchema.parse(merged)
 }

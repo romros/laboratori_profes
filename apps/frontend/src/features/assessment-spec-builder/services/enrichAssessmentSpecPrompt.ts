@@ -88,7 +88,8 @@ Notes breus (2–3 màxim): com valoraria el professor, què prioritzaria, quin 
 REGLA 8 — NO MODIFICAR ESTRUCTURA NI CAMPS D'IDENTITAT
 
 - no afegeixis camps nous ni eliminis camps del schema
-- no canviïs question_id, question_text, expected_answer, max_score, question_type, accepted_variants, extraction_confidence ni inference_confidence (al JSON de sortida han de coincidir amb l'entrada en aquests camps; el sistema fusionarà, però has de respectar-ho al teu output)
+- cada element de \`questions\` ha de tenir el mateix \`question_id\` que a l'entrada (mateix nombre i ordre)
+- el sistema només aplica del teu JSON els quatre camps pedagògics (més \`question_id\` per emparellar); la resta (text, solució, confiances, etc.) es conserva sempre de l'entrada — no cal que repeteixis aquests camps si no vols, però si els inclous no han de contradir l'entrada
 
 ---
 
@@ -102,7 +103,7 @@ REGLA 9 — NO SCORING
 
 REGLA 10 — FORMAT
 
-Respon NOMÉS amb un JSON vàlid: l'objecte AssessmentSpec complet (exam_id, title, questions[] amb tots els camps del schema).
+Respon NOMÉS amb un JSON vàlid: preferiblement l'objecte AssessmentSpec complet (exam_id, title, questions[] amb tots els camps del schema). També és vàlid un objecte amb només \`questions[]\` on cada ítem inclogui com a mínim \`question_id\` i els quatre camps pedagògics.
 
 No incloguis text fora del JSON.
 No incloguis markdown.
