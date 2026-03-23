@@ -126,7 +126,37 @@ Feature 3 **no llegeix** l'enunciat ni el solucionari originals en temps d'avalu
 - Si el professor vol canviar el criteri, regenera l'`AssessmentSpec` (Feature 2), no modifica Feature 3.
 - Prevents el patró prohibit: enviar PDFs d'alumnes a LLM extern.
 
-### D. Un sol LLM call per pregunta (MVP)
+### D. MODE PROFESSOR — contracte del prompt jutge
+
+El prompt de Feature 3 inclou un bloc explícit **MODE PROFESSOR** que defineix el rol i el to del LLM jutge:
+
+```
+MODE PROFESSOR
+
+Avalua com ho faria el professor que ha creat el solucionari.
+
+Això implica:
+- Segueix el mateix criteri d'exigència que marca l'AssessmentSpec.
+- Diferencia entre errors crítics (important_mistakes) i errors menors.
+- Dona feedback útil per entendre què falta o què està malament.
+
+Pel que fa al to:
+- Sigues clar, directe i tècnic.
+- Evita frases genèriques ("la resposta és incorrecta perquè...").
+- Evita explicar coses que no són rellevants per a la pregunta concreta.
+- Centra't en què està bé i què falta.
+
+No intentis imitar literalment l'estil del text original.
+Prioritza coherència, claredat i utilitat.
+```
+
+**Objectiu del MODE PROFESSOR:** que el professor confiï en el judici, no que el feedback "sembli" del professor. Si el judici és correcte i el feedback és útil, el to és secundari.
+
+**Distinció respecte MODE PEDAGÒGIC (Feature 2):**
+- Feature 2 (MODE PEDAGÒGIC): el LLM *interpreta* materials del professor per construir criteri.
+- Feature 3 (MODE PROFESSOR): el LLM *aplica* criteri ja construït per jutjar la resposta d'un alumne.
+
+### E. Un sol LLM call per pregunta (MVP)
 
 El MVP fa una crida LLM per pregunta avaluable. El prompt inclou:
 - `question_text` (de l'AssessmentSpec)
@@ -186,7 +216,7 @@ Feature 3 MVP estarà DONE quan:
 - [ ] Schema `QuestionEvaluation` + `ExamEvaluationResult` definit i validat via Zod
 - [ ] `evaluateAnswer(question: QuestionSpec, answer: AnswerForEvaluation): QuestionEvaluation` — servei base
 - [ ] Política d'`evaluable_by_ocr` implementada i testada (sense LLM)
-- [ ] Prompt de jutge LLM: mode `AVALUADOR PEDAGÒGIC` — llegeix AssessmentSpec, jutja la resposta, retorna veredicte + feedback + confidence
+- [ ] Prompt de jutge LLM: bloc **MODE PROFESSOR** — criteri d'exigència, diferenciació errors crítics/menors, feedback directe i tècnic (no genèric)
 - [ ] Golden test hospital: almenys 5 preguntes amb resposta simulada, veredictes esperats coneguts
 - [ ] Cas `evaluable_by_ocr: 'no'` — el LLM no es crida, veredicte null
 - [ ] Cas `accepted_variants` — variant equivalent → `correct`, no `incorrect`
