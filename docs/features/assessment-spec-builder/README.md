@@ -118,9 +118,11 @@ type QuestionSpec = {
 
 La separació és important: `expected_answer` mai s'inventa — és el que el professor ha escrit. La inferència és addenda, no substitut.
 
-### Output persistent
+### Output persistent — font de veritat única
 
-L'`AssessmentSpec` es calcula un cop per convocatòria i es persiteix. Feature 3 el llegeix; no el recalcula en runtime de correcció. Això garanteix consistència entre correccions.
+**`AssessmentSpec` és l'única font de veritat per a Feature 3. Feature 3 no ha de dependre directament del solucionari original.**
+
+L'`AssessmentSpec` es calcula un cop per convocatòria i es persisteix. Feature 3 el llegeix; no el recalcula en runtime de correcció. Això garanteix consistència entre correccions i evita el patró prohibit de passar el PDF del solucionari al LLM en cada avaluació.
 
 ### Sense dades d'alumnes
 
