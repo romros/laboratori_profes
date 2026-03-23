@@ -1,0 +1,98 @@
+import type { AssessmentSpec } from '../../../domain/assessment-spec/assessmentSpec.schema'
+import { buildAssessmentSpec } from '../services/buildAssessmentSpec'
+
+export type AssessmentSpecHttpOutcome =
+  | { ok: true; status: 200; body: { result: AssessmentSpec } }
+  | {
+      ok: false
+      status: 400 | 502 | 503 | 500
+      body: { error: { code: string; message: string } }
+    }
+
+export async function executeAssessmentSpecBuildFromJsonBody(
+  jsonString: string,
+): Promise<AssessmentSpecHttpOutcome> {
+  let parsed: unknown
+  try {
+    parsed = jsonString.trim() === '' ? {} : JSON.parse(jsonString)
+  } catch {
+    return {
+      ok: false,
+      status: 400,
+      body: { error: { code: 'invalid_json', message: 'JSON invàlid al cos de la petició' } },
+    }
+  }
+
+  if (
+    typeof parsed !== 'object' ||
+    parsed === null ||
+    !('exam_text' in parsed) ||
+    !('solution_text' in parsed)
+  ) {
+    return {
+      ok: false,
+      status: 400,
+      body: {
+        error: {
+          code: 'missing_fields',
+          message: 'Cal proporcionar exam_text i solution_text',
+        },
+      },
+    }
+  }
+
+  const body = parsed as Record<string, unknown>
+
+  if (typeof body.exam_text !== 'string' || typeof body.solution_text !== 'string') {
+    return {
+      ok: false,
+      status: 400,
+      body: {
+        error: {
+          code: 'invalid_fields',
+          message: 'exam_text i solution_text han de ser strings',
+        },
+      },
+    }
+  }
+
+  const apiKey =
+    process.env.ASSESSMENT_SPEC_OPENAI_API_KEY?.trim() || process.env.OPENAI_API_KEY?.trim()
+  if (!apiKey) {
+    return {
+      ok: false,
+      status: 503,
+      body: {
+        error: {
+          code: 'not_configured',
+          message:
+            'Assessment Spec Builder: cal ASSESSMENT_SPEC_OPENAI_API_KEY o OPENAI_API_KEY (servidor).',
+        },
+      },
+    }
+  }
+
+  try {
+    const result = await buildAssessmentSpec({
+      examText: body.exam_text,
+      solutionText: body.solution_text,
+      apiKey,
+      baseUrl: process.env.ASSESSMENT_SPEC_OPENAI_BASE_URL,
+      model: process.env.ASSESSMENT_SPEC_OPENAI_MODEL,
+    })
+    return { ok: true, status: 200, body: { result } }
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : String(e)
+    if (msg.startsWith('Resposta del model:')) {
+      return {
+        ok: false,
+        status: 400,
+        body: { error: { code: 'model_parse_error', message: msg } },
+      }
+    }
+    if (msg.startsWith('API model:')) {
+      return { ok: false, status: 502, body: { error: { code: 'api_error', message: msg } } }
+    }
+    return { ok: false, status: 500, body: { error: { code: 'internal_error', message: msg } } }
+  }
+}
