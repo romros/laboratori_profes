@@ -1,24 +1,21 @@
 # Estat del projecte (operatiu)
 
-**Darrera actualització:** 2026-03-23 (Feature 2.4: revisió final + context document + Feature 2 CONGELADA)
+**Darrera actualització:** 2026-03-23 (Feature 3 definida — pendent d’implementació)
 
 Només **estat i verificació**. Normativa: **`AGENTS_ARQUITECTURA.md`**. Ordre de lectura: **`llm.txt`**.
 
 ---
 
-## Fase
+## Estat de les features
 
-**Foundations + govern documental** — frontend canònic `apps/frontend`, **validació canònica via Docker** (`frontend-check`), manifest `llm.txt`.
+| Feature | Estat | Resum |
+|---------|-------|-------|
+| **Feature 0** — Template inference + layout mapping | **DONE** | Viabilitat plantilla (LLM) + mapping anchor→zones. 4 PDFs reals validats. |
+| **Feature 1** — Question-answer extraction (OCR) | **DONE** | OCR + segmentació per marcadors. 4 alumnes reals. Limitació: scans de molt baixa qualitat fora d’abast. |
+| **Feature 2** — Assessment Spec Builder | **DONE / CONGELADA** | Dues passades LLM (MODE OPERATIU + MODE PEDAGÒGIC) + `examDocumentContext`. Prerequisit de Feature 3. |
+| **Feature 3** — Answer Evaluator | **DEFINIDA — pendent MVP** | Jutja `answer_text` vs `AssessmentSpec`. Retorna `verdict` + `feedback` + `confidence`. |
 
-**Feature 1 — `question-answer-extraction` — DONE: MVP funcional validat (amb limitacions).** `question-answer-extraction` (pas 3–5 + nginx proxy): contracte estable a **`domain/question-answer-extraction/question_answer_extraction.schema.ts`** (`items[]` amb `question_id`, `answer_text`, `status`: **`ok` | `empty` | `uncertain`**, `page_indices`); **`runQuestionAnswerExtractionFromPdf`** + mapper des de l’spike intern; **`diagnostic`** separat (pàgines, OCR, marcadors, notes). Façana HTTP + validació PDF mínima: **`features/question-answer-extraction/server/questionAnswerExtractionHttpRoute.ts`** (`executeQuestionAnswerExtractionForPdfBuffer`, `executeQuestionAnswerExtractionFromHttpRequest`); reexport aplicatiu **`app/question-answer-extraction/index.ts`**. **Servei `qae-api` (Docker, permanent):** `docker compose up --build -d` arrenca automàticament el servei **`qae-api`** (Node 22, `restart: unless-stopped`); **nginx fa proxy invers** de **`/api/…`** cap a `qae-api:8787` (xarxa Docker interna, sense ports exposats al host). La UI demo i qualsevol `fetch` usen la mateixa URL base del navegador — **sense mixed content, sense ports extra al firewall**. Path: **`/api/question-answer-extraction`** (constants `dev/qaeDevServerConstants.ts`). **Èxit:** `{ result, diagnostic }`. **Error:** `{ error: { code, message } }` (400 / 413 / 500 segons cas). UI dev **`/demo/qae`** (`QaeDemoPage`): **`getQaeApiUrlForBrowser()`** retorna URL relativa (`/api/…`) en Docker o `http://127.0.0.1:8787/…` en Vite dev local; override amb **`VITE_QAE_API_BASE_URL`**. *No* dins el middleware Vite (graf OCR + `@/` trencaria `vite build`). **Vite dev local:** `npm run dev:qae-api` engega el servidor Node al host (port 8787). Multipart PDF compartit: **`infrastructure/http/parsePdfMultipartUpload.ts`** (Feature 0 PDF usa el mateix; errors multipart amb `code` intern per mapejar a QAE). Harness: **`npm run spike:qae -- [pdf]`** imprimeix `{ result, diagnostic }` des de `apps/frontend`. Motor intern: mateix pipeline que pas 2 (raster ~1800 px, OCR **`cat`**, deduplicació, tall suau ~2800 chars, peus). **Detecció de marcadors tolerant (iteració segmentació):** 3 nivells de regex — estricte (`N.`/`N)`), `Pregunta N`, i **fallback tolerant** (`N` + paraula d'enunciat com Creació/Inserir/Assignar/etc.) per quan l'OCR perd el punt. Boilerplate ampliat (`Pàgina N de M`, `Es demana`). **Fixtures de prova:** `data/ex_alumne1.pdf` a `ex_alumne4.pdf` (4 alumnes reals). **Resultats comparatius:** `ex_alumne1`: 7→**10** ítems (Q2 ja no absoreix Q4–Q6); `ex_alumne2`: 13→**14** ítems (+Q14); `ex_alumne3`: 12 (igual); `ex_alumne4`: 10 (igual — OCR massa dolent per detectar marcadors). **Separació enunciat/resposta:** `stripLeadingQuestionStatement` elimina les primeres línies de cada bloc que contenen el patró de puntuació `(X punts)` / `(X,XX p`; busca fins a MAX_STATEMENT_LINES=4 línies; conservador (si el que queda és <20 chars, no talla). Resultat: `answer_text` comença directament amb la resposta de l'alumne en la majoria de casos. **Limitacions:** Q3 i Q7 d'alumne1 no es detecten (OCR il·legible); alumne4 Q2 segueix absorbint (OCR molt brut); Q10 alumne1 conserva enunciat (puntuació partida entre línies). **Pas 3.1 (evidència `status`):** tests unitaris al mapper cobreixen **`empty`**, **`ok`**, **`uncertain`**; tests de marcador tolerant, falsos positius, i separació enunciat/resposta (122 tests totals).
-
-**Feature 0 (template-inference + layout mapping): DONE — MVP funcional validat.**
-
-Dues capes:
-
-**Capa 1 — Viabilitat de plantilla (pivot inicial):** `template_feasibility.schema.ts` (`AnswerRegion`: `question_id`, `page`, `bbox` normalitzat), **`validateTemplateFeasibility`**, `templateDraftNormalizer`, `llmTemplateAnalyzer`, fonts stub / **`createLlmTemplateDraftSource`** (servidor, `fetch`, sense SDK). Resposta d’èxit: **`status: ‘ok’ | ‘ko’`**, `reasons` si `ko`, **`answer_regions`** si `ok`; camp opcional **`debug`** (`rawDraft`, `normalizedDraft`) per demo. Handlers stub / LLM + POST **`/api/feature0/analysis`** i **`/api/feature0/analysis/llm`** (**sense clau → HTTP 503**). **PDF (text embegut, sense OCR):** **`/api/feature0/analysis/pdf`** i **`/api/feature0/analysis/pdf/llm`** (multipart camp **`file`**). Client **`analyzeFeature0FromPdf`**. Demo **`/demo/feature0`**: text + pujada PDF. **Stub PDF:** si el **nom del fitxer** suggereix document de solució (`looksLikeSolutionPdfFilename`), es força draft `prompt_answer_regions_not_separable` (fail-closed per a crop); la ruta **PDF LLM** no usa aquesta heurística (el model veu el text extret). **Fixtures PDF reals** (còpia dels de `data/`): `tests/fixtures/template-inference/pdf/`. Doc històric: `feasibility-definition.md` (nota d’alineació al pivot). **Casos canònics:** `fixtures/template-inference/` + **`feature0CanonicalCases.test.ts`** + **`feature0PdfRealFixtures.test.ts`**. Sense OCR, sense crops reals sobre alumnes, sense classificació text|mixed|blank en aquesta fase.
-
-**Capa 2 — Layout mapping (pipeline anchor → zones → contracte):** pipeline complet per extreure respostes per pregunta a partir d’un scan d’alumne i el template del professor. Components: **`detectTemplateQuestionAnchors`** (keyword overlap matching), **`verifyScanMatchesTemplate`** (ratio ≥ 60% + avg_sim ≥ 0.55 → MATCH), **`deriveAnswerZonesFromAnchors`** (rangs lògics pàgina/línia), **`cleanAnswerZoneText`** (filtre boilerplate conservador, protecció SQL), **`buildTemplateMappedAnswers`** (orquestrador). **Contracte oficial:** `domain/template-mapped-answers/templateMappedAnswers.schema.ts` → `TemplateMappedAnswersResult` (`is_match`, `confidence`, `reason`, `questions[]` amb `question_id`, `is_detected`, `match`, `anchor`, `range`, `answer_text_raw`, `answer_text_clean`, `warnings`). **Warnings per pregunta:** `not_detected`, `low_similarity`, `anchor_shared`, `long_range`. **UI debug intern:** `/debug/template` (`TemplateDebugPage`). **Privadesa:** tot local; `isGraphicalAnswer` hook per respostes gràfiques futures. **Resultat validat amb 4 PDFs reals:** alumne1 → NO MATCH (0.32, examen diferent ✓), alumne2 → MATCH (0.83, 15/15 ✓), alumne3 → MATCH (0.83, 14/15 ✓), alumne4 → MATCH (0.76, 13/15, OCR brut ✓). **Limitacions:** anchors compartits (Q4/Q5 alumne2), OCR manuscrit degradat fora d’abast, sense coordenades físiques x/y, sense scoring. **Harness:** `npm run spike:template-mapped-answers`.
+**Validació canònica:** `./scripts/run_frontend.sh lint|typecheck|test|build` (Docker `frontend-check`). 256 tests passant.
 
 ---
 
@@ -120,6 +117,23 @@ Evidència completa: `docs/benchmarks/ocr-benchmark-2026-03-22.md`.
 - **Clau API:** `ASSESSMENT_SPEC_OPENAI_API_KEY` o `OPENAI_API_KEY` o (dev) `FEATURE0_OPENAI_API_KEY`
 - **Regenerar golden passada 1:** `SAVE_ASSESSMENT_SPEC_GOLDEN=1` + clau
 - **Regenerar golden passada 2:** `npm run write:hospital-enriched-fixture -w @profes/frontend` + clau
+
+---
+
+## Feature 3 — Answer Evaluator — **DEFINIDA, pendent d'implementació**
+
+**Avalua les respostes OCR d'un alumne contra un `AssessmentSpec` i produeix un veredicte pedagògic per pregunta.**
+
+| Input | Font |
+|-------|------|
+| `AssessmentSpec` | Feature 2 (persistit) |
+| `answer_text` + `ocr_status` per pregunta | Feature 0 o Feature 1 |
+
+Output per pregunta: `evaluable_by_ocr` (`yes`\|`review`\|`no`) · `verdict` (`correct`\|`partial`\|`incorrect`\|`null`) · `feedback` · `confidence`.
+
+**Guardrails MVP:** no score numèric; no avalua si `evaluable_by_ocr === 'no'`; dubte beneficia l'alumne; `accepted_variants` honoren `required_elements`.
+
+**Doc complet:** `docs/features/answer-evaluator/README.md`.
 
 ---
 
