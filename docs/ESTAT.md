@@ -1,6 +1,6 @@
 # Estat del projecte (operatiu)
 
-**Darrera actualització:** 2026-03-23
+**Darrera actualització:** 2026-03-23 (Feature 2 golden LLM validat)
 
 Només **estat i verificació**. Normativa: **`AGENTS_ARQUITECTURA.md`**. Ordre de lectura: **`llm.txt`**.
 
@@ -57,9 +57,9 @@ Dues capes:
 
 Evidència completa: `docs/benchmarks/ocr-benchmark-2026-03-22.md`.
 
-**Feature 2 — Assessment Spec Builder: DEFINIDA — pendent d'implementació.**
+**Feature 2 — Assessment Spec Builder: implementada — golden hospital validat amb LLM real.**
 
-Converteix materials del professor (enunciat + solucionari) en un artefacte estructurat canònic: `AssessmentSpec` (`exam_id`, `questions[]` amb `question_id`, `question_text`, `max_score`, `question_type`, `expected_answer`, `what_to_evaluate`, `required_elements`, `accepted_variants`, `important_mistakes`, `teacher_style_notes`, `confidence`). **No toca dades d'alumnes.** LLM extern permès (materials del professor, no personals). **MVP assumeix text embegut** (sense OCR de solucionari). Output persistent (calculat un cop per convocatòria). **Prerequisit de Feature 3.** Doc canònic: `docs/features/assessment-spec-builder/README.md`. Artefactes de codi pendents: schema TS (`domain/assessment-spec/`), primer prompt LLM, harness de validació.
+Converteix materials del professor (enunciat + solucionari) en `AssessmentSpec` (domini `domain/assessment-spec/`, servei `buildAssessmentSpec`, endpoint JSON via `executeAssessmentSpecBuildFromJsonBody`). **No toca dades d'alumnes.** Clau API: `ASSESSMENT_SPEC_OPENAI_API_KEY` o `OPENAI_API_KEY` o (dev) `FEATURE0_OPENAI_API_KEY`. **Golden test:** `tests/integration/assessment-spec-builder/buildAssessmentSpec.hospital.test.ts` (execució real si hi ha clau; sense clau → skip). **Output real capturat (observabilitat):** `tests/fixtures/assessment-spec-builder/hospitalDawGolden.real-output.json` + notes `hospitalDawGolden.validation-notes.md`. Regenerar output: `SAVE_ASSESSMENT_SPEC_GOLDEN=1` i clau (veure comentaris al test). Doc canònic: `docs/features/assessment-spec-builder/README.md`. **Prerequisit de Feature 3** (persistència estable d’`exam_id` encara pendent de producte).
 
 ---
 
@@ -67,7 +67,7 @@ Converteix materials del professor (enunciat + solucionari) en un artefacte estr
 
 - **Feature 0 (coordenades físiques):** geometria en coordenades de pàgina reals (x/y bbox) — fora d'abast del MVP actual. La lògica `ok/ko` + pipeline anchor/zones/mapping ja són funcionals; les coordenades físiques requeririen un backend fora del middleware Vite i integració amb rasteritzador. No prioritat fins que PM ho demani.
 - **Feature 0 (backend Capa 1):** ruta `/api/feature0/analysis` funciona via plugin Vite; en producció caldria backend Node independent. Pendent PM.
-- **Feature 2:** implementació (schema TS + LLM prompt + harness). Definició formal completa a `docs/features/assessment-spec-builder/README.md`.
+- **Feature 2 (producte):** persistència estable d’`AssessmentSpec` per convocatòria, UI de revisió (segons PM).
 - **Feature 3:** avaluació de respostes (scoring, correcció assistida) — pendent Feature 2.
 
 ---
@@ -76,6 +76,6 @@ Converteix materials del professor (enunciat + solucionari) en un artefacte estr
 
 **Feature 0 i Feature 1 tancades com a MVP.** Feature 2 definida formalment.
 
-- **Feature 2 (implementació)** — schema TypeScript `AssessmentSpec` + primer prompt LLM + harness sobre examen DAW real.
+- **Feature 2 (producte)** — flux professor (guardar/reutilitzar spec) i/o **Feature 3** sobre base `AssessmentSpec` validada.
 
 Validació habitual: `./scripts/run_frontend.sh …` (Docker).

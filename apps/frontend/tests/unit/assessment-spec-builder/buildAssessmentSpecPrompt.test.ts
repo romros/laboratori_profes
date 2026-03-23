@@ -34,4 +34,10 @@ describe('buildAssessmentSpecPrompt', () => {
     expect(prompt).toContain('\u00danicament'.toUpperCase())
     expect(prompt).toContain('markdown')
   })
+
+  it('recorda que els camps llista han de ser arrays JSON (no string sol)', () => {
+    const prompt = buildAssessmentSpecPrompt(examText, solutionText)
+    expect(prompt).toContain('teacher_style_notes')
+    expect(prompt).toMatch(/arrays? JSON|array JSON/i)
+  })
 })

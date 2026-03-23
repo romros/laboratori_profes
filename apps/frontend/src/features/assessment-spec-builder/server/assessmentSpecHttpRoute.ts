@@ -57,7 +57,9 @@ export async function executeAssessmentSpecBuildFromJsonBody(
   }
 
   const apiKey =
-    process.env.ASSESSMENT_SPEC_OPENAI_API_KEY?.trim() || process.env.OPENAI_API_KEY?.trim()
+    process.env.ASSESSMENT_SPEC_OPENAI_API_KEY?.trim() ||
+    process.env.OPENAI_API_KEY?.trim() ||
+    process.env.FEATURE0_OPENAI_API_KEY?.trim()
   if (!apiKey) {
     return {
       ok: false,
@@ -66,7 +68,7 @@ export async function executeAssessmentSpecBuildFromJsonBody(
         error: {
           code: 'not_configured',
           message:
-            'Assessment Spec Builder: cal ASSESSMENT_SPEC_OPENAI_API_KEY o OPENAI_API_KEY (servidor).',
+            'Assessment Spec Builder: cal ASSESSMENT_SPEC_OPENAI_API_KEY, OPENAI_API_KEY o FEATURE0_OPENAI_API_KEY (servidor).',
         },
       },
     }
