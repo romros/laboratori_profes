@@ -1,5 +1,5 @@
 {
-  "exam_id": "exam_1774283302149",
+  "exam_id": "exam_1774302641057",
   "title": "F_IT_008_01 — Examen LDD Ordinària — Cas Hospital (DAW)",
   "questions": [
     {
@@ -9,27 +9,35 @@
       "question_type": "sql_ddl",
       "expected_answer": "CREATE TABLE Hospital (\n  id INT PRIMARY KEY,\n  carrer VARCHAR(120) NOT NULL,\n  numero INT NOT NULL,\n  codi_postal CHAR(5) NOT NULL,\n  telefon VARCHAR(20) NOT NULL,\n  CONSTRAINT chk_hospital_numero_pos CHECK (numero > 0)\n);",
       "what_to_evaluate": [
-        "la consulta inclou una clàusula PRIMARY KEY per a 'id'",
-        "la taula inclou una restricció CHECK per a 'numero'",
-        "la sintaxi SQL és correcta"
+        "Si crea la taula amb el nom Hospital",
+        "Si defineix id com a clau primària",
+        "Si marca com a obligatoris carrer, numero, codi_postal i telefon",
+        "Si incorpora una restricció que impedeix valors de numero menors o iguals a 0"
       ],
       "required_elements": [
-        "la definició de la taula amb el nom 'Hospital'",
-        "la columna 'id' com a PRIMARY KEY",
-        "la restricció CHECK per a 'numero'"
+        "CREATE TABLE Hospital",
+        "id INT PRIMARY KEY",
+        "carrer VARCHAR(120) NOT NULL",
+        "numero INT NOT NULL",
+        "codi_postal CHAR(5) NOT NULL",
+        "telefon VARCHAR(20) NOT NULL",
+        "CHECK (numero > 0)"
       ],
-      "accepted_variants": [],
+      "accepted_variants": [
+        "La PRIMARY KEY pot declarar-se a nivell de taula si continua afectant només id",
+        "Es pot afegir el nom de la restricció CHECK o usar-ne un altre de diferent"
+      ],
       "important_mistakes": [
-        "no incloure la clàusula PRIMARY KEY",
-        "errors en la definició de tipus de dades",
-        "omissió de restriccions necessàries"
+        "Deixar id sense PRIMARY KEY o substituir-la per UNIQUE",
+        "No posar NOT NULL en algun camp que al model és obligatori",
+        "Fer un CHECK sobre una columna diferent o amb una condició que permeti numero <= 0",
+        "Canviar el tipus de codi_postal a numèric, perdent el tractament com a codi"
       ],
       "teacher_style_notes": [
-        "prioritzar la comprensió de les restriccions",
-        "acceptar variacions raonables en la sintaxi",
-        "tolerar petits errors de format si la lògica és correcta"
+        "Es prioritza que les restriccions tinguin la semàntica correcta per sobre de l'ordre d'escriptura",
+        "Petites diferències de format o indentació no s'han de penalitzar si la sentència és equivalent"
       ],
-      "extraction_confidence": 1,
+      "extraction_confidence": 0.99,
       "inference_confidence": 0.9
     },
     {
@@ -39,28 +47,36 @@
       "question_type": "sql_ddl",
       "expected_answer": "CREATE TABLE Pacient (\n  nif CHAR(9) PRIMARY KEY,\n  nom VARCHAR(100) NOT NULL,\n  adreça VARCHAR(150) NOT NULL,\n  numero INT NOT NULL,\n  codi_postal CHAR(5) NOT NULL,\n  telefon VARCHAR(20) NOT NULL,\n  id_hospital INT REFERENCES Hospital(id) ON DELETE SET NULL\n);",
       "what_to_evaluate": [
-        "la columna 'nif' com a PRIMARY KEY",
-        "la referència a 'Hospital(id)' amb ON DELETE SET NULL",
-        "la sintaxi SQL és correcta"
+        "Si crea la taula Pacient amb nif com a identificador principal",
+        "Si defineix correctament els camps obligatoris del pacient",
+        "Si relaciona id_hospital amb Hospital(id) com a clau forana",
+        "Si usa específicament ON DELETE SET NULL a la relació amb Hospital"
       ],
       "required_elements": [
-        "la definició de la taula amb el nom 'Pacient'",
-        "la columna 'nif' com a PRIMARY KEY",
-        "la referència a 'id_hospital' amb la restricció de referència"
+        "CREATE TABLE Pacient",
+        "nif CHAR(9) PRIMARY KEY",
+        "nom VARCHAR(100) NOT NULL",
+        "adreça VARCHAR(150) NOT NULL",
+        "numero INT NOT NULL",
+        "codi_postal CHAR(5) NOT NULL",
+        "telefon VARCHAR(20) NOT NULL",
+        "id_hospital INT REFERENCES Hospital(id) ON DELETE SET NULL"
       ],
-      "accepted_variants": [],
+      "accepted_variants": [
+        "La FOREIGN KEY es pot declarar a nivell de taula si referencia Hospital(id) i manté ON DELETE SET NULL"
+      ],
       "important_mistakes": [
-        "no definir 'nif' com a PRIMARY KEY",
-        "errors en la referència a la taula 'Hospital'",
-        "omissió de restriccions NOT NULL"
+        "Fer id_hospital NOT NULL, perquè entra en conflicte amb ON DELETE SET NULL",
+        "Usar ON DELETE CASCADE, RESTRICT o una altra acció diferent de la demanada",
+        "Referenciar una columna incorrecta d'Hospital o no posar la referència",
+        "Tractar nif o codi_postal com a enter en lloc de camp de caràcter"
       ],
       "teacher_style_notes": [
-        "valorar la correcta referència entre taules",
-        "acceptar variacions raonables en la sintaxi",
-        "tolerar petits errors de format si la lògica és correcta"
+        "Es valora especialment la coherència entre nul·labilitat i acció referencial",
+        "No cal penalitzar l'ordre de columnes si la definició final és equivalent"
       ],
-      "extraction_confidence": 1,
-      "inference_confidence": 0.9
+      "extraction_confidence": 0.99,
+      "inference_confidence": 0.88
     },
     {
       "question_id": "Q3",
@@ -69,28 +85,35 @@
       "question_type": "sql_ddl",
       "expected_answer": "CREATE TABLE Habitacio (\n  id_hospital INT NOT NULL REFERENCES Hospital(id) ON DELETE CASCADE,\n  numero_hab INT NOT NULL,\n  tipus VARCHAR(20) NOT NULL,\n  PRIMARY KEY (id_hospital, numero_hab),\n  CONSTRAINT chk_habitacio_tipus CHECK (tipus IN ('individual', 'doble'))\n);",
       "what_to_evaluate": [
-        "la clàusula PRIMARY KEY inclou 'id_hospital' i 'numero_hab'",
-        "la referència a 'Hospital(id)' amb ON DELETE CASCADE",
-        "la sintaxi SQL és correcta"
+        "Si crea Habitacio vinculada a Hospital mitjançant id_hospital",
+        "Si defineix una clau primària composta amb id_hospital i numero_hab",
+        "Si obliga id_hospital, numero_hab i tipus amb NOT NULL",
+        "Si restringeix tipus als valors individual o doble"
       ],
       "required_elements": [
-        "la definició de la taula amb el nom 'Habitacio'",
-        "la clàusula PRIMARY KEY per a 'id_hospital' i 'numero_hab'",
-        "la restricció CHECK per a 'tipus'"
+        "CREATE TABLE Habitacio",
+        "id_hospital INT NOT NULL REFERENCES Hospital(id) ON DELETE CASCADE",
+        "numero_hab INT NOT NULL",
+        "tipus VARCHAR(20) NOT NULL",
+        "PRIMARY KEY (id_hospital, numero_hab)",
+        "CHECK (tipus IN ('individual', 'doble'))"
       ],
-      "accepted_variants": [],
+      "accepted_variants": [
+        "La clau forana i la clau primària poden declarar-se a nivell de taula si mantenen exactament la mateixa semàntica",
+        "Es pot donar un altre nom a la restricció CHECK"
+      ],
       "important_mistakes": [
-        "no definir la PRIMARY KEY correctament",
-        "errors en la referència a la taula 'Hospital'",
-        "omissió de la restricció CHECK"
+        "Definir numero_hab com a clau primària única i oblidar que la identificació és composta",
+        "No incloure ON DELETE CASCADE a la relació amb Hospital",
+        "Permetre valors de tipus fora dels dos previstos o escriure un CHECK sobre valors diferents",
+        "Deixar nullable algun camp que al model és obligatori"
       ],
       "teacher_style_notes": [
-        "prioritzar la comprensió de les relacions entre taules",
-        "acceptar variacions raonables en la sintaxi",
-        "tolerar petits errors de format si la lògica és correcta"
+        "El punt clau és entendre que el número d'habitació s'identifica dins de cada hospital, no globalment",
+        "S'accepta qualsevol ordre de restriccions si la taula resultant és equivalent"
       ],
-      "extraction_confidence": 1,
-      "inference_confidence": 0.9
+      "extraction_confidence": 0.99,
+      "inference_confidence": 0.91
     },
     {
       "question_id": "Q4",
@@ -99,28 +122,33 @@
       "question_type": "sql_ddl",
       "expected_answer": "CREATE TABLE Metge (\n  nif CHAR(9) PRIMARY KEY,\n  nom VARCHAR(100) NOT NULL,\n  especialitat VARCHAR(80) NOT NULL,\n  id_hospital INT NOT NULL REFERENCES Hospital(id) ON DELETE CASCADE\n);",
       "what_to_evaluate": [
-        "la columna 'nif' com a PRIMARY KEY",
-        "la referència a 'Hospital(id)' amb ON DELETE CASCADE",
-        "la sintaxi SQL és correcta"
+        "Si crea la taula Metge amb nif com a clau primària",
+        "Si defineix nom i especialitat com a camps obligatoris",
+        "Si relaciona el metge amb Hospital mitjançant id_hospital",
+        "Si aplica ON DELETE CASCADE a la clau forana i manté id_hospital com a NOT NULL"
       ],
       "required_elements": [
-        "la definició de la taula amb el nom 'Metge'",
-        "la columna 'nif' com a PRIMARY KEY",
-        "la referència a 'id_hospital' amb la restricció de referència"
+        "CREATE TABLE Metge",
+        "nif CHAR(9) PRIMARY KEY",
+        "nom VARCHAR(100) NOT NULL",
+        "especialitat VARCHAR(80) NOT NULL",
+        "id_hospital INT NOT NULL REFERENCES Hospital(id) ON DELETE CASCADE"
       ],
-      "accepted_variants": [],
+      "accepted_variants": [
+        "La FOREIGN KEY es pot escriure com a restricció separada de columna si continua sent equivalent"
+      ],
       "important_mistakes": [
-        "no definir 'nif' com a PRIMARY KEY",
-        "errors en la referència a la taula 'Hospital'",
-        "omissió de restriccions NOT NULL"
+        "No posar la referència a Hospital(id)",
+        "Fer id_hospital nullable",
+        "Usar una acció ON DELETE diferent de CASCADE",
+        "Intercanviar el paper de nif i id_hospital com a identificadors"
       ],
       "teacher_style_notes": [
-        "valorar la correcta referència entre taules",
-        "acceptar variacions raonables en la sintaxi",
-        "tolerar petits errors de format si la lògica és correcta"
+        "Es valora més la relació correcta amb Hospital que no pas el format concret de la sentència",
+        "No s'han de admetre variants que canviïn el comportament d'esborrat"
       ],
-      "extraction_confidence": 1,
-      "inference_confidence": 0.9
+      "extraction_confidence": 0.99,
+      "inference_confidence": 0.87
     },
     {
       "question_id": "Q5",
@@ -129,27 +157,30 @@
       "question_type": "sql_ddl",
       "expected_answer": "CREATE TABLE Tractament (\n  id_tractament INT PRIMARY KEY,\n  nom VARCHAR(120) NOT NULL,\n  CONSTRAINT chk_tractament_nom CHECK (char_length(trim(nom)) > 0)\n);",
       "what_to_evaluate": [
-        "la columna 'id_tractament' com a PRIMARY KEY",
-        "la restricció CHECK per a 'nom'",
-        "la sintaxi SQL és correcta"
+        "Si crea Tractament amb id_tractament com a clau primària",
+        "Si defineix nom com a camp obligatori",
+        "Si evita noms buits o només amb espais mitjançant una restricció CHECK"
       ],
       "required_elements": [
-        "la definició de la taula amb el nom 'Tractament'",
-        "la columna 'id_tractament' com a PRIMARY KEY",
-        "la restricció CHECK per a 'nom'"
+        "CREATE TABLE Tractament",
+        "id_tractament INT PRIMARY KEY",
+        "nom VARCHAR(120) NOT NULL",
+        "CHECK (char_length(trim(nom)) > 0)"
       ],
-      "accepted_variants": [],
+      "accepted_variants": [
+        "Es pot canviar el nom de la restricció CHECK mantenint la mateixa expressió o una d'equivalent que impedeixi cadena buida després de trim"
+      ],
       "important_mistakes": [
-        "no definir 'id_tractament' com a PRIMARY KEY",
-        "errors en la definició de tipus de dades",
-        "omissió de restriccions necessàries"
+        "Confiar només en NOT NULL i no impedir cadenes buides",
+        "Fer el CHECK sense trim, permetent valors formats només per espais",
+        "No definir la clau primària",
+        "Aplicar el CHECK sobre una columna diferent de nom"
       ],
       "teacher_style_notes": [
-        "prioritzar la comprensió de les restriccions",
-        "acceptar variacions raonables en la sintaxi",
-        "tolerar petits errors de format si la lògica és correcta"
+        "Aquí es valora que l'alumne diferenciï entre valor NULL i text buit",
+        "Si la validació és equivalent funcionalment, s'ha de considerar correcta"
       ],
-      "extraction_confidence": 1,
+      "extraction_confidence": 0.99,
       "inference_confidence": 0.9
     },
     {
@@ -159,27 +190,35 @@
       "question_type": "sql_ddl",
       "expected_answer": "CREATE TABLE Visita (\n  id_visita INT PRIMARY KEY,\n  data_visita DATE NOT NULL,\n  import NUMERIC(10,2) NOT NULL,\n  motiu VARCHAR(200) NOT NULL,\n  tipus VARCHAR(40) NOT NULL,\n  nif_pacient CHAR(9) NOT NULL REFERENCES Pacient(nif),\n  nif_metge CHAR(9) NOT NULL REFERENCES Metge(nif)\n);",
       "what_to_evaluate": [
-        "la columna 'id_visita' com a PRIMARY KEY",
-        "la referència a 'Pacient(nif)' i 'Metge(nif)'",
-        "la sintaxi SQL és correcta"
+        "Si crea Visita amb id_visita com a clau primària",
+        "Si usa tipus adequats per a data_visita i import",
+        "Si defineix correctament les dues claus foranes cap a Pacient i Metge",
+        "Si marca com a obligatoris tots els camps del model"
       ],
       "required_elements": [
-        "la definició de la taula amb el nom 'Visita'",
-        "la columna 'id_visita' com a PRIMARY KEY",
-        "les referències a 'nif_pacient' i 'nif_metge'"
+        "CREATE TABLE Visita",
+        "id_visita INT PRIMARY KEY",
+        "data_visita DATE NOT NULL",
+        "import NUMERIC(10,2) NOT NULL",
+        "motiu VARCHAR(200) NOT NULL",
+        "tipus VARCHAR(40) NOT NULL",
+        "nif_pacient CHAR(9) NOT NULL REFERENCES Pacient(nif)",
+        "nif_metge CHAR(9) NOT NULL REFERENCES Metge(nif)"
       ],
-      "accepted_variants": [],
+      "accepted_variants": [
+        "Les referències a Pacient i Metge poden declarar-se com a FOREIGN KEY de taula si apunten a les mateixes columnes"
+      ],
       "important_mistakes": [
-        "no definir 'id_visita' com a PRIMARY KEY",
-        "errors en les referències a les taules 'Pacient' i 'Metge'",
-        "omissió de restriccions NOT NULL"
+        "Usar un tipus no adequat per import, com INT o VARCHAR",
+        "Ometre una de les dues claus foranes",
+        "Permetre NULL a nif_pacient o nif_metge",
+        "Referenciar una columna que no és la clau de Pacient o Metge"
       ],
       "teacher_style_notes": [
-        "valorar la correcta referència entre taules",
-        "acceptar variacions raonables en la sintaxi",
-        "tolerar petits errors de format si la lògica és correcta"
+        "Es prioritza la coherència del model relacional i dels tipus de dades",
+        "No cal exigir accions ON DELETE o ON UPDATE si no apareixen al model base"
       ],
-      "extraction_confidence": 1,
+      "extraction_confidence": 0.99,
       "inference_confidence": 0.9
     },
     {
@@ -189,27 +228,34 @@
       "question_type": "sql_insert",
       "expected_answer": "INSERT INTO Hospital (id, carrer, numero, codi_postal, telefon)\nVALUES (1, 'Sant Joan', 50, '08001', '932223344');",
       "what_to_evaluate": [
-        "la sintaxi SQL és correcta",
-        "els valors són coherents amb l'enunciat",
-        "la taula 'Hospital' s'actualitza correctament"
+        "Si insereix una fila a Hospital",
+        "Si correspon correctament cada valor amb la columna adequada",
+        "Si tracta carrer, codi_postal i telefon com a literals de text",
+        "Si conserva l'identificador i les dades exactes demanades"
       ],
       "required_elements": [
-        "la instrucció INSERT INTO per a 'Hospital'",
-        "els valors per a 'id', 'carrer', 'numero', 'codi_postal' i 'telefon'"
+        "INSERT INTO Hospital",
+        "1",
+        "'Sant Joan'",
+        "50",
+        "'08001'",
+        "'932223344'"
       ],
-      "accepted_variants": [],
+      "accepted_variants": [
+        "Es pot ometre la llista de columnes només si l'ordre dels valors coincideix amb l'ordre real de la taula"
+      ],
       "important_mistakes": [
-        "errors en la sintaxi de la instrucció INSERT",
-        "valors incorrectes o incoherents amb l'enunciat",
-        "omissió de columnes necessàries"
+        "No posar cometes en els camps textuals",
+        "Posar el codi postal o el telèfon com a numèrics i perdre el format literal esperat",
+        "Canviar l'ordre de valors de manera que carrer, numero, codi_postal o telefon quedin mal assignats",
+        "Inserir en una taula diferent o amb un id diferent d'1"
       ],
       "teacher_style_notes": [
-        "prioritzar la coherència dels valors amb l'enunciat",
-        "acceptar variacions raonables en la sintaxi",
-        "tolerar petits errors de format si la lògica és correcta"
+        "Es valora sobretot la correspondència columna-valor",
+        "Si la sintaxi és correcta i les dades són exactes, no s'ha de penalitzar el format de salts de línia"
       ],
-      "extraction_confidence": 1,
-      "inference_confidence": 0.9
+      "extraction_confidence": 0.99,
+      "inference_confidence": 0.88
     },
     {
       "question_id": "Q8",
@@ -218,57 +264,69 @@
       "question_type": "sql_insert",
       "expected_answer": "INSERT INTO Pacient (nif, nom, adreça, numero, codi_postal, telefon, id_hospital)\nVALUES ('12345678A', 'Pere Torres Font', 'Passeig de Gràcia', 12, '08001', '934445566', NULL);",
       "what_to_evaluate": [
-        "la sintaxi SQL és correcta",
-        "els valors són coherents amb l'enunciat",
-        "la taula 'Pacient' s'actualitza correctament"
+        "Si insereix el pacient amb les dades personals exactes indicades",
+        "Si assigna correctament NIF, nom, adreça, número, codi postal i telèfon",
+        "Si inclou id_hospital amb valor NULL segons la resposta model",
+        "Si usa literals de text correctes per als camps alfanumèrics"
       ],
       "required_elements": [
-        "la instrucció INSERT INTO per a 'Pacient'",
-        "els valors per a 'nif', 'nom', 'adreça', 'numero', 'codi_postal', 'telefon' i 'id_hospital'"
+        "INSERT INTO Pacient",
+        "'12345678A'",
+        "'Pere Torres Font'",
+        "'Passeig de Gràcia'",
+        "12",
+        "'08001'",
+        "'934445566'",
+        "NULL"
       ],
-      "accepted_variants": [],
+      "accepted_variants": [
+        "Es pot ometre la llista de columnes només si també s'inclou id_hospital i l'ordre complet dels valors és l'adequat"
+      ],
       "important_mistakes": [
-        "errors en la sintaxi de la instrucció INSERT",
-        "valors incorrectes o incoherents amb l'enunciat",
-        "omissió de columnes necessàries"
+        "No incloure id_hospital quan la llista de columnes o l'ordre de la taula ho fa necessari",
+        "Assignar un hospital concret en lloc de NULL",
+        "No posar cometes a NIF, codi postal o telèfon",
+        "Desplaçar valors per error d'ordre, per exemple posar el telèfon al camp codi_postal"
       ],
       "teacher_style_notes": [
-        "prioritzar la coherència dels valors amb l'enunciat",
-        "acceptar variacions raonables en la sintaxi",
-        "tolerar petits errors de format si la lògica és correcta"
+        "En aquesta pregunta s'ha de seguir el model donat, especialment pel valor NULL d'id_hospital",
+        "Es pot ser flexible amb el format, però no amb les dades ni amb la correspondència dels camps"
       ],
-      "extraction_confidence": 1,
-      "inference_confidence": 0.9
+      "extraction_confidence": 0.99,
+      "inference_confidence": 0.84
     },
     {
       "question_id": "Q9",
       "question_text": "Assignar una habitació número 101, de tipus individual, a l'hospital 1 per al pacient amb NIF 12345678A.",
       "max_score": 0.33,
-      "question_type": "sql_insert",
+      "question_type": "sql_update",
       "expected_answer": "INSERT INTO Habitacio (id_hospital, numero_hab, tipus)\nVALUES (1, 101, 'individual');\nUPDATE Pacient SET id_hospital = 1 WHERE nif = '12345678A';",
       "what_to_evaluate": [
-        "la sintaxi SQL és correcta",
-        "els valors són coherents amb l'enunciat",
-        "la taula 'Habitacio' s'actualitza correctament"
+        "Si resol l'acció amb la creació de l'habitació i l'actualització del pacient",
+        "Si insereix l'habitació 101 de tipus individual a l'hospital 1",
+        "Si actualitza el pacient amb NIF 12345678A perquè quedi associat a l'hospital 1",
+        "Si el WHERE identifica correctament un únic pacient"
       ],
       "required_elements": [
-        "la instrucció INSERT INTO per a 'Habitacio'",
-        "els valors per a 'id_hospital', 'numero_hab' i 'tipus'",
-        "la instrucció UPDATE per a 'Pacient'"
+        "INSERT INTO Habitacio (id_hospital, numero_hab, tipus)",
+        "VALUES (1, 101, 'individual')",
+        "UPDATE Pacient SET id_hospital = 1 WHERE nif = '12345678A'"
       ],
-      "accepted_variants": [],
+      "accepted_variants": [
+        "S'accepta l'ordre invers de les dues sentències si el contingut és el mateix"
+      ],
       "important_mistakes": [
-        "errors en la sintaxi de la instrucció INSERT",
-        "valors incorrectes o incoherents amb l'enunciat",
-        "omissió de columnes necessàries"
+        "Fer només una de les dues operacions i deixar l'assignació incompleta",
+        "Actualitzar tots els pacients per absència de WHERE",
+        "Usar un tipus d'habitació diferent de 'individual'",
+        "Modificar una columna incorrecta del pacient, com nif o numero en lloc d'id_hospital"
       ],
       "teacher_style_notes": [
-        "prioritzar la coherència dels valors amb l'enunciat",
-        "acceptar variacions raonables en la sintaxi",
-        "tolerar petits errors de format si la lògica és correcta"
+        "El professor prioritzaria que l'alumne entengui que aquí calen dues accions separades",
+        "No s'ha de penalitzar l'ordre d'execució si les dues sentències són correctes i coherents amb el model"
       ],
-      "extraction_confidence": 1,
-      "inference_confidence": 0.9
+      "extraction_confidence": 0.98,
+      "inference_confidence": 0.82
     },
     {
       "question_id": "Q10",
@@ -277,27 +335,33 @@
       "question_type": "sql_insert",
       "expected_answer": "INSERT INTO Metge (nif, nom, especialitat, id_hospital)\nVALUES ('98765432B', 'Dr. Laura López', 'Cardiologia', 1);",
       "what_to_evaluate": [
-        "la sintaxi SQL és correcta",
-        "els valors són coherents amb l'enunciat",
-        "la taula 'Metge' s'actualitza correctament"
+        "Si insereix el metge a la taula Metge",
+        "Si assigna correctament NIF, nom i especialitat",
+        "Si associa el metge a l'hospital 1",
+        "Si usa literals de text correctes en els camps alfanumèrics"
       ],
       "required_elements": [
-        "la instrucció INSERT INTO per a 'Metge'",
-        "els valors per a 'nif', 'nom', 'especialitat' i 'id_hospital'"
+        "INSERT INTO Metge",
+        "'98765432B'",
+        "'Dr. Laura López'",
+        "'Cardiologia'",
+        "1"
       ],
-      "accepted_variants": [],
+      "accepted_variants": [
+        "Es pot ometre la llista de columnes si l'ordre dels valors és exactament el de la taula"
+      ],
       "important_mistakes": [
-        "errors en la sintaxi de la instrucció INSERT",
-        "valors incorrectes o incoherents amb l'enunciat",
-        "omissió de columnes necessàries"
+        "Intercanviar nom i especialitat",
+        "Assignar un hospital diferent d'1",
+        "No posar cometes a NIF, nom o especialitat",
+        "Inserir en una taula incorrecta o amb un NIF diferent del demanat"
       ],
       "teacher_style_notes": [
-        "prioritzar la coherència dels valors amb l'enunciat",
-        "acceptar variacions raonables en la sintaxi",
-        "tolerar petits errors de format si la lògica és correcta"
+        "Es valora la correspondència exacta de dades més que no pas l'estil d'escriptura",
+        "No s'han d'acceptar abreviacions o canvis de valor que alterin la dada proporcionada"
       ],
-      "extraction_confidence": 1,
-      "inference_confidence": 0.9
+      "extraction_confidence": 0.99,
+      "inference_confidence": 0.89
     },
     {
       "question_id": "Q11",
@@ -306,28 +370,32 @@
       "question_type": "sql_insert",
       "expected_answer": "INSERT INTO Tractament (id_tractament, nom) VALUES (1, 'Rehabilitació Cardíaca');\nINSERT INTO tractament_pacient_metge (nif_pacient, id_tractament, nif_metge)\nVALUES ('12345678A', 1, '98765432B');",
       "what_to_evaluate": [
-        "la sintaxi SQL és correcta",
-        "els valors són coherents amb l'enunciat",
-        "la taula 'Tractament' i 'tractament_pacient_metge' s'actualitzen correctament"
+        "Si crea primer el tractament amb l'identificador i nom indicats",
+        "Si registra després la relació entre pacient, tractament i metge",
+        "Si manté coherència entre l'id del tractament inserit i l'id usat a la relació",
+        "Si usa els identificadors exactes del pacient i del metge indicats"
       ],
       "required_elements": [
-        "la instrucció INSERT INTO per a 'Tractament'",
-        "els valors per a 'id_tractament' i 'nom'",
-        "la instrucció INSERT INTO per a 'tractament_pacient_metge'"
+        "INSERT INTO Tractament (id_tractament, nom) VALUES (1, 'Rehabilitació Cardíaca')",
+        "INSERT INTO tractament_pacient_metge",
+        "VALUES ('12345678A', 1, '98765432B')"
       ],
-      "accepted_variants": [],
+      "accepted_variants": [
+        "S'accepta separar la primera inserció en diverses línies mantenint exactament la mateixa operació",
+        "S'accepta l'ús de majúscules/minúscules diferents en el nom de la taula relacional si no canvia l'identificador SQL del model"
+      ],
       "important_mistakes": [
-        "errors en la sintaxi de la instrucció INSERT",
-        "valors incorrectes o incoherents amb l'enunciat",
-        "omissió de columnes necessàries"
+        "Fer només la inserció a Tractament i no crear la relació",
+        "Fer només la relació sense haver definit el tractament amb l'id 1",
+        "Usar un id de tractament diferent entre les dues sentències",
+        "Canviar el nom de la taula relacional per una altra no compatible amb el model base"
       ],
       "teacher_style_notes": [
-        "prioritzar la coherència dels valors amb l'enunciat",
-        "acceptar variacions raonables en la sintaxi",
-        "tolerar petits errors de format si la lògica és correcta"
+        "Com que el model inclou una taula relacional específica, s'ha de seguir aquesta veritat documental",
+        "Es valora especialment la coherència entre les dues sentències, no només que cadascuna sigui sintàcticament correcta"
       ],
-      "extraction_confidence": 1,
-      "inference_confidence": 0.9
+      "extraction_confidence": 0.95,
+      "inference_confidence": 0.76
     },
     {
       "question_id": "Q12",
@@ -336,26 +404,35 @@
       "question_type": "sql_insert",
       "expected_answer": "INSERT INTO Visita (id_visita, data_visita, import, motiu, tipus, nif_pacient, nif_metge)\nVALUES (1, DATE '2024-02-01', 100.00, 'Revisió postoperatòria', 'consulta', '12345678A', '98765432B');",
       "what_to_evaluate": [
-        "la sintaxi SQL és correcta",
-        "els valors són coherents amb l'enunciat",
-        "la taula 'Visita' s'actualitza correctament"
+        "Si insereix una visita amb tots els camps requerits",
+        "Si expressa correctament la data 2024-02-01 en format compatible amb PostgreSQL",
+        "Si guarda l'import com a valor numèric i no com a text amb símbol monetari",
+        "Si assigna correctament el pacient 12345678A i el metge 98765432B"
       ],
       "required_elements": [
-        "la instrucció INSERT INTO per a 'Visita'",
-        "els valors per a 'id_visita', 'data_visita', 'import', 'motiu', 'tipus', 'nif_pacient' i 'nif_metge'"
+        "INSERT INTO Visita",
+        "1",
+        "DATE '2024-02-01'",
+        "100.00",
+        "'Revisió postoperatòria'",
+        "'consulta'",
+        "'12345678A'",
+        "'98765432B'"
       ],
-      "accepted_variants": [],
+      "accepted_variants": [
+        "S'accepta el literal '2024-02-01' si es manté com a valor de data compatible amb PostgreSQL"
+      ],
       "important_mistakes": [
-        "errors en la sintaxi de la instrucció INSERT",
-        "valors incorrectes o incoherents amb l'enunciat",
-        "omissió de columnes necessàries"
+        "Incloure el símbol € dins del valor de l'import",
+        "Intercanviar nif_pacient i nif_metge",
+        "No posar cometes a motiu o tipus",
+        "Canviar el tipus de visita o la data respecte a les dades demanades"
       ],
       "teacher_style_notes": [
-        "prioritzar la coherència dels valors amb l'enunciat",
-        "acceptar variacions raonables en la sintaxi",
-        "tolerar petits errors de format si la lògica és correcta"
+        "Es prioritza la correcta tipificació de data i import",
+        "Si les dades són exactes, no s'ha de penalitzar una forma equivalent de literal de data acceptada al model"
       ],
-      "extraction_confidence": 1,
+      "extraction_confidence": 0.99,
       "inference_confidence": 0.9
     },
     {
@@ -365,27 +442,28 @@
       "question_type": "sql_update",
       "expected_answer": "UPDATE Visita SET import = import * 1.15;",
       "what_to_evaluate": [
-        "la sintaxi SQL és correcta",
-        "l'operació d'increment és correcta",
-        "la taula 'Visita' s'actualitza correctament"
+        "Si actualitza la taula Visita",
+        "Si incrementa l'import un 15% sobre el valor actual",
+        "Si aplica l'operació a totes les files",
+        "Si modifica exactament la columna import"
       ],
-      "required_elements": [
-        "la instrucció UPDATE per a 'Visita'",
-        "l'operació d'increment per a 'import'"
+      "required_elements": ["UPDATE Visita", "SET import = import * 1.15"],
+      "accepted_variants": [
+        "SET import = import + import * 0.15",
+        "SET import = import * 1.15::numeric"
       ],
-      "accepted_variants": [],
       "important_mistakes": [
-        "errors en la sintaxi de la instrucció UPDATE",
-        "l'operació d'increment no és correcta",
-        "omissió de la taula a actualitzar"
+        "Posar import = 0.15 o sumar 0.15 en lloc d'incrementar un 15%",
+        "Afegir un WHERE i no aplicar-ho a totes les visites",
+        "Actualitzar una columna diferent de import",
+        "Fer un càlcul que redueixi l'import o el deixi igual"
       ],
       "teacher_style_notes": [
-        "prioritzar la comprensió de l'operació d'increment",
-        "acceptar variacions raonables en la sintaxi",
-        "tolerar petits errors de format si la lògica és correcta"
+        "El punt clau és entendre el percentatge sobre el valor existent",
+        "No cal exigir una forma única del càlcul si el resultat és equivalent"
       ],
-      "extraction_confidence": 1,
-      "inference_confidence": 0.9
+      "extraction_confidence": 0.99,
+      "inference_confidence": 0.92
     },
     {
       "question_id": "Q14",
@@ -394,27 +472,32 @@
       "question_type": "sql_alter",
       "expected_answer": "ALTER TABLE Pacient ALTER COLUMN codi_postal TYPE VARCHAR(5) USING codi_postal::varchar;",
       "what_to_evaluate": [
-        "la sintaxi SQL és correcta",
-        "el canvi de tipus és correcte",
-        "la taula 'Pacient' s'actualitza correctament"
+        "Si altera la taula Pacient",
+        "Si modifica específicament la columna codi_postal",
+        "Si canvia el tipus a un camp de caràcter de longitud 5",
+        "Si fa la conversió explícita amb USING segons la sintaxi de PostgreSQL"
       ],
       "required_elements": [
-        "la instrucció ALTER TABLE per a 'Pacient'",
-        "el canvi de tipus per a 'codi_postal'"
+        "ALTER TABLE Pacient",
+        "ALTER COLUMN codi_postal TYPE VARCHAR(5)",
+        "USING codi_postal::varchar"
       ],
-      "accepted_variants": [],
+      "accepted_variants": [
+        "ALTER COLUMN codi_postal TYPE CHAR(5) USING codi_postal::varchar",
+        "USING CAST(codi_postal AS varchar)"
+      ],
       "important_mistakes": [
-        "errors en la sintaxi de la instrucció ALTER",
-        "el canvi de tipus no és correcte",
-        "omissió de la taula a modificar"
+        "Alterar una taula o columna diferent",
+        "Canviar a un tipus que continuï sent numèric",
+        "Ometre la conversió explícita quan la resposta model la requereix",
+        "Fer un canvi de longitud incompatible amb el codi postal de 5 caràcters"
       ],
       "teacher_style_notes": [
-        "prioritzar la comprensió del canvi de tipus de dades",
-        "acceptar variacions raonables en la sintaxi",
-        "tolerar petits errors de format si la lògica és correcta"
+        "Es valora la sintaxi pròpia de PostgreSQL, especialment l'ús de USING",
+        "S'ha d'acceptar CHAR(5) com a variant compatible si manté el pas a tipus caràcter"
       ],
-      "extraction_confidence": 1,
-      "inference_confidence": 0.9
+      "extraction_confidence": 0.99,
+      "inference_confidence": 0.86
     },
     {
       "question_id": "Q15",
@@ -423,27 +506,25 @@
       "question_type": "sql_delete",
       "expected_answer": "DELETE FROM Visita WHERE tipus = 'consulta';",
       "what_to_evaluate": [
-        "la sintaxi SQL és correcta",
-        "la condició de la consulta és correcta",
-        "la taula 'Visita' s'actualitza correctament"
+        "Si esborra registres de la taula Visita",
+        "Si filtra amb una clàusula WHERE",
+        "Si la condició compara la columna tipus amb el valor 'consulta'",
+        "Si no afecta altres tipus de visita"
       ],
-      "required_elements": [
-        "la instrucció DELETE FROM per a 'Visita'",
-        "la condició WHERE per a 'tipus'"
-      ],
-      "accepted_variants": [],
+      "required_elements": ["DELETE FROM Visita", "WHERE tipus = 'consulta'"],
+      "accepted_variants": ["WHERE tipus='consulta'"],
       "important_mistakes": [
-        "errors en la sintaxi de la instrucció DELETE",
-        "la condició WHERE no és correcta",
-        "omissió de la taula a esborrar"
+        "Ometre el WHERE i esborrar totes les visites",
+        "Filtrar per una columna diferent de tipus",
+        "Usar un valor diferent de 'consulta'",
+        "Executar l'esborrat sobre una taula que no és Visita"
       ],
       "teacher_style_notes": [
-        "prioritzar la comprensió de la condició de la consulta",
-        "acceptar variacions raonables en la sintaxi",
-        "tolerar petits errors de format si la lògica és correcta"
+        "Aquí el professor prioritzaria evitar l'error greu d'esborrat massiu sense condició",
+        "No s'ha de penalitzar l'estil d'espais o format si la condició és exactament la correcta"
       ],
-      "extraction_confidence": 1,
-      "inference_confidence": 0.9
+      "extraction_confidence": 0.99,
+      "inference_confidence": 0.93
     }
   ]
 }
