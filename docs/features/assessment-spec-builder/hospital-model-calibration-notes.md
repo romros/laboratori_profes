@@ -10,7 +10,7 @@ Pipeline: `buildAssessmentSpec` (passada 1) + `enrichAssessmentSpec` (passada 2)
 
 - **Tokens:** taula per variant (per fase). La **suma de `total_tok` entre les dues passes** compara bé el volum encara que Responses (**pro**) no desglossi sempre prompt vs completion.
 - **Cost en USD:** l’API no retorna import; aplica tarifes vigents per model: [OpenAI API pricing](https://openai.com/api/pricing/). Fórmula orientativa: `Σ (prompt_tokens × preu_input + completion_tokens × preu_output) / 10⁶`; o revisa el **dashboard** de facturació.
-- **JSON (`AssessmentSpec`):** `CALIBRATION_SAVE_ASSESSMENT_SPEC_JSON=1` en executar el script → fitxers a `calibration-outputs/` (vegeu `calibration-outputs/README.md`); els `*.json` locals solen estar al `.gitignore`.
+- **JSON (`AssessmentSpec`):** `CALIBRATION_SAVE_ASSESSMENT_SPEC_JSON=1` en executar el script → per variant, **base** (`*-V1-base-assessment-spec.json`) i **enriquit** (`*-V1-assessment-spec.json`) a `calibration-outputs/` (vegeu `calibration-outputs/README.md`); els `*.json` locals solen estar al `.gitignore`.
 
 ## Telemetria per variant
 

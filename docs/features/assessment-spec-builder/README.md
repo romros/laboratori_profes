@@ -29,8 +29,9 @@ Feature 2 és **prerequisit de Feature 3**, però **independent de Feature 0 i F
 
 ### Feature 2.1 — Enriqueiment pedagògic (segon prompt)
 
-Amb un `AssessmentSpec` ja vàlid (mateix schema, sense camps nous), el servei `enrichAssessmentSpec` fa una **segona passada LLM** que reescriu només, per pregunta: `what_to_evaluate`, `required_elements`, `important_mistakes` i `teacher_style_notes`. Els camps d’identitat i extracció (`question_id`, `question_text`, `expected_answer`, `max_score`, `question_type`, `accepted_variants`, confiances, etc.) es **conserven del spec base** després de validar, per pregunta, només els quatre camps pedagògics del JSON del model (`mergeEnrichmentPedagogyFields`). No s’introdueix scoring ni rúbriques numèriques.
+Amb un `AssessmentSpec` ja vàlid (mateix schema, sense camps nous), el servei `enrichAssessmentSpec` fa una **segona passada LLM** que millora només, per pregunta, els camps pedagògics: `what_to_evaluate`, `required_elements`, `important_mistakes`, `teacher_style_notes` i, sota control, `accepted_variants` (només variants **addicionals** compatibles amb `expected_answer` del base). La **veritat documental** del professor (`question_text`, `max_score`, `question_type`, `expected_answer`, confiances, etc.) **no es fusiona des del model** — el prompt (Feature **2.1b**) ho blinda explícitament; el merge només aplica els camps pedagògics del JSON retornat.
 
+- **Context al prompt (2.1b):** el pipeline amb `buildAssessmentSpecWithPedagogicEnrichment` passa també `examText` i `solutionText` al segon prompt com a **ENUNCIAT ORIGINAL** / **SOLUCIONARI ORIGINAL** (suport per entendre nivell i intenció), **sense** permís per reescriure el spec base. Si crides `enrichAssessmentSpec` sol (p. ex. test sobre un golden), pots passar aquests textos opcionalment.
 - **Pipeline de codi:** `buildAssessmentSpecWithPedagogicEnrichment` → `buildAssessmentSpec` i després `enrichAssessmentSpec`.
 - **HTTP (JSON):** camp opcional `pedagogic_enrichment: true` al cos de la petició d’`executeAssessmentSpecBuildFromJsonBody` per obtenir directament l’spec enriquit.
 - **Prova d’integració:** `tests/integration/assessment-spec-builder/enrichAssessmentSpec.hospital.test.ts` (fixture `hospitalDawGolden.real-output.json`; requereix clau API com el golden de Feature 2).
@@ -50,7 +51,7 @@ Compatibilitat: si només existeix `ASSESSMENT_SPEC_OPENAI_MODEL`, s’aplica a 
 
 Telemetria opcional per calibratge: callback `onLlmRound` (fase, model resolt, `endpointKind` `chat_completions` | `responses`, `latencyMs`, `usage` si l’API el retorna). El client HTTP del producte no l’activa.
 
-**Escript de calibratge (cas hospital, 2 variants per defecte):** `npm run calibration:assessment-spec-models -w @profes/frontend` (requereix clau API; escriu `hospital-model-calibration-notes.md` amb tokens i temps). Per **desar l’`AssessmentSpec` JSON** de cada variant: `CALIBRATION_SAVE_ASSESSMENT_SPEC_JSON=1` (fitxers sota `calibration-outputs/`; vegeu `calibration-outputs/README.md`). **Cost USD:** no ve al cos de l’API; cal multiplicar tokens per tarifes vigents o mirar el dashboard OpenAI (ho resumeix el mateix fitxer de notes).
+**Escript de calibratge (cas hospital, 2 variants per defecte):** `npm run calibration:assessment-spec-models -w @profes/frontend` (requereix clau API; escriu `hospital-model-calibration-notes.md` amb tokens i temps). Amb `CALIBRATION_SAVE_ASSESSMENT_SPEC_JSON=1` es desen **base** (passada 1) i **enriquit** (passada 2) per variant a `calibration-outputs/` (vegeu `calibration-outputs/README.md`). **Cost USD:** no ve al cos de l’API; cal multiplicar tokens per tarifes vigents o mirar el dashboard OpenAI (ho resumeix el mateix fitxer de notes).
 
 ---
 

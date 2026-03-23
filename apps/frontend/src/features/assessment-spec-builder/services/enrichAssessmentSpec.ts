@@ -22,6 +22,7 @@ const enrichmentPedagogyQuestionSchema = z.object({
   question_id: z.string(),
   what_to_evaluate: z.array(z.string()),
   required_elements: z.array(z.string()),
+  accepted_variants: z.array(z.string()),
   important_mistakes: z.array(z.string()),
   teacher_style_notes: z.array(z.string()),
 })
@@ -34,6 +35,12 @@ export type EnrichAssessmentSpecParams = {
   baseUrl?: string
   /** Override explícit; si s’omet, es resol amb env (`ASSESSMENT_SPEC_ENRICH_MODEL`, …). */
   model?: string
+  /**
+   * Context original del professor (suport pedagògic al prompt).
+   * No substitueix el spec base; veure `buildEnrichAssessmentSpecPrompt`.
+   */
+  examText?: string
+  solutionText?: string
   fetchImpl?: typeof fetch
   onLlmRound?: (t: AssessmentSpecLlmTelemetry) => void
 }
@@ -65,6 +72,7 @@ export function mergeEnrichmentPedagogyFields(
       ...q,
       what_to_evaluate: e.what_to_evaluate,
       required_elements: e.required_elements,
+      accepted_variants: e.accepted_variants,
       important_mistakes: e.important_mistakes,
       teacher_style_notes: e.teacher_style_notes,
     }
@@ -101,23 +109,26 @@ function parseEnrichmentPedagogyFromModelJson(parsed: unknown): EnrichmentPedago
 }
 
 /**
- * Segon pas: enriqueix what_to_evaluate, required_elements, important_mistakes i teacher_style_notes
- * via LLM; la resta del AssessmentSpec roman igual que `spec`.
+ * Segon pas: enriqueix camps pedagògics via LLM; la veritat documental del base (text, solució, scores, confiances) roman al merge.
  */
 export async function enrichAssessmentSpec(
   params: EnrichAssessmentSpecParams,
 ): Promise<AssessmentSpec> {
-  const { spec, apiKey, fetchImpl, onLlmRound } = params
+  const { spec, apiKey, fetchImpl, onLlmRound, examText, solutionText } = params
   const baseUrl = resolveAssessmentSpecOpenAiBaseUrl(params.baseUrl)
   const model = resolveAssessmentSpecEnrichModel(params.model)
 
-  const userContent = buildEnrichAssessmentSpecPrompt(JSON.stringify(spec, null, 2))
+  const userContent = buildEnrichAssessmentSpecPrompt({
+    specJson: JSON.stringify(spec, null, 2),
+    examText,
+    solutionText,
+  })
 
   const messages: ChatMessage[] = [
     {
       role: 'system',
       content:
-        'Ets un assistent que millora criteris pedagògics. Respon NOMÉS amb JSON vàlid (AssessmentSpec complet o objecte amb questions[] i els camps pedagògics), sense markdown ni text fora del JSON.',
+        'Ets un assistent que millora criteris pedagògics sense reinterpretar la veritat documental del professor. Respon NOMÉS amb JSON vàlid (AssessmentSpec o questions[] amb camps pedagògics permesos), sense markdown ni text fora del JSON.',
     },
     { role: 'user', content: userContent },
   ]

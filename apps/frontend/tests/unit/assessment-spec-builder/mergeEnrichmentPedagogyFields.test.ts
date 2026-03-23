@@ -28,7 +28,7 @@ function q(
 }
 
 describe('mergeEnrichmentPedagogyFields', () => {
-  it('manté camps no pedagògics del base i aplica els quatre camps del model', () => {
+  it('manté camps no pedagògics del base i aplica els camps pedagògics del model', () => {
     const base: AssessmentSpec = {
       exam_id: 'e1',
       title: 'T',
@@ -46,6 +46,7 @@ describe('mergeEnrichmentPedagogyFields', () => {
         question_id: 'Q1',
         what_to_evaluate: ['nou 1', 'nou 2'],
         required_elements: ['req'],
+        accepted_variants: ['variant compatible'],
         important_mistakes: ['err'],
         teacher_style_notes: ['nota'],
       },
@@ -58,7 +59,7 @@ describe('mergeEnrichmentPedagogyFields', () => {
     expect(out.questions[0].expected_answer).toBe('sol')
     expect(out.questions[0].max_score).toBe(0.33)
     expect(out.questions[0].question_type).toBe('sql_ddl')
-    expect(out.questions[0].accepted_variants).toEqual([])
+    expect(out.questions[0].accepted_variants).toEqual(['variant compatible'])
     expect(out.questions[0].extraction_confidence).toBe(1)
     expect(out.questions[0].inference_confidence).toBe(0.5)
     expect(out.questions[0].what_to_evaluate).toEqual(['nou 1', 'nou 2'])
@@ -77,6 +78,7 @@ describe('mergeEnrichmentPedagogyFields', () => {
         question_id: 'Q1',
         what_to_evaluate: ['a'],
         required_elements: [],
+        accepted_variants: [],
         important_mistakes: [],
         teacher_style_notes: [],
       },
@@ -84,6 +86,7 @@ describe('mergeEnrichmentPedagogyFields', () => {
         question_id: 'Q99',
         what_to_evaluate: ['b'],
         required_elements: [],
+        accepted_variants: [],
         important_mistakes: [],
         teacher_style_notes: [],
       },

@@ -17,6 +17,10 @@ import {
   type AssessmentSpec,
 } from '../../../src/domain/assessment-spec/assessmentSpec.schema'
 import { enrichAssessmentSpec } from '../../../src/features/assessment-spec-builder/services/enrichAssessmentSpec'
+import {
+  hospitalDawExamText,
+  hospitalDawSolutionText,
+} from '../../fixtures/assessment-spec-builder/hospitalDawGolden'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
@@ -66,6 +70,8 @@ describe('enrichAssessmentSpec — golden hospital DAW (segona passada)', () => 
         model:
           process.env.ASSESSMENT_SPEC_ENRICH_MODEL?.trim() ||
           process.env.ASSESSMENT_SPEC_OPENAI_MODEL,
+        examText: hospitalDawExamText,
+        solutionText: hospitalDawSolutionText,
       })
 
       if (process.env.LOG_ENRICH_ASSESSMENT_SPEC === '1') {
@@ -114,7 +120,9 @@ describe('enrichAssessmentSpec — golden hospital DAW (segona passada)', () => 
         expect(e.expected_answer).toBe(b.expected_answer)
         expect(e.max_score).toBe(b.max_score)
         expect(e.question_type).toBe(b.question_type)
-        expect(e.accepted_variants).toEqual(b.accepted_variants)
+        for (const av of b.accepted_variants) {
+          expect(e.accepted_variants).toContain(av)
+        }
         expect(e.extraction_confidence).toBe(b.extraction_confidence)
         expect(e.inference_confidence).toBe(b.inference_confidence)
         expect(e.what_to_evaluate.length).toBeGreaterThan(0)

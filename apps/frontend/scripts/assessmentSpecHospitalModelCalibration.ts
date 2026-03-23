@@ -160,6 +160,11 @@ async function main(): Promise<void> {
 
   const results: VariantResult[] = []
 
+  const calibrationOutputsDir = path.join(
+    __dirname,
+    '../../../docs/features/assessment-spec-builder/calibration-outputs',
+  )
+
   for (const v of toRun) {
     const rounds: AssessmentSpecLlmTelemetry[] = []
     const t0 = Date.now()
@@ -176,6 +181,17 @@ async function main(): Promise<void> {
         model: v.baseModel,
         enrichModel: v.enrichModel,
         onLlmRound: (t) => rounds.push(t),
+        onAfterBaseSpec: saveSpecJson
+          ? (baseSpec) => {
+              mkdirSync(calibrationOutputsDir, { recursive: true })
+              const fp = path.join(
+                calibrationOutputsDir,
+                `${runStamp}-${v.id}-base-assessment-spec.json`,
+              )
+              writeFileSync(fp, `${JSON.stringify(baseSpec, null, 2)}\n`, 'utf8')
+              console.info('[calibration] Spec base (passada 1) guardat:', fp)
+            }
+          : undefined,
       })
       assessmentSpecSchema.parse(spec)
       ok = true
@@ -187,10 +203,6 @@ async function main(): Promise<void> {
     results.push({ variant: v, ok, errMsg, qCount, totalMs, rounds, spec })
   }
 
-  const calibrationOutputsDir = path.join(
-    __dirname,
-    '../../../docs/features/assessment-spec-builder/calibration-outputs',
-  )
   if (saveSpecJson) {
     mkdirSync(calibrationOutputsDir, { recursive: true })
     for (const r of results) {
@@ -218,7 +230,7 @@ async function main(): Promise<void> {
     '',
     '- **Tokens:** vegeu la taula de cada variant (columnes `prompt_tok`, `completion_tok`, `total_tok` per fase). La **suma de `total_tok` entre les dues passes** és el volum útil per comparar variants encara que una fase (sovint Responses amb **pro**) no desglossi prompt vs completion.',
     '- **Cost en USD:** l’API **no** retorna import. Cal aplicar les **tarifes vigents** del teu compte (per model i tipus input/output): [OpenAI API pricing](https://openai.com/api/pricing/). Orientació: `cost ≈ Σ (prompt_tokens × preu_input + completion_tokens × preu_output) / 10⁶` sumant les rondes; si manca el desglossat, usa la facturació del **dashboard** OpenAI o estima amb el preu per token del model.',
-    '- **JSON generat (`AssessmentSpec`):** amb `CALIBRATION_SAVE_ASSESSMENT_SPEC_JSON=1` el script escriu un fitxer per variant a `calibration-outputs/` (prefix de data; vegeu `calibration-outputs/README.md`). Els `*.json` locals solen estar al `.gitignore`.',
+    '- **JSON generat (`AssessmentSpec`):** amb `CALIBRATION_SAVE_ASSESSMENT_SPEC_JSON=1` el script escriu, per variant, el **spec base** (passada 1) `*-{V1|V2}-base-assessment-spec.json` i l’**enriquit** (passada 2) `*-{V1|V2}-assessment-spec.json` a `calibration-outputs/` (prefix de data; vegeu `calibration-outputs/README.md`). Els `*.json` locals solen estar al `.gitignore`.',
     '',
     '## Telemetria per variant',
     '',

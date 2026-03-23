@@ -1,7 +1,27 @@
 /**
- * Segon pas LLM: enriqueix criteris pedagògics d'un AssessmentSpec ja vàlid (Feature 2.1).
+ * Segon pas LLM: enriqueix criteris pedagògics d'un AssessmentSpec ja vàlid (Feature 2.1 / 2.1b).
  */
-export function buildEnrichAssessmentSpecPrompt(specJson: string): string {
+
+export type BuildEnrichAssessmentSpecPromptParams = {
+  /** JSON stringificat de l'AssessmentSpec base (font de veritat documental). */
+  specJson: string
+  /** Context de suport; no és permís per reescriure camps base. */
+  examText?: string
+  solutionText?: string
+}
+
+function blockOrPlaceholder(label: string, content: string | undefined, emptyNote: string): string {
+  const body = content != null && content.trim().length > 0 ? content.trim() : emptyNote
+  return `## ${label}\n\n${body}\n`
+}
+
+export function buildEnrichAssessmentSpecPrompt(
+  params: string | BuildEnrichAssessmentSpecPromptParams,
+): string {
+  const p: BuildEnrichAssessmentSpecPromptParams =
+    typeof params === 'string' ? { specJson: params } : params
+  const { specJson, examText, solutionText } = p
+
   return `Ets un professor expert que ha dissenyat aquest examen.
 
 El teu objectiu és transformar uns criteris d'avaluació genèrics en criteris pedagògics concrets, útils per avaluar correctament un alumne.
@@ -13,17 +33,79 @@ Treballes amb:
 
 Els exemples següents amb SQL són només il·lustratius quan la pregunta és de bases de dades; per a altres tipus de pregunta, genera criteris observables del mateix estil per al domini concret.
 
-Tens un AssessmentSpec amb:
-- pregunta
-- resposta esperada
-- criteris inicials (massa genèrics)
+---
 
-Has de REESCRIURE els camps següents per cada pregunta:
+REGLA ZERO — IMMUTABILITAT DEL SPEC BASE (VERITAT DOCUMENTAL DEL PROFESSOR)
+
+Els camps ja plens a l'AssessmentSpec base (bloc ASSESSMENT_SPEC_BASE) representen la **veritat documental** extreta del material del professor. **No els reobris.**
+
+No has de:
+- reinterpretar-los
+- corregir-los
+- normalitzar-los cap a un altre esquema
+- adaptar-los al teu criteri
+- substituir-los per variants teves
+
+Això aplica **especialment** a:
+- question_text
+- max_score
+- question_type
+- expected_answer
+- extraction_confidence
+- inference_confidence
+
+El sistema **no** aplicarà cap canvi teu en aquests camps: es descarten. La teva responsabilitat és **no** proposar-ne de contradictoris al JSON (evita confusió al model).
+
+La teva feina és **només** enriquir pedagògicament aquests camps (per cada pregunta, mateix question_id):
+- what_to_evaluate
+- required_elements
+- important_mistakes
+- teacher_style_notes
+- accepted_variants: **només** si afegeixes variants **realment compatibles** amb la resposta esperada del base (mai substitueixis la solució del professor ni contradiguis expected_answer)
+
+---
+
+CONTEXT ORIGINAL (NOMÉS SUPORT PEDAGÒGIC)
+
+Els blocs ENUNCIAT ORIGINAL i SOLUCIONARI ORIGINAL (si n'hi ha) serveixen **únicament** per entendre millor:
+- què vol avaluar el professor
+- quin nivell exigeix
+- què és important conceptualment
+
+**No** els facis servir per reescriure question_text, expected_answer ni cap altre camp del spec base.
+Si detectes contradicció entre el context i el spec base, **no corregeixis el base**: limita't a enriquir amb prudència dins dels camps pedagògics permès.
+
+---
+
+ORDRE DE LECTURA
+
+1. ASSESSMENT_SPEC_BASE (font canònica)
+2. ENUNCIAT ORIGINAL / SOLUCIONARI ORIGINAL (context)
+3. Regles següents i format de sortida
+
+${blockOrPlaceholder('ASSESSMENT_SPEC_BASE', specJson, '(buit — error)')}
+
+${blockOrPlaceholder(
+  'ENUNCIAT ORIGINAL',
+  examText,
+  "(no s'ha facilitat text d'enunciat en aquesta petició; confia en l'AssessmentSpec base.)",
+)}
+
+${blockOrPlaceholder(
+  'SOLUCIONARI ORIGINAL',
+  solutionText,
+  "(no s'ha facilitat solucionari en aquesta petició; confia en l'AssessmentSpec base.)",
+)}
+
+---
+
+Has de REESCRIURE (millorar) **només** els camps pedagògics següents per cada pregunta:
 
 - what_to_evaluate
 - required_elements
 - important_mistakes
 - teacher_style_notes
+- accepted_variants (opcional: només variants addicionals compatibles amb expected_answer del base)
 
 OBJECTIU:
 
@@ -85,11 +167,11 @@ Notes breus (2–3 màxim): com valoraria el professor, què prioritzaria, quin 
 
 ---
 
-REGLA 8 — NO MODIFICAR ESTRUCTURA NI CAMPS D'IDENTITAT
+REGLA 8 — ESTRUCTURA I EMPARELLAMENT
 
 - no afegeixis camps nous ni eliminis camps del schema
 - cada element de \`questions\` ha de tenir el mateix \`question_id\` que a l'entrada (mateix nombre i ordre)
-- el sistema només aplica del teu JSON els quatre camps pedagògics (més \`question_id\` per emparellar); la resta (text, solució, confiances, etc.) es conserva sempre de l'entrada — no cal que repeteixis aquests camps si no vols, però si els inclous no han de contradir l'entrada
+- el sistema només aplica del teu JSON els camps pedagògics indicats (més \`question_id\` per emparellar); la resta roman del spec base
 
 ---
 
@@ -103,13 +185,9 @@ REGLA 9 — NO SCORING
 
 REGLA 10 — FORMAT
 
-Respon NOMÉS amb un JSON vàlid: preferiblement l'objecte AssessmentSpec complet (exam_id, title, questions[] amb tots els camps del schema). També és vàlid un objecte amb només \`questions[]\` on cada ítem inclogui com a mínim \`question_id\` i els quatre camps pedagògics.
+Respon NOMÉS amb un JSON vàlid: preferiblement l'objecte AssessmentSpec complet o un objecte amb \`questions[]\` on cada ítem inclogui com a mínim \`question_id\` i els camps pedagògics que has de millorar.
 
 No incloguis text fora del JSON.
 No incloguis markdown.
-
-AssessmentSpec d'entrada (respecta els valors dels camps que no has de reescriure segons les regles):
-
-${specJson}
 `
 }
