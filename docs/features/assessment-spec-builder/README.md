@@ -50,7 +50,7 @@ Compatibilitat: si només existeix `ASSESSMENT_SPEC_OPENAI_MODEL`, s’aplica a 
 
 Telemetria opcional per calibratge: callback `onLlmRound` (fase, model resolt, `endpointKind` `chat_completions` | `responses`, `latencyMs`, `usage` si l’API el retorna). El client HTTP del producte no l’activa.
 
-**Escript de calibratge (cas hospital, 2 variants per defecte):** `npm run calibration:assessment-spec-models -w @profes/frontend` (requereix clau API; escriu `docs/features/assessment-spec-builder/hospital-model-calibration-notes.md`).
+**Escript de calibratge (cas hospital, 2 variants per defecte):** `npm run calibration:assessment-spec-models -w @profes/frontend` (requereix clau API; escriu `hospital-model-calibration-notes.md` amb tokens i temps). Per **desar l’`AssessmentSpec` JSON** de cada variant: `CALIBRATION_SAVE_ASSESSMENT_SPEC_JSON=1` (fitxers sota `calibration-outputs/`; vegeu `calibration-outputs/README.md`). **Cost USD:** no ve al cos de l’API; cal multiplicar tokens per tarifes vigents o mirar el dashboard OpenAI (ho resumeix el mateix fitxer de notes).
 
 ---
 

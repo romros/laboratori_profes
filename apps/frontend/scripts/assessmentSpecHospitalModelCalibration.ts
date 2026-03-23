@@ -12,8 +12,11 @@
  * força models explícits per variant (no depèn d’ASSESSMENT_SPEC_* per al calibratge).
  *
  * Clau: ASSESSMENT_SPEC_OPENAI_API_KEY | OPENAI_API_KEY | FEATURE0_OPENAI_API_KEY
+ *
+ * Opcional: `CALIBRATION_SAVE_ASSESSMENT_SPEC_JSON=1` → escriu l’`AssessmentSpec` final per variant
+ * a `docs/features/assessment-spec-builder/calibration-outputs/` (vegeu README d’aquesta carpeta).
  */
-import { writeFileSync } from 'node:fs'
+import { mkdirSync, writeFileSync } from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 
@@ -78,6 +81,28 @@ function sumTokens(
   return rounds.reduce((acc, r) => acc + (r.usage?.[k] ?? 0), 0)
 }
 
+/** Resum llegible: algunes rondes (p. ex. Responses) poden omètre prompt/completion però sí `total_tokens`. */
+function formatTokenSummary(rounds: AssessmentSpecLlmTelemetry[]): string {
+  const pt = sumTokens(rounds, 'prompt_tokens')
+  const ct = sumTokens(rounds, 'completion_tokens')
+  const tt = sumTokens(rounds, 'total_tokens')
+  const hasAny = rounds.some((x) => x.usage != null)
+  if (!hasAny) {
+    return '— (cos sense `usage`)'
+  }
+  const missingBreakdown = rounds.some(
+    (r) =>
+      r.usage != null &&
+      r.usage.total_tokens != null &&
+      r.usage.total_tokens > 0 &&
+      (r.usage.prompt_tokens == null || r.usage.completion_tokens == null),
+  )
+  if (missingBreakdown || tt > pt + ct) {
+    return `suma \`total_tokens\` per ronda: **${tt}**; desglossat on l’API l’envia: prompt ${pt}, completion ${ct} (vegeu taula per fila)`
+  }
+  return `prompt ${pt} · completion ${ct} · total ${tt}`
+}
+
 /** Mètriques heurístiques per comparar variants (no substitueixen revisió manual). */
 function qualityHints(spec: AssessmentSpec): string {
   const qs = spec.questions
@@ -128,6 +153,10 @@ async function main(): Promise<void> {
 
   const runV3 = process.env.CALIBRATION_ASSESSMENT_SPEC_VARIANT3 === '1'
   const toRun = runV3 ? VARIANTS : VARIANTS.slice(0, 2)
+  const runStamp = new Date().toISOString().replace(/[:.]/g, '-')
+  const saveSpecJson =
+    process.env.CALIBRATION_SAVE_ASSESSMENT_SPEC_JSON === '1' ||
+    process.env.CALIBRATION_SAVE_ASSESSMENT_SPEC_JSON === 'true'
 
   const results: VariantResult[] = []
 
@@ -158,6 +187,24 @@ async function main(): Promise<void> {
     results.push({ variant: v, ok, errMsg, qCount, totalMs, rounds, spec })
   }
 
+  const calibrationOutputsDir = path.join(
+    __dirname,
+    '../../../docs/features/assessment-spec-builder/calibration-outputs',
+  )
+  if (saveSpecJson) {
+    mkdirSync(calibrationOutputsDir, { recursive: true })
+    for (const r of results) {
+      if (r.ok && r.spec) {
+        const fp = path.join(
+          calibrationOutputsDir,
+          `${runStamp}-${r.variant.id}-assessment-spec.json`,
+        )
+        writeFileSync(fp, `${JSON.stringify(r.spec, null, 2)}\n`, 'utf8')
+        console.info('[calibration] AssessmentSpec guardat:', fp)
+      }
+    }
+  }
+
   const lines: string[] = [
     '# Calibratge models — Assessment Spec (cas hospital DAW)',
     '',
@@ -167,17 +214,18 @@ async function main(): Promise<void> {
     '',
     '**Defaults producte (codi):** passada 1 → `gpt-5.4-mini` (`ASSESSMENT_SPEC_MODEL`); passada 2 → `gpt-5.4` (`ASSESSMENT_SPEC_ENRICH_MODEL`, `chat/completions`). **`gpt-5.4-pro`** només com a override experimental (`ASSESSMENT_SPEC_ENRICH_MODEL=gpt-5.4-pro` → `POST /v1/responses`).',
     '',
+    '## Com veure l’output complet i el cost',
+    '',
+    '- **Tokens:** vegeu la taula de cada variant (columnes `prompt_tok`, `completion_tok`, `total_tok` per fase). La **suma de `total_tok` entre les dues passes** és el volum útil per comparar variants encara que una fase (sovint Responses amb **pro**) no desglossi prompt vs completion.',
+    '- **Cost en USD:** l’API **no** retorna import. Cal aplicar les **tarifes vigents** del teu compte (per model i tipus input/output): [OpenAI API pricing](https://openai.com/api/pricing/). Orientació: `cost ≈ Σ (prompt_tokens × preu_input + completion_tokens × preu_output) / 10⁶` sumant les rondes; si manca el desglossat, usa la facturació del **dashboard** OpenAI o estima amb el preu per token del model.',
+    '- **JSON generat (`AssessmentSpec`):** amb `CALIBRATION_SAVE_ASSESSMENT_SPEC_JSON=1` el script escriu un fitxer per variant a `calibration-outputs/` (prefix de data; vegeu `calibration-outputs/README.md`). Els `*.json` locals solen estar al `.gitignore`.',
+    '',
     '## Telemetria per variant',
     '',
   ]
 
   for (const r of results) {
     const v = r.variant
-    const pt = sumTokens(r.rounds, 'prompt_tokens')
-    const ct = sumTokens(r.rounds, 'completion_tokens')
-    const tt = sumTokens(r.rounds, 'total_tokens')
-    const hasUsage = r.rounds.some((x) => x.usage != null)
-
     lines.push(`### ${v.id} — ${v.label}`)
     lines.push('')
     lines.push(`Base \`${v.baseModel}\` → enrich \`${v.enrichModel}\`.`)
@@ -191,9 +239,7 @@ async function main(): Promise<void> {
     if (r.ok && r.spec) {
       lines.push(`- **Mètriques heurístiques:** ${qualityHints(r.spec)}`)
     }
-    lines.push(
-      `- **Tokens (suma passes):** ${hasUsage ? `prompt ${pt} · completion ${ct} · total ${tt}` : '— (cos sense `usage`)'}`,
-    )
+    lines.push(`- **Tokens (resum):** ${formatTokenSummary(r.rounds)}`)
     lines.push('')
     lines.push(
       '| Fase | Model | Endpoint | Latència ms | prompt_tok | completion_tok | total_tok |',

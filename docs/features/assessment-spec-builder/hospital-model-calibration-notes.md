@@ -6,6 +6,12 @@ Pipeline: `buildAssessmentSpec` (passada 1) + `enrichAssessmentSpec` (passada 2)
 
 **Defaults producte (codi):** passada 1 → `gpt-5.4-mini` (`ASSESSMENT_SPEC_MODEL`); passada 2 → `gpt-5.4` (`ASSESSMENT_SPEC_ENRICH_MODEL`, `chat/completions`). **`gpt-5.4-pro`** només com a override experimental (`ASSESSMENT_SPEC_ENRICH_MODEL=gpt-5.4-pro` → `POST /v1/responses`).
 
+## Com veure l’output complet i el cost
+
+- **Tokens:** taula per variant (per fase). La **suma de `total_tok` entre les dues passes** compara bé el volum encara que Responses (**pro**) no desglossi sempre prompt vs completion.
+- **Cost en USD:** l’API no retorna import; aplica tarifes vigents per model: [OpenAI API pricing](https://openai.com/api/pricing/). Fórmula orientativa: `Σ (prompt_tokens × preu_input + completion_tokens × preu_output) / 10⁶`; o revisa el **dashboard** de facturació.
+- **JSON (`AssessmentSpec`):** `CALIBRATION_SAVE_ASSESSMENT_SPEC_JSON=1` en executar el script → fitxers a `calibration-outputs/` (vegeu `calibration-outputs/README.md`); els `*.json` locals solen estar al `.gitignore`.
+
 ## Telemetria per variant
 
 ### V1 — Oficial (default producte)
@@ -16,7 +22,7 @@ Base `gpt-5.4-mini` → enrich `gpt-5.4`.
 - **Preguntes:** 15
 - **Temps total (wall):** 67078 ms
 - **Mètriques heurístiques:** preguntes amb required_elements: 15/15; important_mistakes: 15/15; teacher_style_notes: 15/15; mitjana chars what_to_evaluate (totes juntes): 266
-- **Tokens (suma passes):** prompt 8382 · completion 8354 · total 16736
+- **Tokens (resum):** prompt 8382 · completion 8354 · total 16736
 
 | Fase | Model | Endpoint | Latència ms | prompt_tok | completion_tok | total_tok |
 |------|-------|----------|------------:|-----------:|---------------:|----------:|
@@ -31,7 +37,7 @@ Base `gpt-5.4-mini` → enrich `gpt-5.4-pro`.
 - **Preguntes:** 15
 - **Temps total (wall):** 301194 ms
 - **Mètriques heurístiques:** preguntes amb required_elements: 15/15; important_mistakes: 15/15; teacher_style_notes: 15/15; mitjana chars what_to_evaluate (totes juntes): 320
-- **Tokens (suma passes):** prompt 2514 · completion 3783 · total 20791
+- **Tokens (resum):** suma `total_tokens` per ronda: **20791**; desglossat on l’API l’envia: prompt 2514, completion 3783 (vegeu taula per fila)
 
 | Fase | Model | Endpoint | Latència ms | prompt_tok | completion_tok | total_tok |
 |------|-------|----------|------------:|-----------:|---------------:|----------:|

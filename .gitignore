@@ -13,3 +13,6 @@ coverage
 
 # Tesseract.js: traineddata descarregat al cwd d’apps/frontend en execucions locals del spike
 apps/frontend/*.traineddata
+
+# Sortides JSON opcionals del calibratge Assessment Spec (CALIBRATION_SAVE_ASSESSMENT_SPEC_JSON=1)
+docs/features/assessment-spec-builder/calibration-outputs/*.json
