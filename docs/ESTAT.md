@@ -63,7 +63,7 @@ Converteix materials del professor (enunciat + solucionari) en `AssessmentSpec` 
 
 **Feature 2.1 — Enriqueiment pedagògic (segon prompt):** `enrichAssessmentSpec` + `buildEnrichAssessmentSpecPrompt`; pipeline `buildAssessmentSpecWithPedagogicEnrichment`; HTTP opcional `pedagogic_enrichment: true`. **2.1b:** prompt amb **immutabilitat** del spec base; **examText** / **solutionText** als blocs ORIGINAL del cos usuari (prova unitària amb sentinels hospital: `enrichAssessmentSpecPrompt.test.ts`); merge pedagògic (`mergeEnrichmentPedagogyFields`, incl. `accepted_variants` controlat). **I/O cadena 1→2 al repo:** `docs/features/assessment-spec-builder/examples/hospital-daw-chain/` (pass1, payload pass2, resposta LLM, després merge). **Test integració:** `enrichAssessmentSpec.hospital.test.ts` (golden + enunciat/solucionari hospital; sense clau → skip).
 
-**Feature 2.2 — Calibratge models (tancat):** decisió de producte — passada 1 defecte `gpt-5.4-mini`, passada 2 defecte **`gpt-5.4`** (`chat/completions`). **`gpt-5.4-pro`** només override experimental (`ASSESSMENT_SPEC_ENRICH_MODEL`, `/v1/responses`). Legacy `ASSESSMENT_SPEC_OPENAI_MODEL` per ambdues si cal. `callOpenAiCompatibleChatWithMeta` + `onLlmRound` (`endpointKind`). Escript: `npm run calibration:assessment-spec-models -w @profes/frontend` → `hospital-model-calibration-notes.md` (comparativa V1 oficial vs V2 pro + decisió documentada).
+**Feature 2.2 — Calibratge models (tancat, decisió revisada 2026-03-23):** passada 1 defecte **`gpt-5.4`** (era mini — canviat: mini deixava camps d'inferència buits, passada 2 no podia enriquir); passada 2 defecte **`gpt-5.4`** (`chat/completions`). **`gpt-5.4-pro`** només override experimental (`ASSESSMENT_SPEC_ENRICH_MODEL`, `/v1/responses`). Legacy `ASSESSMENT_SPEC_OPENAI_MODEL` per ambdues si cal. `callOpenAiCompatibleChatWithMeta` + `onLlmRound` (`endpointKind`). Escript: `npm run calibration:assessment-spec-models -w @profes/frontend` → `hospital-model-calibration-notes.md` (comparativa V1 oficial vs V2 pro + decisió documentada).
 
 ---
 
@@ -78,7 +78,7 @@ Converteix materials del professor (enunciat + solucionari) en `AssessmentSpec` 
 
 ## Següent pas
 
-**Feature 0, Feature 1 i Feature 2 (MVP + 2.1 + 2.2 models) tancades en codi i docs canòniques** (calibratge hospital quan hi ha clau API).
+**Feature 0, Feature 1 i Feature 2 (MVP + 2.1 + 2.2 models) tancades en codi i docs canòniques.** Feature 2: chain hospital completa i coherent — passada 1 `gpt-5.4` (fidel) + passada 2 `gpt-5.4` (enriquiment pedagògic sobre base real). Artefactes versionats: `hospital-daw-chain/` + `hospitalDawGolden.real-output.json` + `hospitalDawGolden.enriched-output.json`.
 
 - **Feature 2 (producte)** — persistència estable per convocatòria, UI de revisió (segons PM) i/o **Feature 3** sobre `AssessmentSpec` validat.
 

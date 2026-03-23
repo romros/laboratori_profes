@@ -1,10 +1,12 @@
 # Calibratge models — Assessment Spec (cas hospital DAW)
 
-Data execució: 2026-03-23T18:54:48.280Z
+Data execució original: 2026-03-23T18:54:48.280Z — **Decisió revisada: 2026-03-23** (voir §Decisió final)
 
 Pipeline: `buildAssessmentSpec` (passada 1) + `enrichAssessmentSpec` (passada 2).
 
-**Defaults producte (codi):** passada 1 → `gpt-5.4-mini` (`ASSESSMENT_SPEC_MODEL`); passada 2 → `gpt-5.4` (`ASSESSMENT_SPEC_ENRICH_MODEL`, `chat/completions`). **`gpt-5.4-pro`** només com a override experimental (`ASSESSMENT_SPEC_ENRICH_MODEL=gpt-5.4-pro` → `POST /v1/responses`).
+**Defaults producte (codi actuals):** passada 1 → `gpt-5.4` (`ASSESSMENT_SPEC_MODEL`); passada 2 → `gpt-5.4` (`ASSESSMENT_SPEC_ENRICH_MODEL`, `chat/completions`). **`gpt-5.4-pro`** només com a override experimental (`ASSESSMENT_SPEC_ENRICH_MODEL=gpt-5.4-pro` → `POST /v1/responses`).
+
+> **Nota:** La passada 1 era originalment `gpt-5.4-mini`. Canviat a `gpt-5.4` perquè mini deixava `what_to_evaluate`, `required_elements` i `important_mistakes` buits — la passada 2 no podia enriquir sobre base nul·la. Evidència: `pass1-output.json` antic vs nou.
 
 ## Com veure l’output complet i el cost
 
@@ -14,9 +16,9 @@ Pipeline: `buildAssessmentSpec` (passada 1) + `enrichAssessmentSpec` (passada 2)
 
 ## Telemetria per variant
 
-### V1 — Oficial (default producte)
+### V1 — Referència original (obsoleta com a default)
 
-Base `gpt-5.4-mini` → enrich `gpt-5.4`.
+Base `gpt-5.4-mini` → enrich `gpt-5.4`. ⚠️ **Mini ja no és el default de passada 1** (deixava camps d'inferència buits; veure §Decisió final).
 
 - **Schema OK:** sí
 - **Preguntes:** 15
@@ -78,9 +80,10 @@ Per cada variant amb schema OK, comprovar almenys: `what_to_evaluate` concret i 
 
 ## Decisió final (producte)
 
-- **Passada 1:** `gpt-5.4-mini`.
+- **Passada 1:** `gpt-5.4` (**revisat 2026-03-23** — era mini; canviat per fidelitat d'inferència).
 - **Passada 2 (default):** `gpt-5.4` (`chat/completions`).
-- **Motiu:** qualitat pedagògica comparable a `gpt-5.4-pro` en el cas hospital, amb **latència molt menor** i **cost més baix**; `gpt-5.4-pro` queda només com a **override experimental** via `ASSESSMENT_SPEC_ENRICH_MODEL`.
+- **Motiu passada 1:** `gpt-5.4-mini` extreia el SQL fidel però deixava `what_to_evaluate`, `required_elements` i `important_mistakes` amb contingut genèric o buit. La passada 2 necessita una base inferida mínimament per poder enriquir. `gpt-5.4` resol tots els camps correctament en el cas hospital.
+- **Motiu passada 2:** qualitat pedagògica comparable a `gpt-5.4-pro` amb **latència ~5.8× menor** i cost més baix; `gpt-5.4-pro` queda només com a **override experimental** via `ASSESSMENT_SPEC_ENRICH_MODEL`.
 - **Compatibilitat:** `OPENAI_FORCE_CHAT_COMPLETIONS=1` força chat per a tots els models (p. ex. proxy sense `/v1/responses`).
 
-**Evidència git:** `git log --oneline --grep=2.2` o commit amb `Feature 2.2` / calibratge enrich.
+**Evidència git:** commits `bbb905b` (canvi model) i `355a091` (chain regenerada).
