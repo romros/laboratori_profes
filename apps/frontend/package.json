@@ -16,7 +16,8 @@
     "dev:qae-api": "tsx --tsconfig tsconfig.app.json scripts/qaeLocalApiServer.ts",
     "benchmark:ocr": "tsx --tsconfig tsconfig.app.json scripts/ocrBenchmark.ts",
     "spike:template-anchor": "tsx --tsconfig tsconfig.app.json scripts/templateAnchorSpike.ts",
-    "spike:answer-zones": "tsx --tsconfig tsconfig.app.json scripts/answerZonesSpike.ts"
+    "spike:answer-zones": "tsx --tsconfig tsconfig.app.json scripts/answerZonesSpike.ts",
+    "spike:template-verification": "tsx --tsconfig tsconfig.app.json scripts/templateVerificationSpike.ts"
   },
   "dependencies": {
     "busboy": "^1.6.0",
