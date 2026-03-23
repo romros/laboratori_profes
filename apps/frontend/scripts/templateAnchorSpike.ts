@@ -16,21 +16,47 @@ import { detectTemplateQuestionAnchors } from '../src/features/template-anchor-d
 import type { TemplateQuestion } from '../src/features/template-anchor-detection/types'
 
 // ---------------------------------------------------------------------------
-// Template mock (enunciats del professor — lletra d'impremta)
-// Basat en els exàmens reals observats (SQL/BD, examen de creació de taules)
+// Template REAL: F_IT_008_01_Examen_2526_A3 LDD_Ordinaria_Enunciat3 - hospital - DAW.pdf
+// Extret del PDF de l'enunciat del professor (lletra d'impremta).
 // ---------------------------------------------------------------------------
 
 const TEMPLATE_QUESTIONS: TemplateQuestion[] = [
-  { id: 'Q1', text: 'Creació de la taula Hotel amb les restriccions corresponents.' },
-  { id: 'Q2', text: 'Creació de la taula Habitació amb les restriccions corresponents.' },
-  { id: 'Q3', text: 'Creació de la taula Reserva amb les restriccions corresponents.' },
-  { id: 'Q4', text: 'Inserir registres a la taula Hotel.' },
-  { id: 'Q5', text: 'Inserir registres a la taula Habitació.' },
-  { id: 'Q6', text: 'Inserir registres a la taula Reserva.' },
-  { id: 'Q7', text: 'Consultar els hotels de la base de dades.' },
-  { id: 'Q8', text: 'Modificar el camp preu de la taula Habitació.' },
-  { id: 'Q9', text: 'Eliminar registres de la taula Reserva.' },
-  { id: 'Q10', text: 'Llistar els clients amb reserves actives.' },
+  { id: 'Q1', text: 'Creació Taula 1 (Hospital) amb les restriccions corresponents.' },
+  { id: 'Q2', text: 'Creació Taula 2 (Pacient) amb les restriccions corresponents.' },
+  { id: 'Q3', text: 'Creació Taula 3 (Habitacio) amb les restriccions corresponents.' },
+  { id: 'Q4', text: 'Creació Taula 4 (Metge) amb les restriccions corresponents.' },
+  { id: 'Q5', text: 'Creació Taula 5 (Tractament) amb les restriccions corresponents.' },
+  { id: 'Q6', text: 'Creació Taula 6 (Visita) amb les restriccions corresponents.' },
+  {
+    id: 'Q7',
+    text: 'Inserir un hospital amb codi 1 ubicat al carrer Sant Joan, número 50, codi postal 08001, telèfon 932223344.',
+  },
+  {
+    id: 'Q8',
+    text: 'Inserir un pacient anomenat Pere Torres Font, amb adreça Passeig de Gràcia, número 12, codi postal 08001, telèfon 934445566 i NIF 12345678A.',
+  },
+  {
+    id: 'Q9',
+    text: "Assignar una habitació número 101, de tipus individual, a l'hospital 1 per al pacient amb NIF 12345678A.",
+  },
+  {
+    id: 'Q10',
+    text: "Afegir un metge amb NIF 98765432B, nom Dr. Laura López, especialitat Cardiologia, associada a l'hospital 1.",
+  },
+  {
+    id: 'Q11',
+    text: 'Assignar un tractament anomenat Rehabilitació Cardíaca, amb idTractament 1, per al pacient 12345678A, assignat al metge 98765432B.',
+  },
+  {
+    id: 'Q12',
+    text: 'Registrar una visita amb idVisita 1, data 2024-02-01, import 100€, motiu Revisió postoperatòria, tipus consulta, per al pacient 12345678A, atès pel metge 98765432B.',
+  },
+  { id: 'Q13', text: "Incrementar en un 15% l'import de totes les visites registrades." },
+  {
+    id: 'Q14',
+    text: 'Canviar el tipus de dades del codi postal de Pacient de numèric a caràcter.',
+  },
+  { id: 'Q15', text: 'Esborrar totes les visites on el tipus sigui consulta.' },
 ]
 
 // ---------------------------------------------------------------------------
