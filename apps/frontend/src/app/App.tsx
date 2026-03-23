@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react'
 
 import { QaeDemoPage } from '@/features/question-answer-extraction/ui/QaeDemoPage'
 import { Feature0DemoPage } from '@/features/template-inference/ui/Feature0DemoPage'
+import { TemplateDebugPage } from '@/features/template-debug/ui/TemplateDebugPage'
 
 /**
  * Capa d’aplicació: composició de la UI i wiring.
@@ -29,6 +30,10 @@ export function App() {
     return <QaeDemoPage onBack={() => navigate('/')} />
   }
 
+  if (path === '/debug/template') {
+    return <TemplateDebugPage onBack={() => navigate('/')} />
+  }
+
   return (
     <main className="app-shell">
       <h1>Laboratori Profes</h1>
@@ -45,6 +50,15 @@ export function App() {
       <p>
         <button type="button" className="app-shell__linkbtn" onClick={() => navigate('/demo/qae')}>
           Demo QAE (question-answer-extraction, servidor Node local)
+        </button>
+      </p>
+      <p>
+        <button
+          type="button"
+          className="app-shell__linkbtn"
+          onClick={() => navigate('/debug/template')}
+        >
+          Template Debug (pipeline inspector intern)
         </button>
       </p>
     </main>
