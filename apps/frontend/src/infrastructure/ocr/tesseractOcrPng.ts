@@ -2,7 +2,11 @@ import { createWorker } from 'tesseract.js'
 
 /**
  * MVP pas 2: OCR **només en català** (`cat`), sense barreja amb anglès per defecte.
- * Si en un document concret el model cat falla massa, es pot valorar fallback explícit en tasca posterior.
+ *
+ * LÍMIT CONEGUT (benchmark 2026-03-22/23): Tesseract (WASM, CLI, preprocessing simple)
+ * no resol documents amb escaneig de molt baixa qualitat (ex: ex_alumne4.pdf).
+ * No continuar iterant paràmetres sense canviar d'estratègia (motor nou o preprocessing avançat).
+ * Evidència: docs/benchmarks/ocr-benchmark-2026-03-22.md
  */
 const DEFAULT_LANGS = 'cat'
 

@@ -1,6 +1,6 @@
 # Estat del projecte (operatiu)
 
-**Darrera actualització:** 2026-03-22
+**Darrera actualització:** 2026-03-23
 
 Només **estat i verificació**. Normativa: **`AGENTS_ARQUITECTURA.md`**. Ordre de lectura: **`llm.txt`**.
 
@@ -34,19 +34,32 @@ Només **estat i verificació**. Normativa: **`AGENTS_ARQUITECTURA.md`**. Ordre 
 
 ---
 
+## Limitacions conegudes (Feature 1 — OCR)
+
+**Iteració OCR tancada** (3 rondes de benchmark, 2026-03-22/23). Hipòtesis provades i descartades:
+
+| Hipòtesi | Resultat |
+|----------|----------|
+| Tuning Tesseract.js WASM (idioma, PSM) | ❌ no millora |
+| Tesseract CLI natiu 5.5.1 | ❌ equivalent a WASM |
+| Preprocessing simple (grayscale + contrast + threshold) | ❌ empitjora casos bons |
+
+**Causa arrel:** la qualitat d’escaneig d’`ex_alumne4` (i documents similars) és insuficient per a Tesseract amb qualsevol configuració simple. El bottleneck és l’entrada, no el motor.
+
+**Límit documentat:** documents amb escaneig de molt baixa qualitat queden **fora d’abast del MVP**. No reobrir aquesta línia sense evidència de millora real o canvi d’estratègia (preprocessament avançat, motor nou, o millora d’origen de l’escaneig).
+
+Evidència completa: `docs/benchmarks/ocr-benchmark-2026-03-22.md`.
+
 ## Falta
 
-- **`question-answer-extraction`:** millorar detecció en casos d’OCR molt dolent (alumne4: Q2 absoreix Q3–Q4); ensemble OCR o postprocessat LLM per millorar qualitat de text; opcionalment, usar plantilla Feature 0 com a hint per separació enunciat/resposta més precisa.
 - **Feature 0:** geometria en coordenades de pàgina reals, backend fora de Vite — la lògica `ok/ko` + pipeline PDF mínim (text embegut) ja són al domini i a la demo.
 
 ---
 
 ## Següent pas
 
-**Feature 1 QAE tancada** (MVP validat). Prioritats pendents (decidir amb PM):
+**Feature 1 QAE tancada** (MVP validat, iteració OCR tancada amb evidència). Prioritat pendent (decidir amb PM):
 
 - **Feature 0** — coordenades de pàgina reals, backend fora del middleware Vite.
-- **QAE — millores OCR** — preprocessing imatge (contrast, binarització) per alumne4 i casos d’OCR molt brut.
-- **QAE — postprocessat LLM** — millorar `answer_text` amb model en casos d’OCR dubtós.
 
 Validació habitual: `./scripts/run_frontend.sh …` (Docker).

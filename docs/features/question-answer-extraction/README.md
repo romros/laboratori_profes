@@ -12,24 +12,27 @@
 | **Docker (proxy nginx)** | `docker compose up --build -d` arrenca serveis **frontend** (nginx, 9088/9443) + **qae-api** (Node 22, permanent). Nginx fa **proxy invers** de `/api/…` cap a `qae-api:8787` (xarxa interna Docker, sense ports exposats ni firewall extra). Tot passa per un sol port. Demo: `http://<IP>:9088/demo/qae`. |
 | **Consum (pas 4–4.1)** | Façana: **`features/question-answer-extraction/server/questionAnswerExtractionHttpRoute.ts`**. Reexport app: **`app/question-answer-extraction/index.ts`**. Constants dev: **`features/question-answer-extraction/dev/qaeDevServerConstants.ts`** (path, port, env). **Èxit (200):** `{ result, diagnostic }` (contracte domini + diagnòstic). **Error (400 / 413 / 500):** `{ "error": { "code", "message" } }` amb codis estables (`invalid_multipart`, `missing_file`, `payload_too_large`, `invalid_pdf`, `processing_failed`, `internal_error`). *Motiu servidor Node apart:* el pipeline OCR no pot carregar-se al bundle del `vite.config` sense trencar `vite build`. Smoke sense HTTP: `npm run smoke:qae-facade -- [camí.pdf]`. Harness JSON: `npm run spike:qae -- [camí.pdf]`. PDF local: `data/ex_alumne1.pdf` (gitignored). **Vite dev local:** `npm run dev:qae-api` (port 8787 al host). |
 
-## Iteració següent — millora OCR (dins Feature 1)
+## Limitacions conegudes del MVP
 
-**Problema:** errors residuals per OCR deficient en casos difícils (ex: `ex_alumne4`) — text il·legible, falsos positius al regex tolerant, blocs que absorbeixen múltiples preguntes.
+**OCR — iteració tancada (2026-03-23)**
 
-**Estratègia:** benchmark → decisió → implementació. No és nova feature.
+Documents amb escaneig de molt baixa qualitat (ex: `ex_alumne4.pdf`) produeixen text OCR il·legible. Conseqüències:
+- marcadors de pregunta no detectables → blocs absorbents incorrectes
+- `answer_text` és soroll, no text de l'alumne
 
-**Benchmark executat (2026-03-22):** `docs/benchmarks/ocr-benchmark-2026-03-22.md`
+S'han provat 3 rondes de benchmark sense millora (evidència: `docs/benchmarks/ocr-benchmark-2026-03-22.md`):
 
-**Benchmark complet (3 rondes, 2026-03-22/23):** `docs/benchmarks/ocr-benchmark-2026-03-22.md`
+| Hipòtesi | Resultat |
+|----------|----------|
+| Tuning Tesseract.js WASM (idioma, PSM) | ❌ no millora |
+| Tesseract CLI natiu 5.5.1 | ❌ equivalent a WASM |
+| Preprocessing simple (grayscale + contrast + threshold) | ❌ empitjora casos bons |
 
-Hipòtesis tancades:
-- Tuning WASM (idioma, PSM) → ❌ no millora
-- Tesseract CLI natiu 5.5.1 → ❌ equivalent a WASM
-- Preprocessing simple (grayscale + contrast + threshold) → ❌ empitjora casos bons
+**Causa arrel:** el bottleneck és la qualitat de l'escaneig d'origen, no el motor OCR.
 
-**Decisió final:** ✅ **iteració OCR tancada** — `ex_alumne4` queda com a limitació coneguda del MVP per qualitat d'escaneig insuficient. Cap API cloud — dades personals d'alumnes.
+**Decisió:** documents amb escaneig insuficient queden **fora d'abast del MVP**. No reobrir sense canvi d'estratègia real (motor nou, preprocessing avançat, o millora de l'escaneig d'origen).
 
-**Restricció de privacitat:** tot el processament OCR ha de ser local (servidor o navegador). Cap API cloud acceptable.
+**Restricció permanent:** tot OCR ha de ser local. Cap API cloud — els PDFs contenen dades personals d'alumnes.
 
 ---
 
