@@ -8,6 +8,12 @@ export type BuildEnrichAssessmentSpecPromptParams = {
   /** Context de suport; no és permís per reescriure camps base. */
   examText?: string
   solutionText?: string
+  /**
+   * Text anterior al llistat de preguntes: model relacional, restriccions globals,
+   * instruccions generals. Obtingut via `extractDocumentContext`.
+   * Guardrail: serveix per contextualitzar, NO per inventar criteris ni reescriure el base spec.
+   */
+  examDocumentContext?: string
 }
 
 function blockOrPlaceholder(label: string, content: string | undefined, emptyNote: string): string {
@@ -20,7 +26,7 @@ export function buildEnrichAssessmentSpecPrompt(
 ): string {
   const p: BuildEnrichAssessmentSpecPromptParams =
     typeof params === 'string' ? { specJson: params } : params
-  const { specJson, examText, solutionText } = p
+  const { specJson, examText, solutionText, examDocumentContext } = p
 
   return `Ets un professor expert que ha dissenyat aquest examen.
 
@@ -84,7 +90,8 @@ La teva feina és **només** enriquir pedagògicament aquests camps (per cada pr
 
 CONTEXT ORIGINAL (NOMÉS SUPORT PEDAGÒGIC)
 
-Els blocs ENUNCIAT ORIGINAL i SOLUCIONARI ORIGINAL (si n'hi ha) serveixen **únicament** per entendre millor:
+Els blocs CONTEXT_DOCUMENT_PROFESSOR, ENUNCIAT ORIGINAL i SOLUCIONARI ORIGINAL (si n'hi ha) serveixen **únicament** per entendre millor:
+- el model relacional i les restriccions globals del domini
 - què vol avaluar el professor
 - quin nivell exigeix
 - què és important conceptualment
@@ -92,13 +99,22 @@ Els blocs ENUNCIAT ORIGINAL i SOLUCIONARI ORIGINAL (si n'hi ha) serveixen **úni
 **No** els facis servir per reescriure question_text, expected_answer ni cap altre camp del spec base.
 Si detectes contradicció entre el context i el spec base, **no corregeixis el base**: limita't a enriquir amb prudència dins dels camps pedagògics permès.
 
+**Guardrail CONTEXT_DOCUMENT_PROFESSOR:** el context del document (model relacional, restriccions, instruccions) és suport interpretatiu. No et serveix per inventar criteris nous ni per afegir required_elements que no es puguin verificar a la resposta de l'alumne. Usa'l per entendre les relacions entre taules i el domini, no per ampliar l'abast d'avaluació.
+
 ---
 
 ORDRE DE LECTURA
 
-1. ASSESSMENT_SPEC_BASE (font canònica)
-2. ENUNCIAT ORIGINAL / SOLUCIONARI ORIGINAL (context)
-3. Regles següents i format de sortida
+1. CONTEXT_DOCUMENT_PROFESSOR (model relacional, restriccions globals — context interpretatiu)
+2. ASSESSMENT_SPEC_BASE (font canònica)
+3. ENUNCIAT ORIGINAL / SOLUCIONARI ORIGINAL (context)
+4. Regles següents i format de sortida
+
+${blockOrPlaceholder(
+  'CONTEXT_DOCUMENT_PROFESSOR',
+  examDocumentContext,
+  "(no s'ha facilitat context previ del document; confia en l'AssessmentSpec base i l'enunciat.)",
+)}
 
 ${blockOrPlaceholder('ASSESSMENT_SPEC_BASE', specJson, '(buit — error)')}
 

@@ -41,6 +41,11 @@ export type EnrichAssessmentSpecParams = {
    */
   examText?: string
   solutionText?: string
+  /**
+   * Text anterior al llistat de preguntes (model relacional, restriccions globals).
+   * Obtingut via `extractDocumentContext`. Suport interpretatiu per a la passada 2.
+   */
+  examDocumentContext?: string
   fetchImpl?: typeof fetch
   onLlmRound?: (t: AssessmentSpecLlmTelemetry) => void
 }
@@ -117,15 +122,17 @@ export function parseEnrichmentPedagogyFromModelJson(
 export async function enrichAssessmentSpec(
   params: EnrichAssessmentSpecParams,
 ): Promise<AssessmentSpec> {
-  const { spec, apiKey, fetchImpl, onLlmRound, examText, solutionText } = params
+  const { spec, apiKey, fetchImpl, onLlmRound, examText, solutionText, examDocumentContext } =
+    params
   const baseUrl = resolveAssessmentSpecOpenAiBaseUrl(params.baseUrl)
   const model = resolveAssessmentSpecEnrichModel(params.model)
 
-  /** Cos usuari: ASSESSMENT_SPEC_BASE + ENUNCIAT ORIGINAL + SOLUCIONARI ORIGINAL (veure `buildEnrichAssessmentSpecPrompt`). */
+  /** Cos usuari: CONTEXT_DOCUMENT_PROFESSOR + ASSESSMENT_SPEC_BASE + ENUNCIAT ORIGINAL + SOLUCIONARI ORIGINAL (veure `buildEnrichAssessmentSpecPrompt`). */
   const userContent = buildEnrichAssessmentSpecPrompt({
     specJson: JSON.stringify(spec, null, 2),
     examText,
     solutionText,
+    examDocumentContext,
   })
 
   const messages: ChatMessage[] = [

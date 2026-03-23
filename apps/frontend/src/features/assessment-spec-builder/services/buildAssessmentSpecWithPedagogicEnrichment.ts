@@ -7,6 +7,11 @@ export type BuildAssessmentSpecWithPedagogicEnrichmentParams = BuildAssessmentSp
   enrichModel?: string
   /** Opcional: telemetria o persistència del spec base abans d’enriqueir (calibratge). */
   onAfterBaseSpec?: (spec: AssessmentSpec) => void
+  /**
+   * Text anterior al llistat de preguntes (model relacional, restriccions globals).
+   * Obtingut via `extractDocumentContext`. Passat a la passada 2 com a context interpretatiu.
+   */
+  examDocumentContext?: string
 }
 
 /**
@@ -16,10 +21,10 @@ export type BuildAssessmentSpecWithPedagogicEnrichmentParams = BuildAssessmentSp
 export async function buildAssessmentSpecWithPedagogicEnrichment(
   params: BuildAssessmentSpecWithPedagogicEnrichmentParams,
 ): Promise<AssessmentSpec> {
-  const { enrichModel, onAfterBaseSpec, ...baseParams } = params
+  const { enrichModel, onAfterBaseSpec, examDocumentContext, ...baseParams } = params
   const base = await buildAssessmentSpec(baseParams)
   onAfterBaseSpec?.(base)
-  /** Passada 2: mateixos `examText` / `solutionText` que la passada 1 → blocs ORIGINAL al prompt d’enriqueiment. */
+  /** Passada 2: mateixos `examText` / `solutionText` que la passada 1 + `examDocumentContext` → blocs ORIGINAL al prompt d’enriqueiment. */
   return enrichAssessmentSpec({
     spec: base,
     apiKey: baseParams.apiKey,
@@ -27,6 +32,7 @@ export async function buildAssessmentSpecWithPedagogicEnrichment(
     model: enrichModel,
     examText: baseParams.examText,
     solutionText: baseParams.solutionText,
+    examDocumentContext,
     fetchImpl: baseParams.fetchImpl,
     onLlmRound: baseParams.onLlmRound,
   })

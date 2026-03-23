@@ -60,6 +60,37 @@ describe('buildEnrichAssessmentSpecPrompt', () => {
     expect(prompt).toContain("(no s'ha facilitat solucionari")
   })
 
+  it('inclou bloc CONTEXT_DOCUMENT_PROFESSOR quan es passa examDocumentContext', () => {
+    const prompt = buildEnrichAssessmentSpecPrompt({
+      specJson: '{}',
+      examDocumentContext: 'Hospital(codi, cp, carrer)',
+    })
+    expect(prompt).toContain('## CONTEXT_DOCUMENT_PROFESSOR')
+    expect(prompt).toContain('Hospital(codi, cp, carrer)')
+  })
+
+  it('placeholder CONTEXT_DOCUMENT_PROFESSOR quan no es passa', () => {
+    const prompt = buildEnrichAssessmentSpecPrompt({ specJson: '{}' })
+    expect(prompt).toContain('## CONTEXT_DOCUMENT_PROFESSOR')
+    expect(prompt).toContain("(no s'ha facilitat context previ del document")
+  })
+
+  it('guardrail CONTEXT_DOCUMENT_PROFESSOR explícit al prompt', () => {
+    const prompt = buildEnrichAssessmentSpecPrompt({ specJson: '{}' })
+    expect(prompt).toMatch(
+      /Guardrail CONTEXT_DOCUMENT_PROFESSOR|context del document.*suport interpretatiu/i,
+    )
+  })
+
+  it("CONTEXT_DOCUMENT_PROFESSOR apareix a l'ordre de lectura", () => {
+    const prompt = buildEnrichAssessmentSpecPrompt({ specJson: '{}' })
+    expect(prompt).toContain('CONTEXT_DOCUMENT_PROFESSOR')
+    // Ordre: context primer, spec base segon
+    const idxContext = prompt.indexOf('## CONTEXT_DOCUMENT_PROFESSOR')
+    const idxBase = prompt.indexOf('## ASSESSMENT_SPEC_BASE')
+    expect(idxContext).toBeLessThan(idxBase)
+  })
+
   it('MODE PEDAGÒGIC: conté bloc de rol docent i acceptació de variants conceptuals', () => {
     const prompt = buildEnrichAssessmentSpecPrompt({ specJson: '{}' })
     // Bloc mode pedagògic present

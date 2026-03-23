@@ -81,14 +81,19 @@ export async function executeAssessmentSpecBuildFromJsonBody(
   }
 
   try {
-    const buildParams = {
-      examText: body.exam_text,
-      solutionText: body.solution_text,
-      apiKey,
-    }
+    const examText = body.exam_text as string
+    const solutionText = body.solution_text as string
+    const examDocumentContext =
+      typeof body.exam_document_context === 'string' ? body.exam_document_context : undefined
+
     const result = pedagogicEnrichment
-      ? await buildAssessmentSpecWithPedagogicEnrichment(buildParams)
-      : await buildAssessmentSpec(buildParams)
+      ? await buildAssessmentSpecWithPedagogicEnrichment({
+          examText,
+          solutionText,
+          examDocumentContext,
+          apiKey,
+        })
+      : await buildAssessmentSpec({ examText, solutionText, apiKey })
     return { ok: true, status: 200, body: { result } }
   } catch (e) {
     const msg = e instanceof Error ? e.message : String(e)

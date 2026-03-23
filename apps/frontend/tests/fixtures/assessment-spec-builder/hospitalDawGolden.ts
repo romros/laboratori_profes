@@ -1,6 +1,111 @@
 /**
+ * Context global del document (preàmbul del professor) — text ABANS de "Es demana:".
+ * Extret del PDF real `enunciat-daw.pdf` (pàgina 1).
+ * Inclou: model lògic relacional, restriccions globals de les taules, capçalera de l’exercici.
+ * NO inclou el llistat de preguntes numerades.
+ *
+ * S’usa com a `examDocumentContext` a la passada 2 de Feature 2.
+ */
+export const hospitalDawExamDocumentContext = `DAW/DAM – 0484. BASE DE DADES
+ASIXC – 0372. GESTIÓ DE BASES DE DADES
+PROVA AVALUCIÓ A3. Estructura de la base de dades
+
+Realitza la creació de la base de dades per a la gestió d’un hospital
+
+A partir del següent model lògic relacional:
+
+Hospital(codi, cp, carrer, numero, telefon)
+cp, carrer, numero, telefon són camps obligatoris.
+numero ha de ser un número positiu.
+
+Pacient(nif, nom, cognoms, cp, carrer, numero, telefon)
+cp, carrer, numero, telefon són camps obligatoris.
+numero ha de ser un número positiu.
+
+Habitacio(numHabitacio, tipus, codiHosp, nifPacient)
+codiHosp és clau forana de Hospital.
+nifPacient és clau forana de Pacient.
+tipus pot tenir els valors ‘individual’ o ‘compartida’.
+Si s’elimina un hospital, les habitacions d’aquest hospital es posaran a NULL automàticament.
+
+Metge(nifMetge, nom, especialitat, codiHosp)
+codiHosp és clau forana de Hospital.
+
+Tractament(idTractament, nomTractament, nifPacient, nifMetge)
+nifPacient és clau forana de Pacient.
+nifMetge és clau forana de Metge.
+
+Visita(idVisita, data, import, motiu, tipus, nifPacient, nifMetge)
+nifPacient és clau forana de Pacient.
+nifMetge és clau forana de Metge.
+tipus només pot tenir els valors ‘consulta’ o ‘urgència’.
+idVisita ha de ser un número positiu.
+Quan s’esborri un pacient, totes les seves visites associades hanuran de ser esborrades.`
+
+/**
+ * Text COMPLET de l’enunciat hospital DAW tal com surt del PDF (amb preàmbul + preguntes).
+ * Inclou el model relacional + "Es demana:" + llistat de 15 preguntes.
+ * Font: `tests/fixtures/template-inference/pdf/enunciat-daw.pdf`
+ */
+export const hospitalDawExamTextFull = `DAW/DAM – 0484. BASE DE DADES
+ASIXC – 0372. GESTIÓ DE BASES DE DADES
+PROVA AVALUCIÓ A3. Estructura de la base de dades
+
+Realitza la creació de la base de dades per a la gestió d’un hospital
+
+A partir del següent model lògic relacional:
+
+Hospital(codi, cp, carrer, numero, telefon)
+cp, carrer, numero, telefon són camps obligatoris.
+numero ha de ser un número positiu.
+
+Pacient(nif, nom, cognoms, cp, carrer, numero, telefon)
+cp, carrer, numero, telefon són camps obligatoris.
+numero ha de ser un número positiu.
+
+Habitacio(numHabitacio, tipus, codiHosp, nifPacient)
+codiHosp és clau forana de Hospital.
+nifPacient és clau forana de Pacient.
+tipus pot tenir els valors ‘individual’ o ‘compartida’.
+Si s’elimina un hospital, les habitacions d’aquest hospital es posaran a NULL automàticament.
+
+Metge(nifMetge, nom, especialitat, codiHosp)
+codiHosp és clau forana de Hospital.
+
+Tractament(idTractament, nomTractament, nifPacient, nifMetge)
+nifPacient és clau forana de Pacient.
+nifMetge és clau forana de Metge.
+
+Visita(idVisita, data, import, motiu, tipus, nifPacient, nifMetge)
+nifPacient és clau forana de Pacient.
+nifMetge és clau forana de Metge.
+tipus només pot tenir els valors ‘consulta’ o ‘urgència’.
+idVisita ha de ser un número positiu.
+Quan s’esborri un pacient, totes les seves visites associades hanuran de ser esborrades.
+
+Es demana:
+1. Creació Taula 1 (Hospital) amb les restriccions corresponents. (0,75 punts)
+2. Creació Taula 2 (Pacient) amb les restriccions corresponents. (0,75 punts)
+3. Creació Taula 3 (Habitacio) amb les restriccions corresponents. (1,5 punts)
+4. Creació Taula 4 (Metge) amb les restriccions corresponents. (0,75 punts)
+5. Creació Taula 5 (Tractament) amb les restriccions corresponents. (1,25 punts)
+6. Creació Taula 6 (Visita) amb les restriccions corresponents. (1,75 punts)
+7. Inserir un hospital amb codi 1 ubicat al carrer Sant Joan, número 50, codi postal 08001, telèfon 932223344. (0,33 punts)
+8. Inserir un pacient anomenat Pere Torres Font, amb adreça Passeig de Gràcia, número 12, codi postal 08001, telèfon 934445566 i NIF 12345678A. (0,33 punts)
+9. Assignar una habitació número 101, de tipus individual, a l’hospital 1 per al pacient amb NIF 12345678A. (0,33 punts)
+10. Afegir un metge amb NIF 98765432B, nom Dr. Laura López, especialitat Cardiologia, associada a l’hospital 1. (0,33 punts)
+11. Assignar un tractament anomenat Rehabilitació Cardíaca, amb idTractament 1, per al pacient 12345678A, assignat al metge 98765432B. (0,33 punts)
+12. Registrar una visita amb idVisita 1, data 2024-02-01, import 100€, motiu Revisió postoperatòria, tipus consulta, per al pacient 12345678A, atès pel metge 98765432B. (0,33 punts)
+13. Incrementar en un 15% l’import de totes les visites registrades. (0,5 punts)
+14. Canviar el tipus de dades del codi postal de Pacient de numèric a caràcter (o viceversa depenent de la definició). (0,4 punts)
+15. Esborrar totes les visites on el tipus sigui ‘consulta’. (0,37 punts)
+`
+
+/**
  * Text extret (sense PDF) de l’examen hospital DAW — alineat amb
  * `tests/fixtures/template-anchor/template_hospital_daw.json` (15 preguntes).
+ * Versió simplificada sense preàmbul (retrocompatibilitat).
+ * Per al text complet amb model relacional, useu `hospitalDawExamTextFull`.
  */
 export const hospitalDawExamText = `F_IT_008_01 — Examen LDD Ordinària — Cas Hospital (DAW)
 
