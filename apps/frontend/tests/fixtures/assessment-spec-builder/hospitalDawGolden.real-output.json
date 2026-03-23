@@ -1,5 +1,5 @@
 {
-  "exam_id": "exam_1774282639352",
+  "exam_id": "exam_1774283302149",
   "title": "F_IT_008_01 — Examen LDD Ordinària — Cas Hospital (DAW)",
   "questions": [
     {
@@ -8,13 +8,13 @@
       "max_score": 0.33,
       "question_type": "sql_ddl",
       "expected_answer": "CREATE TABLE Hospital (\n  id INT PRIMARY KEY,\n  carrer VARCHAR(120) NOT NULL,\n  numero INT NOT NULL,\n  codi_postal CHAR(5) NOT NULL,\n  telefon VARCHAR(20) NOT NULL,\n  CONSTRAINT chk_hospital_numero_pos CHECK (numero > 0)\n);",
-      "what_to_evaluate": ["sintaxi", "restriccions", "coherència"],
+      "what_to_evaluate": ["sintaxi SQL", "restriccions correctes", "coherència amb l'enunciat"],
       "required_elements": [],
       "accepted_variants": [],
       "important_mistakes": [],
       "teacher_style_notes": [],
       "extraction_confidence": 1,
-      "inference_confidence": 0.8
+      "inference_confidence": 0.9
     },
     {
       "question_id": "Q2",
@@ -22,13 +22,13 @@
       "max_score": 0.33,
       "question_type": "sql_ddl",
       "expected_answer": "CREATE TABLE Pacient (\n  nif CHAR(9) PRIMARY KEY,\n  nom VARCHAR(100) NOT NULL,\n  adreça VARCHAR(150) NOT NULL,\n  numero INT NOT NULL,\n  codi_postal CHAR(5) NOT NULL,\n  telefon VARCHAR(20) NOT NULL,\n  id_hospital INT REFERENCES Hospital(id) ON DELETE SET NULL\n);",
-      "what_to_evaluate": ["sintaxi", "restriccions", "coherència"],
+      "what_to_evaluate": ["sintaxi SQL", "restriccions correctes", "coherència amb l'enunciat"],
       "required_elements": [],
       "accepted_variants": [],
       "important_mistakes": [],
       "teacher_style_notes": [],
       "extraction_confidence": 1,
-      "inference_confidence": 0.8
+      "inference_confidence": 0.9
     },
     {
       "question_id": "Q3",
@@ -36,13 +36,13 @@
       "max_score": 0.33,
       "question_type": "sql_ddl",
       "expected_answer": "CREATE TABLE Habitacio (\n  id_hospital INT NOT NULL REFERENCES Hospital(id) ON DELETE CASCADE,\n  numero_hab INT NOT NULL,\n  tipus VARCHAR(20) NOT NULL,\n  PRIMARY KEY (id_hospital, numero_hab),\n  CONSTRAINT chk_habitacio_tipus CHECK (tipus IN ('individual', 'doble'))\n);",
-      "what_to_evaluate": ["sintaxi", "restriccions", "coherència"],
+      "what_to_evaluate": ["sintaxi SQL", "restriccions correctes", "coherència amb l'enunciat"],
       "required_elements": [],
       "accepted_variants": [],
       "important_mistakes": [],
       "teacher_style_notes": [],
       "extraction_confidence": 1,
-      "inference_confidence": 0.8
+      "inference_confidence": 0.9
     },
     {
       "question_id": "Q4",
@@ -50,13 +50,13 @@
       "max_score": 0.33,
       "question_type": "sql_ddl",
       "expected_answer": "CREATE TABLE Metge (\n  nif CHAR(9) PRIMARY KEY,\n  nom VARCHAR(100) NOT NULL,\n  especialitat VARCHAR(80) NOT NULL,\n  id_hospital INT NOT NULL REFERENCES Hospital(id) ON DELETE CASCADE\n);",
-      "what_to_evaluate": ["sintaxi", "restriccions", "coherència"],
+      "what_to_evaluate": ["sintaxi SQL", "restriccions correctes", "coherència amb l'enunciat"],
       "required_elements": [],
       "accepted_variants": [],
       "important_mistakes": [],
       "teacher_style_notes": [],
       "extraction_confidence": 1,
-      "inference_confidence": 0.8
+      "inference_confidence": 0.9
     },
     {
       "question_id": "Q5",
@@ -64,13 +64,13 @@
       "max_score": 0.33,
       "question_type": "sql_ddl",
       "expected_answer": "CREATE TABLE Tractament (\n  id_tractament INT PRIMARY KEY,\n  nom VARCHAR(120) NOT NULL,\n  CONSTRAINT chk_tractament_nom CHECK (char_length(trim(nom)) > 0)\n);",
-      "what_to_evaluate": ["sintaxi", "restriccions", "coherència"],
+      "what_to_evaluate": ["sintaxi SQL", "restriccions correctes", "coherència amb l'enunciat"],
       "required_elements": [],
       "accepted_variants": [],
       "important_mistakes": [],
       "teacher_style_notes": [],
       "extraction_confidence": 1,
-      "inference_confidence": 0.8
+      "inference_confidence": 0.9
     },
     {
       "question_id": "Q6",
@@ -78,13 +78,13 @@
       "max_score": 0.33,
       "question_type": "sql_ddl",
       "expected_answer": "CREATE TABLE Visita (\n  id_visita INT PRIMARY KEY,\n  data_visita DATE NOT NULL,\n  import NUMERIC(10,2) NOT NULL,\n  motiu VARCHAR(200) NOT NULL,\n  tipus VARCHAR(40) NOT NULL,\n  nif_pacient CHAR(9) NOT NULL REFERENCES Pacient(nif),\n  nif_metge CHAR(9) NOT NULL REFERENCES Metge(nif)\n);",
-      "what_to_evaluate": ["sintaxi", "restriccions", "coherència"],
+      "what_to_evaluate": ["sintaxi SQL", "restriccions correctes", "coherència amb l'enunciat"],
       "required_elements": [],
       "accepted_variants": [],
       "important_mistakes": [],
       "teacher_style_notes": [],
       "extraction_confidence": 1,
-      "inference_confidence": 0.8
+      "inference_confidence": 0.9
     },
     {
       "question_id": "Q7",
@@ -92,13 +92,13 @@
       "max_score": 0.33,
       "question_type": "sql_insert",
       "expected_answer": "INSERT INTO Hospital (id, carrer, numero, codi_postal, telefon)\nVALUES (1, 'Sant Joan', 50, '08001', '932223344');",
-      "what_to_evaluate": ["sintaxi", "coherència"],
+      "what_to_evaluate": ["sintaxi SQL", "valors correctes", "coherència amb l'enunciat"],
       "required_elements": [],
       "accepted_variants": [],
       "important_mistakes": [],
       "teacher_style_notes": [],
       "extraction_confidence": 1,
-      "inference_confidence": 0.8
+      "inference_confidence": 0.9
     },
     {
       "question_id": "Q8",
@@ -106,13 +106,13 @@
       "max_score": 0.33,
       "question_type": "sql_insert",
       "expected_answer": "INSERT INTO Pacient (nif, nom, adreça, numero, codi_postal, telefon, id_hospital)\nVALUES ('12345678A', 'Pere Torres Font', 'Passeig de Gràcia', 12, '08001', '934445566', NULL);",
-      "what_to_evaluate": ["sintaxi", "coherència"],
+      "what_to_evaluate": ["sintaxi SQL", "valors correctes", "coherència amb l'enunciat"],
       "required_elements": [],
       "accepted_variants": [],
       "important_mistakes": [],
       "teacher_style_notes": [],
       "extraction_confidence": 1,
-      "inference_confidence": 0.8
+      "inference_confidence": 0.9
     },
     {
       "question_id": "Q9",
@@ -120,13 +120,13 @@
       "max_score": 0.33,
       "question_type": "sql_insert",
       "expected_answer": "INSERT INTO Habitacio (id_hospital, numero_hab, tipus)\nVALUES (1, 101, 'individual');\nUPDATE Pacient SET id_hospital = 1 WHERE nif = '12345678A';",
-      "what_to_evaluate": ["sintaxi", "coherència"],
+      "what_to_evaluate": ["sintaxi SQL", "valors correctes", "coherència amb l'enunciat"],
       "required_elements": [],
       "accepted_variants": [],
       "important_mistakes": [],
       "teacher_style_notes": [],
       "extraction_confidence": 1,
-      "inference_confidence": 0.8
+      "inference_confidence": 0.9
     },
     {
       "question_id": "Q10",
@@ -134,13 +134,13 @@
       "max_score": 0.33,
       "question_type": "sql_insert",
       "expected_answer": "INSERT INTO Metge (nif, nom, especialitat, id_hospital)\nVALUES ('98765432B', 'Dr. Laura López', 'Cardiologia', 1);",
-      "what_to_evaluate": ["sintaxi", "coherència"],
+      "what_to_evaluate": ["sintaxi SQL", "valors correctes", "coherència amb l'enunciat"],
       "required_elements": [],
       "accepted_variants": [],
       "important_mistakes": [],
       "teacher_style_notes": [],
       "extraction_confidence": 1,
-      "inference_confidence": 0.8
+      "inference_confidence": 0.9
     },
     {
       "question_id": "Q11",
@@ -148,13 +148,13 @@
       "max_score": 0.33,
       "question_type": "sql_insert",
       "expected_answer": "INSERT INTO Tractament (id_tractament, nom) VALUES (1, 'Rehabilitació Cardíaca');\nINSERT INTO tractament_pacient_metge (nif_pacient, id_tractament, nif_metge)\nVALUES ('12345678A', 1, '98765432B');",
-      "what_to_evaluate": ["sintaxi", "coherència"],
+      "what_to_evaluate": ["sintaxi SQL", "valors correctes", "coherència amb l'enunciat"],
       "required_elements": [],
       "accepted_variants": [],
       "important_mistakes": [],
       "teacher_style_notes": [],
       "extraction_confidence": 1,
-      "inference_confidence": 0.8
+      "inference_confidence": 0.9
     },
     {
       "question_id": "Q12",
@@ -162,13 +162,13 @@
       "max_score": 0.33,
       "question_type": "sql_insert",
       "expected_answer": "INSERT INTO Visita (id_visita, data_visita, import, motiu, tipus, nif_pacient, nif_metge)\nVALUES (1, DATE '2024-02-01', 100.00, 'Revisió postoperatòria', 'consulta', '12345678A', '98765432B');",
-      "what_to_evaluate": ["sintaxi", "coherència"],
+      "what_to_evaluate": ["sintaxi SQL", "valors correctes", "coherència amb l'enunciat"],
       "required_elements": [],
       "accepted_variants": [],
       "important_mistakes": [],
       "teacher_style_notes": [],
       "extraction_confidence": 1,
-      "inference_confidence": 0.8
+      "inference_confidence": 0.9
     },
     {
       "question_id": "Q13",
@@ -176,13 +176,13 @@
       "max_score": 0.33,
       "question_type": "sql_update",
       "expected_answer": "UPDATE Visita SET import = import * 1.15;",
-      "what_to_evaluate": ["sintaxi", "coherència"],
+      "what_to_evaluate": ["sintaxi SQL", "operació correcta", "coherència amb l'enunciat"],
       "required_elements": [],
       "accepted_variants": [],
       "important_mistakes": [],
       "teacher_style_notes": [],
       "extraction_confidence": 1,
-      "inference_confidence": 0.8
+      "inference_confidence": 0.9
     },
     {
       "question_id": "Q14",
@@ -190,13 +190,13 @@
       "max_score": 0.33,
       "question_type": "sql_alter",
       "expected_answer": "ALTER TABLE Pacient ALTER COLUMN codi_postal TYPE VARCHAR(5) USING codi_postal::varchar;",
-      "what_to_evaluate": ["sintaxi", "coherència"],
+      "what_to_evaluate": ["sintaxi SQL", "canvi de tipus correcte", "coherència amb l'enunciat"],
       "required_elements": [],
       "accepted_variants": [],
       "important_mistakes": [],
       "teacher_style_notes": [],
       "extraction_confidence": 1,
-      "inference_confidence": 0.8
+      "inference_confidence": 0.9
     },
     {
       "question_id": "Q15",
@@ -204,13 +204,13 @@
       "max_score": 0.33,
       "question_type": "sql_delete",
       "expected_answer": "DELETE FROM Visita WHERE tipus = 'consulta';",
-      "what_to_evaluate": ["sintaxi", "coherència"],
+      "what_to_evaluate": ["sintaxi SQL", "condició correcta", "coherència amb l'enunciat"],
       "required_elements": [],
       "accepted_variants": [],
       "important_mistakes": [],
       "teacher_style_notes": [],
       "extraction_confidence": 1,
-      "inference_confidence": 0.8
+      "inference_confidence": 0.9
     }
   ]
 }

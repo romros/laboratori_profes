@@ -22,6 +22,13 @@ Limitació de soroll:
 - what_to_evaluate: com a màxim 3 a 5 elements (strings curts i concrets).
 - teacher_style_notes: com a màxim 2 o 3 strings en total; si no n'hi ha, [].
 
+Criteris d'avaluació (what_to_evaluate):
+- Evita criteris genèrics buits (p.ex. només "qualitat", "correctesa" o "suficient" sense dir què es mira).
+- Cada element ha de ser observable o verificable respecte a la resposta esperada o al solucionari d'aquesta pregunta (p.ex. un element concret de l'enunciat, una construcció del llenguatge, una restricció citada, un valor donat).
+
+Àmbit de l'artefacte:
+- No afegeixis subpuntuacions per apartats ni rúbrica numèrica ponderada; aquest JSON no avalua l'alumne, només estructura el criteri i la resposta model. L'avaluació quantitativa és fora d'abast aquí.
+
 question_type: utilitza valors simples, sense categories inventades ni compostes llargues. Preferit: short_text, essay, numeric_problem, diagram, code_generic, sql_ddl, sql_insert, sql_update, sql_delete, sql_alter, o unknown si no encaixa cap. No inventis etiquetes rares.
 
 Per cada pregunta, extreu:

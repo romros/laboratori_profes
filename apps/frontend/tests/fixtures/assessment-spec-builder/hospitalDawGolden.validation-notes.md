@@ -1,29 +1,25 @@
 # Validació manual — Feature 2 golden hospital (`buildAssessmentSpec`)
 
-**Run capturat:** `hospitalDawGolden.real-output.json` (2026-03-23, re-run després del **prompt estricte** alineat al codi).  
-**Model per defecte:** `gpt-4o-mini` (API OpenAI).  
-**Com regenerar:** `LOG_ASSESSMENT_SPEC_GOLDEN=1 SAVE_ASSESSMENT_SPEC_GOLDEN=1` + clau (veure comentaris al test d’integració).
+**Run capturat:** `hospitalDawGolden.real-output.json` (2026-03-23, re-run amb prompt **observable / no genèric** + sense subpuntuació ni rúbrica numèrica al text del prompt).  
+**Model per defecte:** `gpt-4o-mini` (API OpenAI).
 
-## Canvis al prompt (aquest cicle)
+## Prompt (aquest cicle)
 
-- JSON **només** array (sense text fora, sense markdown).
-- No inventar preguntes; alineació `expected_answer` ↔ pregunta; separació extracció / inferència.
-- Incertesa: camps inferits buits + confiança baixa.
-- Soroll limitat: `what_to_evaluate` 3–5 ítems; `teacher_style_notes` màx. 2–3 strings.
-- `question_type` simple (`sql_*`, `code_generic`, `unknown`, …).
+- Es mantenen normes JSON estrictes, preguntes només de l’enunciat, alineació `expected_answer`.
+- **Nou:** `what_to_evaluate` ha de ser verificable respecte a la resposta/solucionari; evitar criteris genèrics buits.
+- **Nou:** explícit que l’artefacte **no** inclou subpuntuacions ni rúbrica numèrica ponderada.
 
 ## Comprovacions (última inspecció)
 
-- **Preguntes:** 15 (Q1–Q15), sense duplicats.
-- **Puntuació:** totes `max_score` 0.33.
-- **Tipus:** coherents amb SQL del solucionari (`sql_ddl` … `sql_delete`).
-- **Expected answer:** SQL present, no buit; fragments ON DELETE / CHECK presents al blob global.
-- **Qualitat post-prompt:** `what_to_evaluate` curt (p. ex. sintaxi / restriccions / coherència); `required_elements` i similars sovint `[]` quan el model aplica la regla d’incertesa — acceptable per MVP; es pot demanar més detall en una iteració futura sense trencar l’estabilitat.
+- **15 preguntes**, `question_text` alineat amb l’enunciat hospital.
+- **`expected_answer`:** SQL coherent amb el solucionari; ON DELETE SET NULL / CASCADE / `CHECK(` presents.
+- **`what_to_evaluate`:** frases compostes (p. ex. «sintaxi SQL», «restriccions correctes») — més concretes que paraules soles; encara repetitives entre preguntes però dins del que demana el golden automàtic.
+- Sense duplicats de `question_id`; camps buits on el model aplica cautela (`required_elements` etc.).
 
-## Implementació
+## Regeneració
 
-Normalització de llistes abans de Zod (`buildAssessmentSpec`) sense canvi de schema.
+`LOG_ASSESSMENT_SPEC_GOLDEN=1 SAVE_ASSESSMENT_SPEC_GOLDEN=1` + clau (veure test d’integració).
 
 ## Feature 3
 
-Artefacte usable com a `expected_answer` + criteris per pregunta; `exam_id` estable per convocatòria pendent de producte.
+Base estable per combinar amb respostes d’alumne; `exam_id` estable per convocatòria pendent de producte.

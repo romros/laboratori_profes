@@ -53,6 +53,8 @@ describe('buildAssessmentSpecPrompt', () => {
     expect(prompt).toContain('com a màxim 2 o 3 strings')
     expect(prompt).toContain('unknown')
     expect(prompt).toContain('sql_ddl')
+    expect(prompt).toMatch(/Evita criteris gen\u00e8rics|observable o verificable/i)
+    expect(prompt).toMatch(/subpuntuacions|r\u00fabrica num\u00e8rica/i)
   })
 
   it('context FP i tecniques (sense centrar el producte en SQL)', () => {

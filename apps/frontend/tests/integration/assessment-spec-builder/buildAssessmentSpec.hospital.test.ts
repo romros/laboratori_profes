@@ -133,11 +133,18 @@ describe('buildAssessmentSpec — golden hospital DAW', () => {
       expect(answersBlob).toContain('on delete cascade')
       expect(answersBlob).toMatch(/\bcheck\s*\(/i)
 
-      // Amb prompt de criteris curts (3–5 ítems), exigim text útil però no frases llargues
+      // Criteris amb contingut mínim; el prompt exigeix observabilitat (no només paraules genèriques soles)
       const questionsWithUsefulCriteria = spec.questions.filter((q) =>
         q.what_to_evaluate.some((w) => w.trim().length >= 8),
       )
       expect(questionsWithUsefulCriteria.length).toBeGreaterThanOrEqual(12)
+
+      const singleWordGeneric =
+        /^(sintaxi|coherència|coherencia|restriccions|qualitat|correctesa)$/i
+      const questionsWithNonGenericCriterion = spec.questions.filter((q) =>
+        q.what_to_evaluate.some((w) => !singleWordGeneric.test(w.trim())),
+      )
+      expect(questionsWithNonGenericCriterion.length).toBeGreaterThanOrEqual(10)
 
       if (process.env.SAVE_ASSESSMENT_SPEC_GOLDEN === '1') {
         const outPath = path.join(
