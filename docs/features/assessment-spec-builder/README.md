@@ -35,6 +35,21 @@ Amb un `AssessmentSpec` ja vàlid (mateix schema, sense camps nous), el servei `
 - **HTTP (JSON):** camp opcional `pedagogic_enrichment: true` al cos de la petició d’`executeAssessmentSpecBuildFromJsonBody` per obtenir directament l’spec enriquit.
 - **Prova d’integració:** `tests/integration/assessment-spec-builder/enrichAssessmentSpec.hospital.test.ts` (fixture `hospitalDawGolden.real-output.json`; requereix clau API com el golden de Feature 2).
 
+### Feature 2.2 — Calibratge de models (passada base vs pedagògica)
+
+Les dues passades poden usar **models diferents** via env:
+
+| Variable | Passada | Per defecte |
+|----------|---------|-------------|
+| `ASSESSMENT_SPEC_MODEL` | 1 — extracció / `AssessmentSpec` base | `gpt-5.4-mini` |
+| `ASSESSMENT_SPEC_ENRICH_MODEL` | 2 — enriqueiment pedagògic | `gpt-5.4` |
+
+Compatibilitat: si només existeix `ASSESSMENT_SPEC_OPENAI_MODEL`, s’aplica a **ambdues** passades (comportament legacy).
+
+Telemetria opcional per calibratge: callback `onLlmRound` a `BuildAssessmentSpecParams` / `EnrichAssessmentSpecParams` (fase, model resolt, `latencyMs`, `usage` si l’API el retorna). El client HTTP del producte no l’activa.
+
+**Escript de calibratge (cas hospital, 2 variants per defecte):** `npm run calibration:assessment-spec-models -w @profes/frontend` (requereix clau API; escriu `docs/features/assessment-spec-builder/hospital-model-calibration-notes.md`).
+
 ---
 
 ## Inputs

@@ -2,19 +2,28 @@ import {
   assessmentSpecSchema,
   type AssessmentSpec,
 } from '../../../domain/assessment-spec/assessmentSpec.schema'
-import { callOpenAiCompatibleChat } from '../../template-inference/services/openAiCompatibleChat'
+import {
+  type ChatMessage,
+  callOpenAiCompatibleChat,
+  callOpenAiCompatibleChatWithMeta,
+} from '../../template-inference/services/openAiCompatibleChat'
+import {
+  type AssessmentSpecLlmTelemetry,
+  resolveAssessmentSpecEnrichModel,
+} from './assessmentSpecModelEnv'
 import { buildEnrichAssessmentSpecPrompt } from './enrichAssessmentSpecPrompt'
 import { normalizeAssessmentSpecQuestionsInRaw } from './normalizeLlmQuestionListFields'
 
 const DEFAULT_BASE_URL = 'https://api.openai.com/v1'
-const DEFAULT_MODEL = 'gpt-4o-mini'
 
 export type EnrichAssessmentSpecParams = {
   spec: AssessmentSpec
   apiKey: string
   baseUrl?: string
+  /** Override explícit; si s’omet, es resol amb env (`ASSESSMENT_SPEC_ENRICH_MODEL`, …). */
   model?: string
   fetchImpl?: typeof fetch
+  onLlmRound?: (t: AssessmentSpecLlmTelemetry) => void
 }
 
 /**
@@ -68,26 +77,42 @@ export function mergeEnrichmentPedagogyFields(
 export async function enrichAssessmentSpec(
   params: EnrichAssessmentSpecParams,
 ): Promise<AssessmentSpec> {
-  const { spec, apiKey, fetchImpl } = params
+  const { spec, apiKey, fetchImpl, onLlmRound } = params
   const baseUrl = params.baseUrl?.trim() || DEFAULT_BASE_URL
-  const model = params.model?.trim() || DEFAULT_MODEL
+  const model = resolveAssessmentSpecEnrichModel(params.model)
 
   const userContent = buildEnrichAssessmentSpecPrompt(JSON.stringify(spec, null, 2))
 
-  const rawContent = await callOpenAiCompatibleChat({
+  const messages: ChatMessage[] = [
+    {
+      role: 'system',
+      content:
+        'Ets un assistent que millora criteris pedagògics. Respon NOMÉS amb un objecte JSON vàlid (AssessmentSpec complet), sense markdown ni text fora del JSON.',
+    },
+    { role: 'user', content: userContent },
+  ]
+
+  const chatParams = {
     apiKey,
     baseUrl,
     model,
-    messages: [
-      {
-        role: 'system',
-        content:
-          'Ets un assistent que millora criteris pedagògics. Respon NOMÉS amb un objecte JSON vàlid (AssessmentSpec complet), sense markdown ni text fora del JSON.',
-      },
-      { role: 'user', content: userContent },
-    ],
+    messages,
     fetchImpl,
-  })
+  }
+
+  let rawContent: string
+  if (onLlmRound) {
+    const r = await callOpenAiCompatibleChatWithMeta(chatParams)
+    onLlmRound({
+      phase: 'assessment_spec_enrich',
+      model,
+      latencyMs: r.latencyMs,
+      usage: r.usage,
+    })
+    rawContent = r.content
+  } else {
+    rawContent = await callOpenAiCompatibleChat(chatParams)
+  }
 
   let parsed: unknown
   try {

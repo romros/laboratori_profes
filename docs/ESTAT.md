@@ -1,6 +1,6 @@
 # Estat del projecte (operatiu)
 
-**Darrera actualització:** 2026-03-23 (Feature 2 golden LLM validat)
+**Darrera actualització:** 2026-03-23 (Feature 2.2 calibratge models + notes hospital)
 
 Només **estat i verificació**. Normativa: **`AGENTS_ARQUITECTURA.md`**. Ordre de lectura: **`llm.txt`**.
 
@@ -62,6 +62,8 @@ Evidència completa: `docs/benchmarks/ocr-benchmark-2026-03-22.md`.
 Converteix materials del professor (enunciat + solucionari) en `AssessmentSpec` (domini `domain/assessment-spec/`, servei `buildAssessmentSpec`, endpoint JSON via `executeAssessmentSpecBuildFromJsonBody`). **No toca dades d'alumnes.** Clau API: `ASSESSMENT_SPEC_OPENAI_API_KEY` o `OPENAI_API_KEY` o (dev) `FEATURE0_OPENAI_API_KEY`. **Golden test:** `tests/integration/assessment-spec-builder/buildAssessmentSpec.hospital.test.ts` (execució real si hi ha clau; sense clau → skip). **Output real** (`hospitalDawGolden.real-output.json`) **alineat amb el prompt vigent** (re-run 2026-03-23: JSON estricte, límits d’inferència, **criteris `what_to_evaluate` observables**, sense subpuntuació/rúbrica numèrica a l’artefacte). Notes: `hospitalDawGolden.validation-notes.md`. Regenerar: `SAVE_ASSESSMENT_SPEC_GOLDEN=1` + clau. Doc canònic: `docs/features/assessment-spec-builder/README.md`. **Prerequisit de Feature 3** (persistència estable d’`exam_id` encara pendent de producte).
 
 **Feature 2.1 — Enriqueiment pedagògic (segon prompt):** `enrichAssessmentSpec` + `buildEnrichAssessmentSpecPrompt`; pipeline `buildAssessmentSpecWithPedagogicEnrichment`; HTTP opcional `pedagogic_enrichment: true`. Fusiona camps no pedagògics des del base (`mergeEnrichmentPedagogyFields`). **Test integració:** `enrichAssessmentSpec.hospital.test.ts` (entrada: `hospitalDawGolden.real-output.json`; sense clau → skip).
+
+**Feature 2.2 — Calibratge models:** `ASSESSMENT_SPEC_MODEL` (passada 1, defecte `gpt-5.4-mini`) i `ASSESSMENT_SPEC_ENRICH_MODEL` (passada 2, defecte `gpt-5.4`; `gpt-5.4-pro` pot no estar disponible a `chat/completions`). Legacy `ASSESSMENT_SPEC_OPENAI_MODEL` per ambdues si cal. `callOpenAiCompatibleChatWithMeta` + `onLlmRound`. Escript: `npm run calibration:assessment-spec-models -w @profes/frontend` → `hospital-model-calibration-notes.md` (telemetria real V1/V2 al repo).
 
 ---
 

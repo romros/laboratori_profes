@@ -37,7 +37,7 @@ Raw: `https://raw.githubusercontent.com/romros/laboratori_profes/main/`
     https://raw.githubusercontent.com/romros/laboratori_profes/main/docs/features/question-answer-extraction/README.md
 13. `docs/features/question-answer-extraction/mvp-definition.md` — **contracte conceptual MVP** (`question_id`, `answer_text`, `status`); MVP implementat i validat (servei Docker, nginx proxy, demo `/demo/qae`, 4 PDFs reals, 202 tests)
     https://raw.githubusercontent.com/romros/laboratori_profes/main/docs/features/question-answer-extraction/mvp-definition.md
-14. `docs/features/assessment-spec-builder/README.md` — **Feature 2** (definida, pendent implementació): `AssessmentSpec`, inputs, principis extracció vs inferència, relació amb Feature 0/1/3
+14. `docs/features/assessment-spec-builder/README.md` — **Feature 2** (+ 2.1 enriqueiment, 2.2 models): `AssessmentSpec`, pipeline, env `ASSESSMENT_SPEC_MODEL` / `ASSESSMENT_SPEC_ENRICH_MODEL`, relació amb Feature 3
     https://raw.githubusercontent.com/romros/laboratori_profes/main/docs/features/assessment-spec-builder/README.md
 
 ## Privadesa (obligatori per tasques amb dades)
