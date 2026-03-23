@@ -128,14 +128,14 @@ Evidència completa: `docs/benchmarks/ocr-benchmark-2026-03-22.md`.
 - **Feature 0 (coordenades físiques):** geometria en coordenades de pàgina reals (x/y bbox) — fora d'abast del MVP actual. La lògica `ok/ko` + pipeline anchor/zones/mapping ja són funcionals; les coordenades físiques requeririen un backend fora del middleware Vite i integració amb rasteritzador. No prioritat fins que PM ho demani.
 - **Feature 0 (backend Capa 1):** ruta `/api/feature0/analysis` funciona via plugin Vite; en producció caldria backend Node independent. Pendent PM.
 - **Feature 2 (producte):** persistència estable d’`AssessmentSpec` per convocatòria, UI de revisió (pendent PM). No bloqueja Feature 3.
-- **Feature 3:** avaluació de respostes (scoring, correcció assistida) — **Feature 2 ja és prerequisit complet**.
+- **Feature 3 (implementació):** schema `QuestionEvaluation`, servei `evaluateAnswer`, prompt jutge pedagògic, tests golden hospital.
 
 ---
 
 ## Següent pas
 
-**Feature 0, Feature 1 i Feature 2 tancades i congelades. El següent pas és Feature 3 MVP.**
+**Feature 0, Feature 1 i Feature 2 tancades i congelades. Feature 3 definida, pendent d'implementació.**
 
-- **Feature 3 MVP** — avaluació de respostes d'alumnes sobre `AssessmentSpec` validat. Feature 2 és prerequisit complet i estable.
+- **Feature 3 MVP** — `Answer Evaluator`: avalua `answer_text` per pregunta contra `AssessmentSpec`. Retorna `evaluable_by_ocr`, `verdict` (correct/partial/incorrect), `feedback`, `confidence`. Cap score numèric al MVP. Doc: `docs/features/answer-evaluator/README.md`.
 
 Validació habitual: `./scripts/run_frontend.sh …` (Docker).
