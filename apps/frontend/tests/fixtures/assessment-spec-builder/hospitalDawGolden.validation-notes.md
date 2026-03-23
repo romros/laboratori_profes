@@ -16,6 +16,8 @@
 
 Els models sovint envien `teacher_style_notes` com a string: es normalitza a array a `buildAssessmentSpec` abans del parse Zod (sense canviar el contracte del domini).
 
+El prompt d’`buildAssessmentSpecPrompt` és **transversal** (no parteix de SQL); el cas hospital és només una prova d’acceptació amb solucionari SQL.
+
 ## Feature 3
 
 L’artefacte és usable com a criteri + `expected_answer` per pregunta; en producte caldria `exam_id` estable per convocatòria (avui el servei genera `exam_<timestamp>`).

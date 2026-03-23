@@ -66,10 +66,10 @@ type QuestionSpec = {
   max_score: number | null
 
   /**
-   * Tipus de pregunta — camp obert a nivell de doc.
-   * Exemples de valors: 'sql_ddl', 'sql_insert', 'sql_update', 'sql_delete',
-   * 'sql_alter', 'short_text', 'list', 'diagram', 'unknown'.
-   * L'enum canònic es definirà al schema TypeScript en implementar.
+   * Tipus de pregunta — camp obert (string); el producte és transversal.
+   * El model infereix l'etiqueta segons el domini (humanitats, codi, etc.).
+   * Exemples il·lustratius: 'short_text', 'essay', 'numeric_problem', 'diagram';
+   * en exàmens SQL podrien aparèixer 'sql_ddl', 'sql_insert', etc., però no són el cas per defecte.
    */
   question_type: string
 

@@ -40,6 +40,10 @@ function countSolutionQuestionMarkers(text: string): number {
   return (text.match(/(?:^|\n)\s*Q(?:[1-9]|1[0-5])\./g) ?? []).length
 }
 
+/**
+ * Si el model encara usa etiquetes sql_*, comprovem coherència amb l'SQL;
+ * amb prompt genèric també poden aparèixer altres question_type (p. ex. data_modeling).
+ */
 function assertSqlKeywordMatchesDeclaredType(q: QuestionSpec): void {
   const t = q.question_type.toLowerCase()
   if (!t.startsWith('sql_')) {
@@ -108,11 +112,6 @@ describe('buildAssessmentSpec — golden hospital DAW', () => {
         expect(/CREATE|INSERT|UPDATE|DELETE|ALTER/i.test(ans)).toBe(true)
         expect(countSolutionQuestionMarkers(ans)).toBeLessThanOrEqual(1)
       }
-
-      const sqlTyped = spec.questions.filter((q) =>
-        q.question_type.toLowerCase().startsWith('sql_'),
-      )
-      expect(sqlTyped.length).toBeGreaterThanOrEqual(12)
 
       const withCorrectScore = spec.questions.filter(
         (q) => q.max_score != null && Math.abs(q.max_score - EXPECTED_MAX_SCORE) <= MAX_SCORE_EPS,
