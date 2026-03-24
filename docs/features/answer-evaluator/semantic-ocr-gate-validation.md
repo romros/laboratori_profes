@@ -76,3 +76,29 @@ El gate no detecta el cas "text d'alumne sense coneixement SQL" (ex: un alumne q
 escriu text lliure en català sense cap paraula clau SQL). En aquest cas, el text seria
 filtrat correctament perquè no hi ha intenció SQL — que és el comportament desitjat,
 ja que no hi hauria res avaluable per a un grader SQL.
+
+---
+
+## Actualització posterior — Loop de validació (2026-03-24)
+
+Aquesta validació inicial (Feature 0.4) era prometedora: 7/36 falsos `ok` eliminats.
+Però el **loop de validació formal** (36 preguntes, gold manual, 2 iteracions) va
+demostrar que el gate no arriba al llindar de precisió necessari (≥ 70%).
+
+**Resultat del loop:**
+
+| Iteració | Precision bucket text | FP rate |
+|----------|-----------------------|---------|
+| 1 (baseline) | 30.6% | 69.4% |
+| 2 (simulació exhaustiva) | ~33% | ~67% |
+
+**Causa:** les distribucions de totes les mètriques heurístiques (plausibleIdentifierRatio,
+sql_signals, gibberishRatio, noiseRatio) son estadísticament indistingibles entre textos
+llegibles (TP) i textos il·legibles (FP). El gate no pot fer aquesta distinció sense
+comprensió semàntica del contingut.
+
+**Decisió: VIA MORTA.** El gate pre-LLM és útil com a filtre de cas extrem (gibberish pur)
+però insuficient com a classificador fiable de qualitat OCR. La validació amb dades reals
+ho confirma. La solució requereix canvi upstream: OCR server-side millor o canal vision.
+
+Evidència completa: `docs/spikes/ocr-gate-loop/`

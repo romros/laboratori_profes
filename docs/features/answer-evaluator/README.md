@@ -1,6 +1,6 @@
 # Feature 3 — Answer Evaluator
 
-**Estat: MVP implementat — pendent de validació amb casos reals OCR**
+**Estat: MVP implementat. Loop validació OCR gate: VIA MORTA (2026-03-24). Pròxim pas: decisió PM sobre OCR server-side o vision.**
 
 Avalua les respostes OCR d'un alumne contra un `AssessmentSpec` i produeix un veredicte pedagògic per pregunta. Prerequisit: Feature 2 (DONE).
 
@@ -216,32 +216,56 @@ Els adaptadors de Feature 0 i Feature 1 converteixen els seus outputs a aquest t
 | Component | Fitxer | Estat |
 |-----------|--------|-------|
 | Schema Zod | `domain/answer-evaluator/answerEvaluator.schema.ts` | ✅ |
-| OCR triage (sense LLM) | `features/answer-evaluator/services/triageAnswerEvaluability.ts` | ✅ |
+| Gate semàntic OCR | `features/answer-evaluator/services/detectSemanticOcrQuality.ts` | ✅ |
+| Router pre-LLM | `features/answer-evaluator/services/routeQuestionForEvaluation.ts` | ✅ |
 | Prompt jutge | `features/answer-evaluator/services/evaluateAnswerPrompt.ts` | ✅ |
 | Servei per pregunta | `features/answer-evaluator/services/evaluateAnswer.ts` | ✅ |
 | Orquestrador examen | `features/answer-evaluator/services/gradeExam.ts` | ✅ |
-| Harness real | `scripts/gradeExamSpike.ts` | ✅ |
+| Harness routing | `scripts/routingSpike.ts` | ✅ |
+| Harness loop validació | `scripts/ocrGateLoopSpike.ts` | ✅ |
 
 ### Estat de validació
 
 | Nivell | Estat | Detall |
 |--------|-------|--------|
-| Tests unitaris | ✅ 283 tests passant | triage×7, prompt×10, gradeExam×9 |
+| Tests unitaris | ✅ 327 tests passant | gate×25, router×20, gradeExam×9, prompt×10... |
 | Lint + typecheck | ✅ | Docker `frontend-check` |
-| Casos reals OCR | ⏳ PENDENT | harness `spike:grade-exam` llest, no executat |
+| Spike 3.D (concordança graders) | ⚠ 33% concordança | Canal text no estable — OCR massa sorollós |
+| Loop validació OCR gate | ❌ VIA MORTA | Precision 30–33% en 2 iteracions — veure secció següent |
 
-**Aquest MVP està implementat però encara no validat amb exàmens reals OCR.** El harness `npm run spike:grade-exam` (des de `apps/frontend`, amb clau API) permet fer la primera prova real.
+### Loop de validació OCR gate — VIA MORTA (2026-03-24)
+
+**Pregunta:** el gate pre-LLM pot separar amb fiabilitat raonable quins textos OCR poden passar al grader textual?
+
+**Resposta: NO.**
+
+| Iteració | Precision | FP rate | Acció |
+|----------|-----------|---------|-------|
+| 1 | 30.6% | 69.4% | Baseline — skip=0, tot va a text |
+| 2 | ~33% (simulat) | ~67% | Totes les hipòtesis heurístiques simulades — cap funciona |
+
+**Causa arrel:** el QAE upstream etiqueta `ok` textos semànticament il·legibles. Cap comptador de tokens post-OCR (plausibleIdentifierRatio, sql_signals, gibberishRatio, noiseRatio) pot discriminar "CREATE TABLE amb camps llegibles" de "CREATE TABLE amb camps corromputs" sense comprensió semàntica. Les distribucions TP i FP son estadísticament indistingibles.
+
+**Decisió de PM:** no invertir més iteracions en heurístiques pre-LLM.
+
+**Pròxim pas (decisió PM pendent):**
+- **OCR server-side fallback** — reprocessar PDFs amb motor millor (ex: Google Document AI, AWS Textract) quan Tesseract retorna `ok` amb text sospitós
+- **Canal vision** — enviar la imatge de la resposta directament al grader LLM multimodal
+
+Evidència completa: `docs/spikes/ocr-gate-loop/`
 
 ### Criteri de tancament del MVP (verificació)
 
 - [x] Schema `QuestionEvaluation` + `ExamEvaluationResult` definit i validat via Zod
 - [x] `evaluateAnswer` + `gradeExam` — serveis base operatius
-- [x] Política d'`evaluable_by_ocr` implementada i testada (sense LLM)
-- [x] Prompt jutge: MODE PROFESSOR + MODE AVALUACIÓ + CONTEXT OCR + GUARDRAIL OCR
-- [x] Guardrail: si `evaluable_by_ocr === 'no'`, el LLM no es crida
-- [x] Tests unitaris: política OCR, casos `empty/not_detected/uncertain/ok`
+- [x] Router pre-LLM integrat a `gradeExam` (Spike 3.C)
+- [x] Gate semàntic domain-agnostic (`detectSemanticOcrQuality`)
+- [x] Prompt jutge: MODE PROFESSOR + CONTEXT OCR + GUARDRAIL
+- [x] Guardrail: si `route === 'skip'`, el LLM no es crida
+- [x] 327 tests unitaris: gate, router, gradeExam, prompt
 - [x] Validació Docker: lint + typecheck + test OK
-- [ ] Validació amb casos reals OCR (pendent `spike:grade-exam`)
+- [x] Loop validació OCR gate: VIA MORTA documentada amb evidència
+- [ ] Canal grading estable amb text OCR real (pendent decisió upstream)
 
 ---
 
