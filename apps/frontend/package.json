@@ -26,7 +26,8 @@
     "spike:grade-exam": "tsx --tsconfig tsconfig.app.json scripts/gradeExamSpike.ts",
     "spike:grade-exam-compare": "tsx --tsconfig tsconfig.app.json scripts/gradeExamCompareSpike.ts",
     "spike:grade-exam-benchmark": "tsx --tsconfig tsconfig.app.json scripts/gradeExamBenchmarkSpike.ts",
-    "spike:routing": "tsx --tsconfig tsconfig.app.json scripts/routingSpike.ts"
+    "spike:routing": "tsx --tsconfig tsconfig.app.json scripts/routingSpike.ts",
+    "spike:routing-validation": "tsx --tsconfig tsconfig.app.json scripts/routingValidationSpike.ts"
   },
   "dependencies": {
     "busboy": "^1.6.0",
