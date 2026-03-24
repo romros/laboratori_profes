@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest'
 import {
   computeNoiseRatio,
   hasSqlSignal,
+  hasTechnicalSignal,
   routeQuestionForEvaluation,
 } from '../../../src/features/answer-evaluator/services/routeQuestionForEvaluation'
 
@@ -57,6 +58,26 @@ describe('hasSqlSignal', () => {
 
   it('case-insensitive: "create table" minúscules → true', () => {
     expect(hasSqlSignal('create table hospital')).toBe(true)
+  })
+})
+
+// ── hasTechnicalSignal ─────────────────────────────────────────────────────────
+
+describe('hasTechnicalSignal', () => {
+  it('SQL: CREATE TABLE → true', () => {
+    expect(hasTechnicalSignal('CREATE TABLE Hospital')).toBe(true)
+  })
+
+  it('HTML: <div class="foo"> → true', () => {
+    expect(hasTechnicalSignal('<div class="foo">')).toBe(true)
+  })
+
+  it('Programació: function foo() → true', () => {
+    expect(hasTechnicalSignal('function foo() { return 42 }')).toBe(true)
+  })
+
+  it('text sense cap senyal tècnic → false', () => {
+    expect(hasTechnicalSignal('text pla sense paraules clau')).toBe(false)
   })
 })
 
@@ -150,7 +171,7 @@ describe('routeQuestionForEvaluation', () => {
       ocr_status: 'uncertain',
     })
     expect(result.route).toBe('text')
-    expect(result.reason).toMatch(/SQL/)
+    expect(result.reason).toMatch(/tècnic|SQL/)
   })
 
   // ── Regla 6: uncertain sense SQL → skip ───────────────────────────────────

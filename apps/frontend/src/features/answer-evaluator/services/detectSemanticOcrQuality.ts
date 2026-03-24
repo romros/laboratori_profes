@@ -335,34 +335,23 @@ export function detectSemanticOcrQuality(text: string): SemanticOcrQualityResult
     }
   }
 
-  // Cas 5: identificadors plausibles però 0 senyal SQL → text de zona equivocada o OCR corrupte semànticament
-  // Exemple: "CRERTE T10y5. ferp ll..." — tokens morfològicament plausibles però cap paraula clau SQL.
-  // En un examen de BD, sense senyal SQL l'avaluació seria inútil.
-  if (plausibleIdentifierRatio >= 0.4 && sqlFuzzySignalCount === 0) {
-    return {
-      quality: 'unreadable',
-      reason: `Cap senyal SQL detectat (0 tokens) malgrat ${(plausibleIdentifierRatio * 100).toFixed(0)}% identificadors plausibles. Text OCR corrupte semànticament o d'una zona errònia.`,
-      sqlFuzzySignalCount,
-      gibberishRatio,
-      plausibleIdentifierRatio,
-    }
-  }
-
-  // Cas 6: 1 senyal SQL però identificadors baixos → uncertain
-  if (sqlFuzzySignalCount === 1) {
+  // Cas 5: identificadors plausibles sense senyal SQL → uncertain
+  // El gate no assumeix domini. Un text amb tokens recognoscibles però sense SQL
+  // pot ser HTML, Python, text lliure, etc. — el LLM decidirà si és avaluable.
+  if (plausibleIdentifierRatio >= 0.4) {
     return {
       quality: 'uncertain',
-      reason: `Senyal SQL parcial (1 token), identificadors plausibles ${(plausibleIdentifierRatio * 100).toFixed(0)}%. Possible intenció SQL però evidència insuficient.`,
+      reason: `Identificadors plausibles ${(plausibleIdentifierRatio * 100).toFixed(0)}% però sense senyal SQL/tècnic (${sqlFuzzySignalCount} tokens). Domini indeterminat — el LLM decidirà.`,
       sqlFuzzySignalCount,
       gibberishRatio,
       plausibleIdentifierRatio,
     }
   }
 
-  // Cas 7: poc senyal positiu → uncertain
+  // Cas 6: poc senyal positiu → uncertain
   return {
     quality: 'uncertain',
-    reason: `Senyal semàntic baix: ${sqlFuzzySignalCount} tokens SQL, identificadors plausibles ${(plausibleIdentifierRatio * 100).toFixed(0)}%. Qualitat incerta.`,
+    reason: `Senyal semàntic baix: ${sqlFuzzySignalCount} tokens tècnics, identificadors plausibles ${(plausibleIdentifierRatio * 100).toFixed(0)}%. Qualitat incerta — el LLM decidirà.`,
     sqlFuzzySignalCount,
     gibberishRatio,
     plausibleIdentifierRatio,

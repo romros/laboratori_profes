@@ -17,10 +17,12 @@ export type EvaluationRoutingDecision = {
 }
 
 /**
- * Senyals tècniques SQL/DDL/DML reconeixibles al text OCR.
- * Indicadors que l'alumne ha intentat escriure codi de base de dades.
+ * Senyals tècnics recognoscibles al text OCR.
+ * Cobreix SQL/DDL/DML, HTML/XML, programació i altres dominis tècnics.
+ * Indicadors que l'alumne ha intentat escriure contingut tècnic.
  */
-const SQL_SIGNAL_PATTERNS = [
+const TECHNICAL_SIGNAL_PATTERNS = [
+  // SQL / DDL / DML
   /\bcreate\b/i,
   /\btable\b/i,
   /\binsert\b/i,
@@ -38,6 +40,35 @@ const SQL_SIGNAL_PATTERNS = [
   /\bvarchar\b/i,
   /\bchar\b/i,
   /\bint\b/i,
+  // HTML / XML
+  /<[a-z][a-z0-9]*[\s/>]/i,
+  /<\/[a-z]/i,
+  /\bdoctype\b/i,
+  /\bhtml\b/i,
+  /\bbody\b/i,
+  /\bdiv\b/i,
+  /\bspan\b/i,
+  /\bhref\b/i,
+  /\bsrc\b/i,
+  /\bclass\b/i,
+  // Programació genèrica
+  /\bfunction\b/i,
+  /\bdef\b/i,
+  /\bclass\b/i,
+  /\breturn\b/i,
+  /\bif\b/i,
+  /\belse\b/i,
+  /\bwhile\b/i,
+  /\bfor\b/i,
+  /\bvar\b/i,
+  /\blet\b/i,
+  /\bconst\b/i,
+  /\bvoid\b/i,
+  /\bpublic\b/i,
+  /\bprivate\b/i,
+  /\bstatic\b/i,
+  /\bimport\b/i,
+  /\bprint\b/i,
 ]
 
 /** Mínim de caràcters per considerar que hi ha prou text per avaluar. */
@@ -58,10 +89,16 @@ export function computeNoiseRatio(text: string): number {
 }
 
 /**
- * Detecta si el text conté almenys un senyal tècnic SQL/DDL recognoscible.
+ * Detecta si el text conté almenys un senyal tècnic recognoscible
+ * (SQL, HTML, programació, etc.).
  */
+export function hasTechnicalSignal(text: string): boolean {
+  return TECHNICAL_SIGNAL_PATTERNS.some((p) => p.test(text))
+}
+
+/** @deprecated Usa hasTechnicalSignal — mantingut per compatibilitat de tests */
 export function hasSqlSignal(text: string): boolean {
-  return SQL_SIGNAL_PATTERNS.some((p) => p.test(text))
+  return hasTechnicalSignal(text)
 }
 
 /**
@@ -71,11 +108,11 @@ export function hasSqlSignal(text: string): boolean {
  *
  * 1. skip  — status empty o not_detected → sense text ni imatge usable
  * 2. skip  — text massa curt (< MIN_TEXT_LENGTH) i no hi ha crop
- * 3. skip  — rati de soroll massa alt (> MAX_NOISE_RATIO) i no hi ha senyal SQL → text inservible
- * 4. skip  — gate semàntic: text 'ok' però semànticament il·legible (gibberish dominant)
- * 5. text  — status ok i text prou llegible (soroll acceptable + qualitat semàntica ok/uncertain)
- * 6. text  — status uncertain però hi ha senyal SQL recognoscible (l'intenció és identificable)
- * 7. skip  — uncertain sense senyal SQL → text massa dubtós
+ * 3. skip  — rati de soroll alt (> MAX_NOISE_RATIO) i sense senyal tècnic → text inservible
+ * 4. skip  — gate semàntic: gibberish pur (>70% tokens corruptes) → il·legible independentment del domini
+ * 5. text  — status ok i text prou llegible (soroll acceptable + gate semàntic no-unreadable)
+ * 6. text  — status uncertain però senyal tècnic recognoscible (SQL, HTML, codi...)
+ * 7. skip  — uncertain sense cap senyal tècnic → text massa dubtós
  *
  * NOTA: 'vision' queda reservat per quan hi hagi crops d'imatge disponibles (no implementat al MVP).
  * El paràmetre `hasImageCrop` permet preparar la integració futura sense canviar el contracte.
@@ -125,30 +162,30 @@ export function routeQuestionForEvaluation(
   // ── Anàlisi del text ───────────────────────────────────────────────────────
 
   const noiseRatio = computeNoiseRatio(text)
-  const sqlSignal = hasSqlSignal(text)
+  const technicalSignal = hasTechnicalSignal(text)
 
   // ── Status 'ok' ────────────────────────────────────────────────────────────
 
   if (ocr_status === 'ok') {
-    if (noiseRatio > MAX_NOISE_RATIO && !sqlSignal) {
-      // Text marcat com ok però massivament corrupte i sense senyal SQL
+    if (noiseRatio > MAX_NOISE_RATIO && !technicalSignal) {
+      // Text marcat com ok però massivament corrupte i sense cap senyal tècnic
       if (hasImageCrop) {
         return {
           question_id,
           route: 'vision',
-          reason: `OCR status 'ok' però soroll ${(noiseRatio * 100).toFixed(0)}% i sense senyal SQL. Crop disponible → canal vision.`,
+          reason: `OCR status 'ok' però soroll ${(noiseRatio * 100).toFixed(0)}% i sense senyal tècnic. Crop disponible → canal vision.`,
         }
       }
       return {
         question_id,
         route: 'skip',
-        reason: `OCR status 'ok' però soroll massa alt (${(noiseRatio * 100).toFixed(0)}%) i sense senyal SQL reconeixible. Text inservible per al grader.`,
+        reason: `OCR status 'ok' però soroll massa alt (${(noiseRatio * 100).toFixed(0)}%) i sense senyal tècnic reconeixible. Text inservible per al grader.`,
       }
     }
 
     // ── Gate semàntic (Feature 0.4) ─────────────────────────────────────────
-    // El soroll de caràcters pot ser baix però el text ser semànticament il·legible
-    // (ex: "CRERTE T10y5. ferp ll" — tots alfanumèrics però cap sentit semàntic).
+    // Detecta gibberish pur (>70% tokens corruptes) independent del domini.
+    // No judica si és SQL, HTML o programació — només si el text és llegible.
     const semantic = detectSemanticOcrQuality(text)
     if (semantic.quality === 'unreadable') {
       if (hasImageCrop) {
@@ -168,31 +205,31 @@ export function routeQuestionForEvaluation(
     return {
       question_id,
       route: 'text',
-      reason: `OCR status 'ok'. Soroll ${(noiseRatio * 100).toFixed(0)}%${sqlSignal ? ', senyal SQL detectat' : ''}. Gate semàntic: ${semantic.quality}. Text adequat per al canal text.`,
+      reason: `OCR status 'ok'. Soroll ${(noiseRatio * 100).toFixed(0)}%${technicalSignal ? ', senyal tècnic detectat' : ''}. Gate semàntic: ${semantic.quality}. Text adequat per al canal text.`,
     }
   }
 
   // ── Status 'uncertain' ─────────────────────────────────────────────────────
 
   if (ocr_status === 'uncertain') {
-    if (sqlSignal) {
+    if (technicalSignal) {
       return {
         question_id,
         route: 'text',
-        reason: `OCR 'uncertain' però senyal SQL reconeixible. El grader pot inferir la intenció tècnica. Canal text amb confiança reduïda esperada.`,
+        reason: `OCR 'uncertain' però senyal tècnic recognoscible. El grader pot inferir la intenció. Canal text amb confiança reduïda esperada.`,
       }
     }
     if (hasImageCrop) {
       return {
         question_id,
         route: 'vision',
-        reason: `OCR 'uncertain' i sense senyal SQL. Crop disponible → canal vision.`,
+        reason: `OCR 'uncertain' i sense senyal tècnic. Crop disponible → canal vision.`,
       }
     }
     return {
       question_id,
       route: 'skip',
-      reason: `OCR 'uncertain', sense senyal SQL reconeixible i sense crop d'imatge. Text massa dubtós per avaluar.`,
+      reason: `OCR 'uncertain', sense senyal tècnic recognoscible i sense crop d'imatge. Text massa dubtós per avaluar.`,
     }
   }
 

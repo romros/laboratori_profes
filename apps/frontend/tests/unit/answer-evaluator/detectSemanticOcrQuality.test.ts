@@ -62,9 +62,11 @@ describe('detectSemanticOcrQuality — casos usable', () => {
 // ── Casos clarament il·legibles (unreadable) ──────────────────────────────────
 
 describe('detectSemanticOcrQuality — casos unreadable', () => {
-  it('text corrupte clàssic Spike 3.D alumne-2 Q1 → unreadable', () => {
-    // Text real OCR del Spike 3.D — tokens morfològicament "plausibles" però 0 senyals SQL
-    // La detecció és per absència de senyal SQL, no per gibberish de caràcters
+  it('text corrupte clàssic Spike 3.D alumne-2 Q1 → no usable (gibberish o uncertain)', () => {
+    // Text real OCR del Spike 3.D — tokens morfològicament "plausibles" però 0 senyals tècnics.
+    // El gate no assumeix domini: retorna uncertain (el LLM decidirà), no unreadable.
+    // El cas seria unreadable si el gibberish fos >70%, però aquí els tokens passen com a
+    // "plausibles" (lletres normals) — és OCR corrupte semànticament, no gibberish de caràcters.
     const result = detectSemanticOcrQuality(`CRERTE T10y5. ferp ll
 Corda VT PO MN Y CEY AC LA OU L,
 da (UT LCT AJULL,
@@ -73,8 +75,9 @@ PUMEO (VT AdT AUULL, I
 idelem VARCMAL MI) vot AULL,
 CH EcCIe (meumenc YO)
 Ps`)
-    expect(result.quality).toBe('unreadable')
-    // No té senyal SQL reconeixible — cap token fuzzy SQL detectat
+    // Pot ser uncertain (tokens plausibles, 0 senyal tècnic) o unreadable (gibberish alt)
+    // — mai usable perquè no hi ha cap intenció tècnica detectada
+    expect(result.quality).not.toBe('usable')
     expect(result.sqlFuzzySignalCount).toBe(0)
   })
 
@@ -94,13 +97,12 @@ Ps`)
     expect(result.quality).toBe('unreadable')
   })
 
-  it('barreja absurda sense estructura SQL → no usable', () => {
-    // Sembla OCR d'un text completament diferent al de la pregunta (capçalera de document)
-    // Paraules catalanes reals però sense senyal SQL → no pot ser usable
+  it('capçalera de document sense senyal tècnic → uncertain (no usable)', () => {
+    // Sembla OCR d'una capçalera, no d'una resposta. Paraules reals però 0 senyal tècnic.
+    // El gate retorna uncertain — el LLM veurà que no és una resposta avaluable.
     const result = detectSemanticOcrQuality(
       'Mcscizrt AVALUACIÓ N INS Francesc Vidal Barraquer de Catalunya escola',
     )
-    // Ha de ser uncertain (paraules reals, però no SQL) — mai usable
     expect(result.quality).not.toBe('usable')
     expect(result.sqlFuzzySignalCount).toBe(0)
   })
