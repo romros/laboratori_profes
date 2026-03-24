@@ -21,9 +21,7 @@ const API_KEY =
   process.env.FEATURE0_OPENAI_API_KEY
 
 if (!API_KEY) {
-  console.error(
-    'Cal ASSESSMENT_SPEC_OPENAI_API_KEY (o OPENAI_API_KEY). Atura.',
-  )
+  console.error('Cal ASSESSMENT_SPEC_OPENAI_API_KEY (o OPENAI_API_KEY). Atura.')
   process.exit(1)
 }
 

@@ -18,7 +18,10 @@ import { z } from 'zod'
 import { runQuestionAnswerExtractionFromPdf } from '../src/features/question-answer-extraction/services/runQuestionAnswerExtractionFromPdf'
 import { buildEvaluateAnswerPrompt } from '../src/features/answer-evaluator/services/evaluateAnswerPrompt'
 import { triageAnswerEvaluability } from '../src/features/answer-evaluator/services/triageAnswerEvaluability'
-import type { AssessmentSpec, QuestionSpec } from '../src/domain/assessment-spec/assessmentSpec.schema'
+import type {
+  AssessmentSpec,
+  QuestionSpec,
+} from '../src/domain/assessment-spec/assessmentSpec.schema'
 import type { AnswerForEvaluation } from '../src/domain/answer-evaluator/answerEvaluator.schema'
 import { hospitalDawExamDocumentContext } from '../tests/fixtures/assessment-spec-builder/hospitalDawGolden'
 import { callOpenAiCompatibleChat } from '../src/features/template-inference/services/openAiCompatibleChat'
@@ -28,24 +31,30 @@ import { callOpenAiCompatibleChat } from '../src/features/template-inference/ser
 const OPENAI_KEY = process.env.FEATURE0_OPENAI_API_KEY || process.env.OPENAI_API_KEY
 const CLAUDE_KEY = process.env.CLAUDE_API_KEY
 
-if (!OPENAI_KEY) { console.error('Cal FEATURE0_OPENAI_API_KEY'); process.exit(1) }
-if (!CLAUDE_KEY) { console.error('Cal CLAUDE_API_KEY'); process.exit(1) }
+if (!OPENAI_KEY) {
+  console.error('Cal FEATURE0_OPENAI_API_KEY')
+  process.exit(1)
+}
+if (!CLAUDE_KEY) {
+  console.error('Cal CLAUDE_API_KEY')
+  process.exit(1)
+}
 
 const ENRICHED_FIXTURE = resolve(
   process.cwd(),
   'tests/fixtures/assessment-spec-builder/hospitalDawGolden.enriched-output.json',
 )
 const spec = JSON.parse(readFileSync(ENRICHED_FIXTURE, 'utf8')) as AssessmentSpec
-const specById = new Map(spec.questions.map(q => [q.question_id, q]))
+const specById = new Map(spec.questions.map((q) => [q.question_id, q]))
 
 const PDF_PATHS = [
   resolve(process.cwd(), '../../data/ex_alumne2.pdf'), // alumne2: 15/15 detectades (OCR bo)
   resolve(process.cwd(), '../../data/ex_alumne3.pdf'), // alumne3: 14/15 detectades (OCR bo)
   resolve(process.cwd(), '../../data/ex_alumne1.pdf'), // alumne1: OCR parcial
-].filter(p => existsSync(p))
+].filter((p) => existsSync(p))
 
 if (PDF_PATHS.length === 0) {
-  console.error('No s\'han trobat PDFs a ../../data/ex_alumne{1,2,3}.pdf')
+  console.error("No s'han trobat PDFs a ../../data/ex_alumne{1,2,3}.pdf")
   process.exit(1)
 }
 
@@ -81,22 +90,42 @@ type ComparisonRow = {
 async function gradeOpenAI(q: QuestionSpec, answer: AnswerForEvaluation): Promise<ModelResult> {
   const t0 = Date.now()
   const triage = triageAnswerEvaluability(answer)
-  if (triage.evaluable_by_ocr === 'no') return { verdict: null, feedback: null, confidence: null, latencyMs: 0 }
-  const prompt = buildEvaluateAnswerPrompt({ questionSpec: q, answerText: answer.answer_text, examDocumentContext: hospitalDawExamDocumentContext })
+  if (triage.evaluable_by_ocr === 'no')
+    return { verdict: null, feedback: null, confidence: null, latencyMs: 0 }
+  const prompt = buildEvaluateAnswerPrompt({
+    questionSpec: q,
+    answerText: answer.answer_text,
+    examDocumentContext: hospitalDawExamDocumentContext,
+  })
   try {
     const raw = await callOpenAiCompatibleChat({
       apiKey: OPENAI_KEY!,
       baseUrl: 'https://api.openai.com/v1',
       model: 'gpt-5.4',
       messages: [
-        { role: 'system', content: "Ets un avaluador pedagògic expert. Respon NOMÉS amb JSON vàlid, sense markdown ni text fora del JSON." },
+        {
+          role: 'system',
+          content:
+            'Ets un avaluador pedagògic expert. Respon NOMÉS amb JSON vàlid, sense markdown ni text fora del JSON.',
+        },
         { role: 'user', content: prompt },
       ],
     })
     const p = llmVerdictSchema.parse(JSON.parse(raw.trim()))
-    return { verdict: p.verdict, feedback: p.feedback, confidence: p.confidence, latencyMs: Date.now() - t0 }
+    return {
+      verdict: p.verdict,
+      feedback: p.feedback,
+      confidence: p.confidence,
+      latencyMs: Date.now() - t0,
+    }
   } catch (e) {
-    return { verdict: null, feedback: null, confidence: null, latencyMs: Date.now() - t0, error: String(e) }
+    return {
+      verdict: null,
+      feedback: null,
+      confidence: null,
+      latencyMs: Date.now() - t0,
+      error: String(e),
+    }
   }
 }
 
@@ -105,27 +134,54 @@ async function gradeOpenAI(q: QuestionSpec, answer: AnswerForEvaluation): Promis
 async function gradeClaude(q: QuestionSpec, answer: AnswerForEvaluation): Promise<ModelResult> {
   const t0 = Date.now()
   const triage = triageAnswerEvaluability(answer)
-  if (triage.evaluable_by_ocr === 'no') return { verdict: null, feedback: null, confidence: null, latencyMs: 0 }
-  const prompt = buildEvaluateAnswerPrompt({ questionSpec: q, answerText: answer.answer_text, examDocumentContext: hospitalDawExamDocumentContext })
+  if (triage.evaluable_by_ocr === 'no')
+    return { verdict: null, feedback: null, confidence: null, latencyMs: 0 }
+  const prompt = buildEvaluateAnswerPrompt({
+    questionSpec: q,
+    answerText: answer.answer_text,
+    examDocumentContext: hospitalDawExamDocumentContext,
+  })
   try {
     const res = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'x-api-key': CLAUDE_KEY!, 'anthropic-version': '2023-06-01' },
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': CLAUDE_KEY!,
+        'anthropic-version': '2023-06-01',
+      },
       body: JSON.stringify({
         model: 'claude-sonnet-4-6',
         max_tokens: 512,
-        system: "Ets un avaluador pedagògic expert. Avalues respostes d'alumnes contra un AssessmentSpec del professor. Respon NOMÉS amb JSON vàlid, sense markdown ni text fora del JSON.",
+        system:
+          "Ets un avaluador pedagògic expert. Avalues respostes d'alumnes contra un AssessmentSpec del professor. Respon NOMÉS amb JSON vàlid, sense markdown ni text fora del JSON.",
         messages: [{ role: 'user', content: prompt }],
       }),
     })
-    const body = await res.json() as { content?: { type: string; text: string }[]; error?: { message: string } }
+    const body = (await res.json()) as {
+      content?: { type: string; text: string }[]
+      error?: { message: string }
+    }
     if (!res.ok) throw new Error(body.error?.message ?? `HTTP ${res.status}`)
-    const text = body.content?.find(c => c.type === 'text')?.text ?? ''
-    const cleaned = text.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '').trim()
+    const text = body.content?.find((c) => c.type === 'text')?.text ?? ''
+    const cleaned = text
+      .replace(/^```(?:json)?\s*/i, '')
+      .replace(/\s*```$/, '')
+      .trim()
     const p = llmVerdictSchema.parse(JSON.parse(cleaned))
-    return { verdict: p.verdict, feedback: p.feedback, confidence: p.confidence, latencyMs: Date.now() - t0 }
+    return {
+      verdict: p.verdict,
+      feedback: p.feedback,
+      confidence: p.confidence,
+      latencyMs: Date.now() - t0,
+    }
   } catch (e) {
-    return { verdict: null, feedback: null, confidence: null, latencyMs: Date.now() - t0, error: String(e) }
+    return {
+      verdict: null,
+      feedback: null,
+      confidence: null,
+      latencyMs: Date.now() - t0,
+      error: String(e),
+    }
   }
 }
 
@@ -144,7 +200,7 @@ for (const pdfPath of PDF_PATHS) {
 
   // Ordenem per question_id numèric i limitem a les primeres 8 per cost
   const items = [...qaeResult.items]
-    .filter(item => item.status !== 'empty' || item.question_id <= 'Q5') // inclou empties fins Q5
+    .filter((item) => item.status !== 'empty' || item.question_id <= 'Q5') // inclou empties fins Q5
     .slice(0, 8)
 
   console.error(`[${studentId}] Avaluant ${items.length} preguntes...`)
@@ -154,7 +210,9 @@ for (const pdfPath of PDF_PATHS) {
     const specKey = item.question_id.startsWith('Q') ? item.question_id : `Q${item.question_id}`
     const q = specById.get(specKey)
     if (!q) {
-      console.error(`[${studentId}] ${item.question_id} → ${specKey} no trobat a l'AssessmentSpec, skip`)
+      console.error(
+        `[${studentId}] ${item.question_id} → ${specKey} no trobat a l'AssessmentSpec, skip`,
+      )
       continue
     }
 
@@ -183,18 +241,22 @@ for (const pdfPath of PDF_PATHS) {
 
 // ── Anàlisi ───────────────────────────────────────────────────────────────────
 
-const gradedRows = allRows.filter(r => r.gpt.verdict !== null && r.claude.verdict !== null)
-const noEvalRows = allRows.filter(r => r.gpt.verdict === null && r.claude.verdict === null)
-const matches = gradedRows.filter(r => r.verdict_match).length
-const discrepancies = gradedRows.filter(r => !r.verdict_match)
+const gradedRows = allRows.filter((r) => r.gpt.verdict !== null && r.claude.verdict !== null)
+const noEvalRows = allRows.filter((r) => r.gpt.verdict === null && r.claude.verdict === null)
+const matches = gradedRows.filter((r) => r.verdict_match).length
+const discrepancies = gradedRows.filter((r) => !r.verdict_match)
 
-const okRows = gradedRows.filter(r => r.ocr_status === 'ok')
-const uncertainRows = gradedRows.filter(r => r.ocr_status === 'uncertain')
+const okRows = gradedRows.filter((r) => r.ocr_status === 'ok')
+const uncertainRows = gradedRows.filter((r) => r.ocr_status === 'uncertain')
 
 const avgConfGpt = (rows: typeof gradedRows) =>
-  rows.length ? (rows.reduce((s, r) => s + (r.gpt.confidence ?? 0), 0) / rows.length).toFixed(2) : '—'
+  rows.length
+    ? (rows.reduce((s, r) => s + (r.gpt.confidence ?? 0), 0) / rows.length).toFixed(2)
+    : '—'
 const avgConfClaude = (rows: typeof gradedRows) =>
-  rows.length ? (rows.reduce((s, r) => s + (r.claude.confidence ?? 0), 0) / rows.length).toFixed(2) : '—'
+  rows.length
+    ? (rows.reduce((s, r) => s + (r.claude.confidence ?? 0), 0) / rows.length).toFixed(2)
+    : '—'
 const avgLatGpt = (rows: typeof allRows) =>
   rows.length ? Math.round(rows.reduce((s, r) => s + r.gpt.latencyMs, 0) / rows.length) : 0
 const avgLatClaude = (rows: typeof allRows) =>
@@ -235,15 +297,15 @@ let md = `# Spike 3.B — Comparació de models per grading Feature 3
 | Total preguntes comparades | ${allRows.length} |
 | Preguntes amb veredicte (ambdós models) | ${gradedRows.length} |
 | No avaluades (OCR buit / no detectat) | ${noEvalRows.length} |
-| **Concordança de veredicte** | **${gradedRows.length ? Math.round(matches / gradedRows.length * 100) : 0}% (${matches}/${gradedRows.length})** |
+| **Concordança de veredicte** | **${gradedRows.length ? Math.round((matches / gradedRows.length) * 100) : 0}% (${matches}/${gradedRows.length})** |
 | Discrepàncies | ${discrepancies.length} |
 
 ### Per qualitat OCR
 
 | Qualitat OCR | N | Concordança | GPT conf. avg | Claude conf. avg | GPT lat. avg | Claude lat. avg |
 |---|---|---|---|---|---|---|
-| \`ok\` | ${okRows.length} | ${okRows.length ? Math.round(okRows.filter(r => r.verdict_match).length / okRows.length * 100) : 0}% | ${avgConfGpt(okRows)} | ${avgConfClaude(okRows)} | ${avgLatGpt(okRows)}ms | ${avgLatClaude(okRows)}ms |
-| \`uncertain\` | ${uncertainRows.length} | ${uncertainRows.length ? Math.round(uncertainRows.filter(r => r.verdict_match).length / uncertainRows.length * 100) : 0}% | ${avgConfGpt(uncertainRows)} | ${avgConfClaude(uncertainRows)} | ${avgLatGpt(uncertainRows)}ms | ${avgLatClaude(uncertainRows)}ms |
+| \`ok\` | ${okRows.length} | ${okRows.length ? Math.round((okRows.filter((r) => r.verdict_match).length / okRows.length) * 100) : 0}% | ${avgConfGpt(okRows)} | ${avgConfClaude(okRows)} | ${avgLatGpt(okRows)}ms | ${avgLatClaude(okRows)}ms |
+| \`uncertain\` | ${uncertainRows.length} | ${uncertainRows.length ? Math.round((uncertainRows.filter((r) => r.verdict_match).length / uncertainRows.length) * 100) : 0}% | ${avgConfGpt(uncertainRows)} | ${avgConfClaude(uncertainRows)} | ${avgLatGpt(uncertainRows)}ms | ${avgLatClaude(uncertainRows)}ms |
 
 ---
 
@@ -276,7 +338,8 @@ for (const row of allRows) {
     if (row.claude.error) md += `> ⚠ Claude error: ${row.claude.error}\n\n`
 
     if (row.gpt.feedback) md += `**Feedback GPT:** ${escMd(truncate(row.gpt.feedback, 300))}\n\n`
-    if (row.claude.feedback) md += `**Feedback Claude:** ${escMd(truncate(row.claude.feedback, 300))}\n\n`
+    if (row.claude.feedback)
+      md += `**Feedback Claude:** ${escMd(truncate(row.claude.feedback, 300))}\n\n`
 
     if (!row.verdict_match) {
       md += `> ⚠ **Discrepància:** GPT=${row.gpt.verdict}, Claude=${row.claude.verdict}\n\n`
@@ -330,16 +393,20 @@ md += `## Observacions qualitatives
 ## Dades raw (JSON)
 
 \`\`\`json
-${JSON.stringify(allRows.map(r => ({
-  student_id: r.student_id,
-  question_id: r.question_id,
-  ocr_status: r.ocr_status,
-  verdict_match: r.verdict_match,
-  gpt_verdict: r.gpt.verdict,
-  gpt_confidence: r.gpt.confidence,
-  claude_verdict: r.claude.verdict,
-  claude_confidence: r.claude.confidence,
-})), null, 2)}
+${JSON.stringify(
+  allRows.map((r) => ({
+    student_id: r.student_id,
+    question_id: r.question_id,
+    ocr_status: r.ocr_status,
+    verdict_match: r.verdict_match,
+    gpt_verdict: r.gpt.verdict,
+    gpt_confidence: r.gpt.confidence,
+    claude_verdict: r.claude.verdict,
+    claude_confidence: r.claude.confidence,
+  })),
+  null,
+  2,
+)}
 \`\`\`
 `
 
@@ -356,11 +423,15 @@ console.log('RESUM SPIKE 3.B')
 console.log('='.repeat(60))
 console.log(`Total preguntes: ${allRows.length}`)
 console.log(`Amb veredicte: ${gradedRows.length}  No avaluades: ${noEvalRows.length}`)
-console.log(`Concordança: ${gradedRows.length ? Math.round(matches / gradedRows.length * 100) : 0}% (${matches}/${gradedRows.length})`)
+console.log(
+  `Concordança: ${gradedRows.length ? Math.round((matches / gradedRows.length) * 100) : 0}% (${matches}/${gradedRows.length})`,
+)
 console.log(`Discrepàncies: ${discrepancies.length}`)
 if (discrepancies.length > 0) {
   for (const r of discrepancies) {
-    console.log(`  ↳ ${r.student_id} ${r.question_id} [${r.ocr_status}]: GPT=${r.gpt.verdict} Claude=${r.claude.verdict}`)
+    console.log(
+      `  ↳ ${r.student_id} ${r.question_id} [${r.ocr_status}]: GPT=${r.gpt.verdict} Claude=${r.claude.verdict}`,
+    )
   }
 }
 console.log(`\nGPT  conf.avg (ok): ${avgConfGpt(okRows)}  lat.avg: ${avgLatGpt(allRows)}ms`)
