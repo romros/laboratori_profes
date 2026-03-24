@@ -1,6 +1,6 @@
 # Estat del projecte (operatiu)
 
-**Darrera actualització:** 2026-03-24 (Feature 3 MVP implementat — pendent de validació real)
+**Darrera actualització:** 2026-03-24 (Loop de validació OCR gate — iteració 1/4)
 
 Només **estat i verificació**. Normativa: **`AGENTS_ARQUITECTURA.md`**. Ordre de lectura: **`llm.txt`**.
 
@@ -13,9 +13,9 @@ Només **estat i verificació**. Normativa: **`AGENTS_ARQUITECTURA.md`**. Ordre 
 | **Feature 0** — Template inference + layout mapping | **DONE** | Viabilitat plantilla (LLM) + mapping anchor→zones. 4 PDFs reals validats. |
 | **Feature 1** — Question-answer extraction (OCR) | **DONE** | OCR + segmentació per marcadors. 4 alumnes reals. Limitació: scans de molt baixa qualitat fora d’abast. |
 | **Feature 2** — Assessment Spec Builder | **DONE / CONGELADA** | Dues passades LLM (MODE OPERATIU + MODE PEDAGÒGIC) + `examDocumentContext`. Prerequisit de Feature 3. |
-| **Feature 3** — Answer Evaluator | **MVP implementat — pendent validació real** | OCR triage + grading conceptual + MODE PROFESSOR. 283 tests. Casos reals OCR pendents. |
+| **Feature 3** — Answer Evaluator | **MVP implementat — loop validació OCR gate (iter 1/4)** | Router integrat, gate semàntic domain-agnostic. 327 tests. Loop actiu: `docs/spikes/ocr-gate-loop/`. |
 
-**Validació canònica:** `./scripts/run_frontend.sh lint|typecheck|test|build` (Docker `frontend-check`). 283 tests passant.
+**Validació canònica:** `./scripts/run_frontend.sh lint|typecheck|test|build` (Docker `frontend-check`). 327 tests passant.
 
 ---
 
@@ -120,7 +120,7 @@ Evidència completa: `docs/benchmarks/ocr-benchmark-2026-03-22.md`.
 
 ---
 
-## Feature 3 — Answer Evaluator — **DEFINIDA, pendent d'implementació**
+## Feature 3 — Answer Evaluator — **MVP implementat — loop validació OCR gate**
 
 **Avalua les respostes OCR d’un alumne contra un `AssessmentSpec` i produeix un veredicte pedagògic per pregunta.**
 
@@ -129,19 +129,31 @@ Evidència completa: `docs/benchmarks/ocr-benchmark-2026-03-22.md`.
 | Component | Fitxer | Rol |
 |-----------|--------|-----|
 | Schema | `domain/answer-evaluator/answerEvaluator.schema.ts` | Types Zod: `AnswerForEvaluation`, `QuestionEvaluation`, `ExamEvaluationResult` |
-| OCR triage | `features/answer-evaluator/services/triageAnswerEvaluability.ts` | PAS 1 sense LLM |
+| Gate semàntic | `features/answer-evaluator/services/detectSemanticOcrQuality.ts` | Detecció gibberish domain-agnostic |
+| Router pre-LLM | `features/answer-evaluator/services/routeQuestionForEvaluation.ts` | Decideix `text\|vision\|skip` |
 | Prompt jutge | `features/answer-evaluator/services/evaluateAnswerPrompt.ts` | MODE PROFESSOR + CONTEXT OCR + GUARDRAIL |
 | Servei | `features/answer-evaluator/services/evaluateAnswer.ts` | 1 LLM call per pregunta |
 | Orquestrador | `features/answer-evaluator/services/gradeExam.ts` | Pipeline complet per examen |
 
-### Evidència MVP
+### Evidència MVP + router + gate
 
 | Verificació | Commit | Resultat |
 |-------------|--------|---------|
-| Schema + triage + prompt + serveis + tests | `dcbe7a8` | ✅ 283 tests |
-| Context OCR al prompt | `003e231` | ✅ |
-| lint + typecheck | 2026-03-24 | ✅ |
-| Casos reals OCR | — | ⏳ pendent (`spike:grade-exam`) |
+| Schema + prompt + serveis + tests | `dcbe7a8` | ✅ |
+| Router integrat a `gradeExam` | Spike 3.C | ✅ |
+| Gate semàntic (`detectSemanticOcrQuality`) | Feature 0.4 | ✅ 7/36 falsos ok eliminats |
+| Gate domain-agnostic (`hasTechnicalSignal`) | `0c9f570` | ✅ 327 tests |
+| Spike 3.D (validació canal text) | `spike-3d-...md` | ⚠ 33% concordança — loop actiu |
+
+### Loop de validació OCR gate (actiu)
+
+**Objectiu:** determinar si el gate pot separar amb fiabilitat raonable `text` de `skip`.
+
+**Estat:** Iteració 1 en curs. Dataset congelat: 36 preguntes (alumne-1/2/3). Màxim 4 iteracions.
+
+Evidència: `docs/spikes/ocr-gate-loop/`
+
+**Sortides possibles:** FET (precision ≥ 0.70) o VIA MORTA → OCR server-side / vision.
 
 ### Feature 3 NO inclou (MVP)
 
@@ -149,13 +161,6 @@ Evidència completa: `docs/benchmarks/ocr-benchmark-2026-03-22.md`.
 - Feedback directe a l’alumne (el feedback és per al professor)
 - Batch massiu d’alumnes (un alumne per crida)
 - Persistència de resultats
-- Calibratge de models ni personalització per professor
-
-### Riscos oberts
-
-- Qualitat del grading amb text OCR real corromput
-- Calibratge del llindar `partial` vs `incorrect`
-- Cost LLM per examen complet (un call per pregunta avaluable)
 
 **Doc complet:** `docs/features/answer-evaluator/README.md`.
 
@@ -166,15 +171,16 @@ Evidència completa: `docs/benchmarks/ocr-benchmark-2026-03-22.md`.
 - **Feature 0 (coordenades físiques):** geometria en coordenades de pàgina reals (x/y bbox) — fora d’abast del MVP actual. No prioritat fins que PM ho demani.
 - **Feature 0 (backend Capa 1):** ruta `/api/feature0/analysis` funciona via plugin Vite; en producció caldria backend Node independent. Pendent PM.
 - **Feature 2 (producte):** persistència estable d’`AssessmentSpec` per convocatòria, UI de revisió (pendent PM). No bloqueja Feature 3.
-- **Feature 3 (validació real):** executar `spike:grade-exam` amb exàmens reals OCR. El codi és llest; falta evidència de qualitat real del grading.
+- **Feature 3 (loop OCR gate):** Loop actiu a `docs/spikes/ocr-gate-loop/`. Màxim 4 iteracions. Sortida: FET o VIA MORTA → OCR server-side / vision.
 
 ---
 
 ## Següent pas
 
-**Feature 0, Feature 1 i Feature 2 tancades i congelades. Feature 3 MVP implementat, pendent de validació real.**
+**Feature 0, Feature 1 i Feature 2 tancades i congelades. Feature 3 MVP implementat, en loop de validació OCR gate.**
 
-- **Feature 3 — validació real:** `npm run spike:grade-exam -w @profes/frontend` (requereix clau API). Verificar que el grading és útil per al professor amb text OCR real.
-- **Posteriorment:** Feature 3.2 (batch + export) si PM ho valida.
+- **Actiu:** Loop OCR gate — iteració 1/4. Veure `docs/spikes/ocr-gate-loop/iteration-01.md`.
+- **Si FET:** Feature 3 validada, passar a Feature 3.2 (batch + export) si PM ho valida.
+- **Si VIA MORTA (≤ iter 4):** tancar línia gate i passar a OCR server-side fallback o canal vision.
 
 Validació habitual: `./scripts/run_frontend.sh …` (Docker).
