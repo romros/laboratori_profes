@@ -4,6 +4,7 @@ import type {
   ExamEvaluationResult,
 } from '../../../domain/answer-evaluator/answerEvaluator.schema'
 import { evaluateAnswer } from './evaluateAnswer'
+import { routeQuestionForEvaluation } from './routeQuestionForEvaluation'
 
 export type GradeExamInput = {
   student_id: string
@@ -22,11 +23,12 @@ export type GradeExamParams = GradeExamInput & {
 /**
  * Orquestrador principal de Feature 3 MVP.
  * Per cada resposta:
- *   1. OCR triage (sense LLM)
- *   2. Si avaluable → crida LLM (evaluateAnswer)
- *   3. Retorna ExamEvaluationResult complet
+ *   1. Router pre-LLM (routeQuestionForEvaluation) — sense LLM
+ *   2. text  → evaluateAnswer (un LLM call)
+ *      vision → reservat MVP (tractat com skip)
+ *      skip   → veredicte null, sense LLM
  *
- * Cada pregunta s'avalua de forma independent (un LLM call per pregunta avaluable).
+ * Invariant: cap pregunta passa per dos canals en la mateixa execució.
  */
 export async function gradeExam(params: GradeExamParams): Promise<ExamEvaluationResult> {
   const {
@@ -58,6 +60,33 @@ export async function gradeExam(params: GradeExamParams): Promise<ExamEvaluation
         }
       }
 
+      // ── Router pre-LLM ────────────────────────────────────────────────────────
+      const routing = routeQuestionForEvaluation(answer)
+
+      if (routing.route === 'skip') {
+        return {
+          question_id: answer.question_id,
+          evaluable_by_ocr: 'no' as const,
+          evaluability_reason: routing.reason,
+          verdict: null,
+          feedback: null,
+          confidence: null,
+        }
+      }
+
+      if (routing.route === 'vision') {
+        // Vision reservat per MVP — sense crops disponibles → tractat com skip
+        return {
+          question_id: answer.question_id,
+          evaluable_by_ocr: 'no' as const,
+          evaluability_reason: `Canal vision reservat (MVP sense crops): ${routing.reason}`,
+          verdict: null,
+          feedback: null,
+          confidence: null,
+        }
+      }
+
+      // routing.route === 'text' → canal textual → LLM call
       return evaluateAnswer({
         questionSpec,
         answer,

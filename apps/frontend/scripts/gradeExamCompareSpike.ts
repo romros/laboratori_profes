@@ -17,7 +17,10 @@ import { z } from 'zod'
 
 import { buildEvaluateAnswerPrompt } from '../src/features/answer-evaluator/services/evaluateAnswerPrompt'
 import { triageAnswerEvaluability } from '../src/features/answer-evaluator/services/triageAnswerEvaluability'
-import type { AssessmentSpec, QuestionSpec } from '../src/domain/assessment-spec/assessmentSpec.schema'
+import type {
+  AssessmentSpec,
+  QuestionSpec,
+} from '../src/domain/assessment-spec/assessmentSpec.schema'
 import type { AnswerForEvaluation } from '../src/domain/answer-evaluator/answerEvaluator.schema'
 import { hospitalDawExamDocumentContext } from '../tests/fixtures/assessment-spec-builder/hospitalDawGolden'
 import { callOpenAiCompatibleChat } from '../src/features/template-inference/services/openAiCompatibleChat'
@@ -25,8 +28,14 @@ import { callOpenAiCompatibleChat } from '../src/features/template-inference/ser
 const OPENAI_KEY = process.env.FEATURE0_OPENAI_API_KEY || process.env.OPENAI_API_KEY
 const CLAUDE_KEY = process.env.CLAUDE_API_KEY
 
-if (!OPENAI_KEY) { console.error('Cal FEATURE0_OPENAI_API_KEY'); process.exit(1) }
-if (!CLAUDE_KEY) { console.error('Cal CLAUDE_API_KEY'); process.exit(1) }
+if (!OPENAI_KEY) {
+  console.error('Cal FEATURE0_OPENAI_API_KEY')
+  process.exit(1)
+}
+if (!CLAUDE_KEY) {
+  console.error('Cal CLAUDE_API_KEY')
+  process.exit(1)
+}
 
 const ENRICHED_FIXTURE = resolve(
   process.cwd(),
@@ -118,14 +127,29 @@ async function gradeOpenAI(q: QuestionSpec, answer: AnswerForEvaluation): Promis
       baseUrl: 'https://api.openai.com/v1',
       model: 'gpt-5.4',
       messages: [
-        { role: 'system', content: "Ets un avaluador pedagògic expert. Respon NOMÉS amb JSON vàlid, sense markdown ni text fora del JSON." },
+        {
+          role: 'system',
+          content:
+            'Ets un avaluador pedagògic expert. Respon NOMÉS amb JSON vàlid, sense markdown ni text fora del JSON.',
+        },
         { role: 'user', content: userContent },
       ],
     })
     const parsed = llmVerdictSchema.parse(JSON.parse(raw.trim()))
-    return { verdict: parsed.verdict, feedback: parsed.feedback, confidence: parsed.confidence, latencyMs: Date.now() - t0 }
+    return {
+      verdict: parsed.verdict,
+      feedback: parsed.feedback,
+      confidence: parsed.confidence,
+      latencyMs: Date.now() - t0,
+    }
   } catch (e) {
-    return { verdict: null, feedback: null, confidence: null, error: String(e), latencyMs: Date.now() - t0 }
+    return {
+      verdict: null,
+      feedback: null,
+      confidence: null,
+      error: String(e),
+      latencyMs: Date.now() - t0,
+    }
   }
 }
 
@@ -152,27 +176,44 @@ async function gradeClaude(q: QuestionSpec, answer: AnswerForEvaluation): Promis
       body: JSON.stringify({
         model: 'claude-sonnet-4-6',
         max_tokens: 512,
-        system: "Ets un avaluador pedagògic expert. Avalues respostes d'alumnes contra un AssessmentSpec del professor. Respon NOMÉS amb JSON vàlid, sense markdown ni text fora del JSON.",
+        system:
+          "Ets un avaluador pedagògic expert. Avalues respostes d'alumnes contra un AssessmentSpec del professor. Respon NOMÉS amb JSON vàlid, sense markdown ni text fora del JSON.",
         messages: [{ role: 'user', content: userContent }],
       }),
     })
-    const body = await res.json() as { content?: { type: string; text: string }[]; error?: { message: string } }
+    const body = (await res.json()) as {
+      content?: { type: string; text: string }[]
+      error?: { message: string }
+    }
     if (!res.ok) throw new Error(body.error?.message ?? `HTTP ${res.status}`)
-    const text = body.content?.find(c => c.type === 'text')?.text ?? ''
+    const text = body.content?.find((c) => c.type === 'text')?.text ?? ''
     // Claude de vegades envolta el JSON en ```json ... ```
-    const cleaned = text.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '').trim()
+    const cleaned = text
+      .replace(/^```(?:json)?\s*/i, '')
+      .replace(/\s*```$/, '')
+      .trim()
     const parsed = llmVerdictSchema.parse(JSON.parse(cleaned))
-    return { verdict: parsed.verdict, feedback: parsed.feedback, confidence: parsed.confidence, latencyMs: Date.now() - t0 }
+    return {
+      verdict: parsed.verdict,
+      feedback: parsed.feedback,
+      confidence: parsed.confidence,
+      latencyMs: Date.now() - t0,
+    }
   } catch (e) {
-    return { verdict: null, feedback: null, confidence: null, error: String(e), latencyMs: Date.now() - t0 }
+    return {
+      verdict: null,
+      feedback: null,
+      confidence: null,
+      error: String(e),
+      latencyMs: Date.now() - t0,
+    }
   }
 }
 
 // ---- execució ----
-const specById = new Map(spec.questions.map(q => [q.question_id, q]))
+const specById = new Map(spec.questions.map((q) => [q.question_id, q]))
 
 const SEP = '='.repeat(70)
-const sep = '-'.repeat(70)
 
 console.log(SEP)
 console.log('COMPARACIÓ Feature 3 — gpt-5.4  vs  claude-sonnet-4-6')
@@ -195,21 +236,22 @@ for (const answer of answers) {
   }
 
   // execució paral·lela
-  const [openai, claude] = await Promise.all([
-    gradeOpenAI(q, answer),
-    gradeClaude(q, answer),
-  ])
+  const [openai, claude] = await Promise.all([gradeOpenAI(q, answer), gradeClaude(q, answer)])
 
   const verdictIcon = (v: string | null) =>
     v === 'correct' ? '✅' : v === 'partial' ? '🟡' : v === 'incorrect' ? '❌' : '—'
 
   console.log(`│`)
   console.log(`│   ┌─ gpt-5.4 (${openai.latencyMs}ms)`)
-  console.log(`│   │  verdict: ${verdictIcon(openai.verdict)} ${openai.verdict ?? '—'}  confidence: ${openai.confidence?.toFixed(2) ?? '—'}`)
+  console.log(
+    `│   │  verdict: ${verdictIcon(openai.verdict)} ${openai.verdict ?? '—'}  confidence: ${openai.confidence?.toFixed(2) ?? '—'}`,
+  )
   console.log(`│   │  feedback: ${openai.error ? '⚠ ' + openai.error : openai.feedback}`)
   console.log(`│   │`)
   console.log(`│   └─ claude-sonnet-4-6 (${claude.latencyMs}ms)`)
-  console.log(`│      verdict: ${verdictIcon(claude.verdict)} ${claude.verdict ?? '—'}  confidence: ${claude.confidence?.toFixed(2) ?? '—'}`)
+  console.log(
+    `│      verdict: ${verdictIcon(claude.verdict)} ${claude.verdict ?? '—'}  confidence: ${claude.confidence?.toFixed(2) ?? '—'}`,
+  )
   console.log(`│      feedback: ${claude.error ? '⚠ ' + claude.error : claude.feedback}`)
   console.log(`│`)
 
