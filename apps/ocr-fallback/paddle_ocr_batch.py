@@ -39,10 +39,7 @@ def main() -> None:
 
     print(f"Inicialitzant PaddleOCR ({len(png_files)} fitxers)…", file=sys.stderr)
     ocr = PaddleOCR(
-        use_angle_cls=False,
         lang="en",
-        use_gpu=False,
-        show_log=False,
     )
 
     results: dict[str, str] = {}
