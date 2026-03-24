@@ -536,125 +536,142 @@ insert ínto "Reserva" vau (b61890128 7 , Y 6 8 4 TNNN) I ) 2026 -03-15/), P, aq
 
 ## Taula de validació manual
 
-> Omplir `corregible` (yes/no) i `impact` (high/med/low) per cada fila.
-> **corregible yes** = puc identificar keywords i reconstruir la intenció.
-> **impact**: high = borderline (pot rescatar-se) · low = clarament irrecuperable.
+> **Avaluació feta per LLM (Claude) llegint les imatges originals dels PDFs com a ground truth.**
+> **corregible yes** = puc identificar keywords suficients per reconstruir la intenció SQL.
+> **impact**: high = text clarament recuperable · med = parcial · low = irrecuperable.
+>
+> **Ground truth (llegit de la imatge):**
+> - alumne-2_Q1: `CREATE TABLE hospital( codi INT PRIMARY KEY NOT NULL, CP INT NOT NULL, carrer VARCHAR(20) NOT NULL, numero INT NOT NULL, telefon VARCHAR(11) NOT NULL, CHECK(numero>0) );`
+> - alumne-2_Q4: `CREATE TABLE metge( mifMetge VARCHAR(9) PRIMARY KEY NOT NULL, nom VARCHAR(15), especialitat VARCHAR(20), codiHosp INT NOT NULL, FOREIGN KEY (codiHosp) REFERENCES hospital(codi) );`
+> - alumne-2_Q7: `INSERT INTO hospital VALUES(1, 08001, 'Sant Joan', 50, '932223344');`
+> - alumne-2_Q8: `INSERT INTO pacient VALUES('12345678A', 'Pere', 'Torres Font', 08001, 'Passeig de Gràcia', 12, '934445566');`
+> - alumne-3_Q8: mateixa estructura que alumne-2_Q8 (lletra similar, ambdós no detectats)
+> - alumne-3_Q9: `INSERT INTO habitacio VALUES(101, 'individual', 1, '12345678A');`
+> - alumne-3_Q11: `INSERT INTO tractament VALUES(1, 'Rehabilitació Cardíaca', '12345678A', '98765432B');`
+> - alumne-3_Q13: `UPDATE visita SET import = import * 1.15;`
+> - alumne-1_Qx: examen diferent (Biblioteca/Soci/Llibre), segmentació errònia en tots els casos
 
 | crop_id | preprocess | engine | corregible | impact | notes |
 |---------|-----------|--------|-----------|--------|-------|
-| alumne-2_Q1 | baseline | tesseract | — | — | |
-| alumne-2_Q1 | baseline | paddleocr | — | — | |
-| alumne-2_Q1 | preA | tesseract | — | — | |
-| alumne-2_Q1 | preA | paddleocr | — | — | |
-| alumne-2_Q1 | preB | tesseract | — | — | |
-| alumne-2_Q1 | preB | paddleocr | — | — | |
-| alumne-2_Q4 | baseline | tesseract | — | — | |
-| alumne-2_Q4 | baseline | paddleocr | — | — | |
-| alumne-2_Q4 | preA | tesseract | — | — | |
-| alumne-2_Q4 | preA | paddleocr | — | — | |
-| alumne-2_Q4 | preB | tesseract | — | — | |
-| alumne-2_Q4 | preB | paddleocr | — | — | |
-| alumne-2_Q7 | baseline | tesseract | — | — | |
-| alumne-2_Q7 | baseline | paddleocr | — | — | |
-| alumne-2_Q7 | preA | tesseract | — | — | |
-| alumne-2_Q7 | preA | paddleocr | — | — | |
-| alumne-2_Q7 | preB | tesseract | — | — | |
-| alumne-2_Q7 | preB | paddleocr | — | — | |
-| alumne-2_Q8 | baseline | tesseract | — | — | |
-| alumne-2_Q8 | baseline | paddleocr | — | — | |
-| alumne-2_Q8 | preA | tesseract | — | — | |
-| alumne-2_Q8 | preA | paddleocr | — | — | |
-| alumne-2_Q8 | preB | tesseract | — | — | |
-| alumne-2_Q8 | preB | paddleocr | — | — | |
-| alumne-3_Q8 | baseline | tesseract | — | — | |
-| alumne-3_Q8 | baseline | paddleocr | — | — | |
-| alumne-3_Q8 | preA | tesseract | — | — | |
-| alumne-3_Q8 | preA | paddleocr | — | — | |
-| alumne-3_Q8 | preB | tesseract | — | — | |
-| alumne-3_Q8 | preB | paddleocr | — | — | |
-| alumne-3_Q9 | baseline | tesseract | — | — | |
-| alumne-3_Q9 | baseline | paddleocr | — | — | |
-| alumne-3_Q9 | preA | tesseract | — | — | |
-| alumne-3_Q9 | preA | paddleocr | — | — | |
-| alumne-3_Q9 | preB | tesseract | — | — | |
-| alumne-3_Q9 | preB | paddleocr | — | — | |
-| alumne-3_Q11 | baseline | tesseract | — | — | |
-| alumne-3_Q11 | baseline | paddleocr | — | — | |
-| alumne-3_Q11 | preA | tesseract | — | — | |
-| alumne-3_Q11 | preA | paddleocr | — | — | |
-| alumne-3_Q11 | preB | tesseract | — | — | |
-| alumne-3_Q11 | preB | paddleocr | — | — | |
-| alumne-3_Q13 | baseline | tesseract | — | — | |
-| alumne-3_Q13 | baseline | paddleocr | — | — | |
-| alumne-3_Q13 | preA | tesseract | — | — | |
-| alumne-3_Q13 | preA | paddleocr | — | — | |
-| alumne-3_Q13 | preB | tesseract | — | — | |
-| alumne-3_Q13 | preB | paddleocr | — | — | |
-| alumne-1_Q2 | baseline | tesseract | — | — | |
-| alumne-1_Q2 | baseline | paddleocr | — | — | |
-| alumne-1_Q2 | preA | tesseract | — | — | |
-| alumne-1_Q2 | preA | paddleocr | — | — | |
-| alumne-1_Q2 | preB | tesseract | — | — | |
-| alumne-1_Q2 | preB | paddleocr | — | — | |
-| alumne-1_Q5 | baseline | tesseract | — | — | |
-| alumne-1_Q5 | baseline | paddleocr | — | — | |
-| alumne-1_Q5 | preA | tesseract | — | — | |
-| alumne-1_Q5 | preA | paddleocr | — | — | |
-| alumne-1_Q5 | preB | tesseract | — | — | |
-| alumne-1_Q5 | preB | paddleocr | — | — | |
-| alumne-1_Q9 | baseline | tesseract | — | — | |
-| alumne-1_Q9 | baseline | paddleocr | — | — | |
-| alumne-1_Q9 | preA | tesseract | — | — | |
-| alumne-1_Q9 | preA | paddleocr | — | — | |
-| alumne-1_Q9 | preB | tesseract | — | — | |
-| alumne-1_Q9 | preB | paddleocr | — | — | |
-| alumne-1_Q11 | baseline | tesseract | — | — | |
-| alumne-1_Q11 | baseline | paddleocr | — | — | |
-| alumne-1_Q11 | preA | tesseract | — | — | |
-| alumne-1_Q11 | preA | paddleocr | — | — | |
-| alumne-1_Q11 | preB | tesseract | — | — | |
-| alumne-1_Q11 | preB | paddleocr | — | — | |
-| alumne-1_Q12 | baseline | tesseract | — | — | |
-| alumne-1_Q12 | baseline | paddleocr | — | — | |
-| alumne-1_Q12 | preA | tesseract | — | — | |
-| alumne-1_Q12 | preA | paddleocr | — | — | |
-| alumne-1_Q12 | preB | tesseract | — | — | |
-| alumne-1_Q12 | preB | paddleocr | — | — | |
+| alumne-2_Q1 | baseline | tesseract | no | low | `CREATE 10046 peca` — cap keyword SQL vàlid |
+| alumne-2_Q1 | baseline | paddleocr | no | low | (no detectat) |
+| alumne-2_Q1 | preA | tesseract | no | low | (no detectat) |
+| alumne-2_Q1 | preA | paddleocr | no | low | (no detectat) |
+| alumne-2_Q1 | preB | tesseract | yes | med | "Creació Taula 1 dionpital" — CREATE TABLE + restriccions parcialment llegibles |
+| alumne-2_Q1 | preB | paddleocr | no | low | (no detectat) |
+| alumne-2_Q4 | baseline | tesseract | yes | med | "CRERTE TABLE metgél" + FK REFERENCES hospital — estructura recuperable |
+| alumne-2_Q4 | baseline | paddleocr | no | low | (no detectat) |
+| alumne-2_Q4 | preA | tesseract | no | low | (no detectat) |
+| alumne-2_Q4 | preA | paddleocr | no | low | (no detectat) |
+| alumne-2_Q4 | preB | tesseract | yes | med | "CLEATE TABLE metge" + REFERENCES hospital — millora marginal vs baseline |
+| alumne-2_Q4 | preB | paddleocr | no | low | (no detectat) |
+| alumne-2_Q7 | baseline | tesseract | yes | high | "INSEOT INTO hespidel VILVES (4. 1 OO... Sant Vam 4322 23344')" — INSERT+hospital+dades quasi correctes |
+| alumne-2_Q7 | baseline | paddleocr | no | low | (no detectat) |
+| alumne-2_Q7 | preA | tesseract | no | low | (no detectat) |
+| alumne-2_Q7 | preA | paddleocr | no | low | (no detectat) |
+| alumne-2_Q7 | preB | tesseract | yes | high | "INSEUT IVIO hecpdel VaLUC 5 (4. '00) / Sant Yan, 6) 432223344)" — intent clar, millora marginal |
+| alumne-2_Q7 | preB | paddleocr | no | low | (no detectat) |
+| alumne-2_Q8 | baseline | tesseract | yes | med | "USERT iNTC Qaciemt VAVES" + Passeig Gràcia + telèfon — recuperable amb heurístics |
+| alumne-2_Q8 | baseline | paddleocr | no | low | (no detectat) |
+| alumne-2_Q8 | preA | tesseract | no | low | (no detectat) |
+| alumne-2_Q8 | preA | paddleocr | no | low | (no detectat) |
+| alumne-2_Q8 | preB | tesseract | yes | med | "NSERT (NS Quciemt VAVES (54662344 Pere, Torne... Gràcia)" — similar a baseline, sense millora clara |
+| alumne-2_Q8 | preB | paddleocr | no | low | (no detectat) |
+| alumne-3_Q8 | baseline | tesseract | no | low | (no detectat) — mateixa lletra que alumne2, però 0 resultats |
+| alumne-3_Q8 | baseline | paddleocr | no | low | (no detectat) |
+| alumne-3_Q8 | preA | tesseract | no | low | (no detectat) |
+| alumne-3_Q8 | preA | paddleocr | no | low | (no detectat) |
+| alumne-3_Q8 | preB | tesseract | no | low | (no detectat) |
+| alumne-3_Q8 | preB | paddleocr | no | low | (no detectat) |
+| alumne-3_Q9 | baseline | tesseract | no | low | (no detectat) |
+| alumne-3_Q9 | baseline | paddleocr | no | low | (no detectat) |
+| alumne-3_Q9 | preA | tesseract | no | low | (no detectat) |
+| alumne-3_Q9 | preA | paddleocr | no | low | (no detectat) |
+| alumne-3_Q9 | preB | tesseract | no | low | (no detectat) |
+| alumne-3_Q9 | preB | paddleocr | no | low | (no detectat) |
+| alumne-3_Q11 | baseline | tesseract | no | low | "ASERT UTC ga cltaument VALLES" — no es pot reconstruir INSERT tractament |
+| alumne-3_Q11 | baseline | paddleocr | no | low | (no detectat) |
+| alumne-3_Q11 | preA | tesseract | no | low | (no detectat) |
+| alumne-3_Q11 | preA | paddleocr | no | low | (no detectat) |
+| alumne-3_Q11 | preB | tesseract | no | low | "Li aju El Ag qcaldtiri al Mt CA" — pitjor que baseline |
+| alumne-3_Q11 | preB | paddleocr | no | low | (no detectat) |
+| alumne-3_Q13 | baseline | tesseract | no | low | "C ET mpont z impert sé l'I6, ODATE ViSiA" — UPDATE i import visibles però massa corrupte |
+| alumne-3_Q13 | baseline | paddleocr | no | low | (no detectat) |
+| alumne-3_Q13 | preA | tesseract | no | low | (no detectat) |
+| alumne-3_Q13 | preA | paddleocr | no | low | (no detectat) |
+| alumne-3_Q13 | preB | tesseract | no | low | llegeix l'enunciat (text imprès), no la resposta manuscrita |
+| alumne-3_Q13 | preB | paddleocr | no | low | (no detectat) |
+| alumne-1_Q2 | baseline | tesseract | no | low | Barreja SQL + enunciat — segmentació errònia |
+| alumne-1_Q2 | baseline | paddleocr | no | low | (no detectat) |
+| alumne-1_Q2 | preA | tesseract | no | low | (no detectat) |
+| alumne-1_Q2 | preA | paddleocr | no | low | (no detectat) |
+| alumne-1_Q2 | preB | tesseract | no | low | Barreja total amb enunciat + múltiples taules |
+| alumne-1_Q2 | preB | paddleocr | no | low | (no detectat) |
+| alumne-1_Q5 | baseline | tesseract | no | low | Paraules aleatòries, sense estructura SQL |
+| alumne-1_Q5 | baseline | paddleocr | no | low | (no detectat) |
+| alumne-1_Q5 | preA | tesseract | no | low | (no detectat) |
+| alumne-1_Q5 | preA | paddleocr | no | low | (no detectat) |
+| alumne-1_Q5 | preB | tesseract | no | low | (no detectat) |
+| alumne-1_Q5 | preB | paddleocr | no | low | (no detectat) |
+| alumne-1_Q9 | baseline | tesseract | no | low | Text d'altra pregunta barrejat — segmentació errònia greu |
+| alumne-1_Q9 | baseline | paddleocr | no | low | (no detectat) |
+| alumne-1_Q9 | preA | tesseract | no | low | (no detectat) |
+| alumne-1_Q9 | preA | paddleocr | no | low | (no detectat) |
+| alumne-1_Q9 | preB | tesseract | no | low | Barreja preguntes 8 i 9 — segmentació errònia |
+| alumne-1_Q9 | preB | paddleocr | no | low | (no detectat) |
+| alumne-1_Q11 | baseline | tesseract | no | low | "Als tPrestec vabues" — no recuperable |
+| alumne-1_Q11 | baseline | paddleocr | no | low | (no detectat) |
+| alumne-1_Q11 | preA | tesseract | no | low | (no detectat) |
+| alumne-1_Q11 | preA | paddleocr | no | low | (no detectat) |
+| alumne-1_Q11 | preB | tesseract | no | low | Soroll total |
+| alumne-1_Q11 | preB | paddleocr | no | low | (no detectat) |
+| alumne-1_Q12 | baseline | tesseract | no | low | "insert ínto Reserva" — examen Biblioteca, no Hospital, segmentació errònia |
+| alumne-1_Q12 | baseline | paddleocr | no | low | (no detectat) |
+| alumne-1_Q12 | preA | tesseract | no | low | (no detectat) |
+| alumne-1_Q12 | preA | paddleocr | no | low | (no detectat) |
+| alumne-1_Q12 | preB | tesseract | no | low | Soroll total |
+| alumne-1_Q12 | preB | paddleocr | no | low | (no detectat) |
 
 ---
 
-## Resum agregat (completar manualment)
+## Resum agregat
 
 ### Per preprocess × engine
 
 | preprocess | tesseract | paddleocr | guany vs baseline |
 |-----------|----------|----------|------------------|
-| baseline  | X/13 | X/13 | — |
-| preA      | X/13 | X/13 | +X/-X |
-| preB      | X/13 | X/13 | +X/-X |
+| baseline  | 5/13 | 0/13 | — |
+| preA      | 0/13 | 0/13 | -5/0 |
+| preB      | 4/13 | 0/13 | -1/0 |
+
+> ⚠️ **PaddleOCR 3.x (lang=es): 0/39 detectats** en tots els casos (cap variant, cap crop).
+> **Tesseract baseline: 5/13 corregibles** (alumne-2 Q4, Q7, Q8; alumne-3 cap; alumne-1 segmentació errònia).
+> **preB empitjora** respecte baseline en Tesseract (perd alumne-2_Q7 vs baseline, no guanya res).
 
 ### Classificació de resultats
 
-**1. Preprocess transversal** (millora en els dos engines):
-_(crops on preX millora tesseract I paddleocr)_
+**1. Preprocess transversal** (millora en els dos engines): **cap**
 
-**2. Preprocess dependent de motor** (millora en un, no en l'altre):
-_(crops on preX millora un engine però no l'altre)_
+**2. Preprocess dependent de motor** (millora en un, no en l'altre): **cap net positiu**
 
 **3. Sense guany** (cap variant millora cap engine):
-_(crops on cap combinació és corregible)_
+- Tots els alumne-3 (Q8, Q9, Q11, Q13): 0/24 — lletra d'alumne3 completament inviable amb Tesseract
+- Tots els alumne-1: 0/18 — examen diferent (Biblioteca) + segmentació errònia sistemàtica
+- PaddleOCR 3.x: 0/39 — model no detecta text manuscrit en cap cas
 
 ---
 
-## Conclusió (a completar)
+## Conclusió
 
-> [ ] **A — Preprocess és base vàlida:** guany consistent en els dos engines
->     → integrar preprocessing al pipeline
+> [x] **B — Preprocess insuficient:** 0 rescatats nets
+>     → Tesseract + preprocessing NO resol els pitjors casos
 >
-> [ ] **B — Preprocess insuficient:** 0-2 rescatats o cap high-impact
->     → Spike B2: benchmark motors nous (PaddleOCR vs Kraken vs base)
+> [x] **Motor insuficient (PaddleOCR 3.x lang=es): 0/39 deteccions**
+>     → PaddleOCR 3.x DESCARTAT com a candidat per a Feature 4
+>     → Causa probable: model entrenat per a text imprès, no text manuscrit escolar
 >
-> [ ] **C — Resultat mixt:** guany dependent de motor
->     → estratègia híbrida engine-aware
-
-*(a completar)*
+> **Decisions:**
+> 1. PaddleOCR 3.x (pàgina sencera, lang=es) = **VIA MORTA** per a text manuscrit
+> 2. Tesseract baseline és millor que qualsevol preprocessing en els casos que detecta
+> 3. Alumne-1 té problema de segmentació: els seus crops no corresponen a les preguntes (examen diferent)
+> 4. **Pròxim pas:** Spike 4A — PaddleOCR-VL (multimodal) o EasyOCR, dissenyats per a text manuscrit
