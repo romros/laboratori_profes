@@ -23,7 +23,9 @@
     "calibration:assessment-spec-models": "tsx --tsconfig tsconfig.app.json scripts/assessmentSpecHospitalModelCalibration.ts",
     "write:assessment-spec-hospital-chain": "tsx --tsconfig tsconfig.app.json scripts/writeAssessmentSpecHospitalChainDocs.ts",
     "write:hospital-enriched-fixture": "tsx --tsconfig tsconfig.app.json scripts/writeEnrichedHospitalFixture.ts",
-    "spike:grade-exam": "tsx --tsconfig tsconfig.app.json scripts/gradeExamSpike.ts"
+    "spike:grade-exam": "tsx --tsconfig tsconfig.app.json scripts/gradeExamSpike.ts",
+    "spike:grade-exam-compare": "tsx --tsconfig tsconfig.app.json scripts/gradeExamCompareSpike.ts",
+    "spike:grade-exam-benchmark": "tsx --tsconfig tsconfig.app.json scripts/gradeExamBenchmarkSpike.ts"
   },
   "dependencies": {
     "busboy": "^1.6.0",
