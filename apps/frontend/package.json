@@ -29,7 +29,8 @@
     "spike:routing": "tsx --tsconfig tsconfig.app.json scripts/routingSpike.ts",
     "spike:routing-validation": "tsx --tsconfig tsconfig.app.json scripts/routingValidationSpike.ts",
     "spike:ocr-gate-loop": "tsx --tsconfig tsconfig.app.json scripts/ocrGateLoopSpike.ts",
-    "spike:ocr-preprocess-b0": "tsx --tsconfig tsconfig.app.json scripts/ocrPreprocessSpikeB0.ts"
+    "spike:ocr-preprocess-b0": "tsx --tsconfig tsconfig.app.json scripts/ocrPreprocessSpikeB0.ts",
+    "spike:ocr-preprocess-b1": "tsx --tsconfig tsconfig.app.json scripts/ocrPreprocessSpikeB1.ts"
   },
   "dependencies": {
     "busboy": "^1.6.0",
