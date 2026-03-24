@@ -1,4 +1,5 @@
 import type { AnswerForEvaluation } from '../../../domain/answer-evaluator/answerEvaluator.schema'
+import { detectSemanticOcrQuality } from './detectSemanticOcrQuality'
 
 /**
  * Canal d'avaluació per a una pregunta.
@@ -71,9 +72,10 @@ export function hasSqlSignal(text: string): boolean {
  * 1. skip  — status empty o not_detected → sense text ni imatge usable
  * 2. skip  — text massa curt (< MIN_TEXT_LENGTH) i no hi ha crop
  * 3. skip  — rati de soroll massa alt (> MAX_NOISE_RATIO) i no hi ha senyal SQL → text inservible
- * 4. text  — status ok i text prou llegible (soroll acceptable o senyal SQL present)
- * 5. text  — status uncertain però hi ha senyal SQL recognoscible (l'intenció és identificable)
- * 6. skip  — uncertain sense senyal SQL → text massa dubtós
+ * 4. skip  — gate semàntic: text 'ok' però semànticament il·legible (gibberish dominant)
+ * 5. text  — status ok i text prou llegible (soroll acceptable + qualitat semàntica ok/uncertain)
+ * 6. text  — status uncertain però hi ha senyal SQL recognoscible (l'intenció és identificable)
+ * 7. skip  — uncertain sense senyal SQL → text massa dubtós
  *
  * NOTA: 'vision' queda reservat per quan hi hagi crops d'imatge disponibles (no implementat al MVP).
  * El paràmetre `hasImageCrop` permet preparar la integració futura sense canviar el contracte.
@@ -143,10 +145,30 @@ export function routeQuestionForEvaluation(
         reason: `OCR status 'ok' però soroll massa alt (${(noiseRatio * 100).toFixed(0)}%) i sense senyal SQL reconeixible. Text inservible per al grader.`,
       }
     }
+
+    // ── Gate semàntic (Feature 0.4) ─────────────────────────────────────────
+    // El soroll de caràcters pot ser baix però el text ser semànticament il·legible
+    // (ex: "CRERTE T10y5. ferp ll" — tots alfanumèrics però cap sentit semàntic).
+    const semantic = detectSemanticOcrQuality(text)
+    if (semantic.quality === 'unreadable') {
+      if (hasImageCrop) {
+        return {
+          question_id,
+          route: 'vision',
+          reason: `Gate semàntic: text il·legible (${semantic.reason}). Crop disponible → canal vision.`,
+        }
+      }
+      return {
+        question_id,
+        route: 'skip',
+        reason: `Gate semàntic: text semànticament il·legible. ${semantic.reason}`,
+      }
+    }
+
     return {
       question_id,
       route: 'text',
-      reason: `OCR status 'ok'. Soroll ${(noiseRatio * 100).toFixed(0)}%${sqlSignal ? ', senyal SQL detectat' : ''}. Text adequat per al canal text.`,
+      reason: `OCR status 'ok'. Soroll ${(noiseRatio * 100).toFixed(0)}%${sqlSignal ? ', senyal SQL detectat' : ''}. Gate semàntic: ${semantic.quality}. Text adequat per al canal text.`,
     }
   }
 
