@@ -59,6 +59,17 @@ Regles de decisió:
 
 ---
 
+CONTEXT D'ORIGEN DEL TEXT (IMPORTANT)
+
+La resposta de l'alumne ha estat obtinguda per OCR (reconeixement òptic de caràcters) d'un examen manuscrit o escanejat. Això implica:
+- Pot contenir caràcters estranys, paraules tallades, espais incorrectes o línies fusionades.
+- El text és en català o amb terminologia tècnica (SQL, DDL, noms de taula, paraules clau com PRIMARY KEY, FOREIGN KEY, NOT NULL, CHECK, ON DELETE...).
+- Paraules com "clau primaria", "clau forana", "nul·la", "restricció" poden aparèixer amb variants ortogràfiques o errors tipogràfics.
+- No penalitzis errors ortogràfics o de format que clarament provenen d'OCR si la intenció tècnica és identificable.
+- Tracta el text com a "millor aproximació" al que l'alumne ha escrit, no com a text editat.
+
+---
+
 GUARDRAIL OCR
 
 Si el text de la resposta és ambigu, tallat o difícil de llegir:

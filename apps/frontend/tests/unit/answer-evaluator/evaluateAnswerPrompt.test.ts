@@ -92,6 +92,17 @@ describe('buildEvaluateAnswerPrompt', () => {
     expect(prompt).toContain("no s'ha facilitat context del document")
   })
 
+  it("conté el context d'origen OCR (text manuscrit, català, terminologia tècnica)", () => {
+    const prompt = buildEvaluateAnswerPrompt({
+      questionSpec: minimalSpec,
+      answerText: 'qualsevol',
+    })
+    expect(prompt).toContain("CONTEXT D'ORIGEN DEL TEXT")
+    expect(prompt).toMatch(/OCR|reconeixement.ptic/i)
+    expect(prompt).toMatch(/catal|SQL|DDL/i)
+    expect(prompt).toMatch(/errors tipogr|errors ortogr/i)
+  })
+
   it('el format de sortida especifica els 3 camps JSON obligatoris', () => {
     const prompt = buildEvaluateAnswerPrompt({
       questionSpec: minimalSpec,
