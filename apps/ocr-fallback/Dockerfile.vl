@@ -1,0 +1,22 @@
+FROM python:3.11-slim
+
+WORKDIR /app
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    libglib2.0-0 \
+    libgl1 \
+    libgomp1 \
+    && rm -rf /var/lib/apt/lists/*
+
+COPY requirements-vl.txt .
+RUN pip install --no-cache-dir -r requirements-vl.txt
+
+COPY paddle_vl_runner.py .
+
+# Pre-descarregar model durant el build (cache a /root/.cache/huggingface)
+# Si falla per manca de memòria o xarxa, el build segueix (|| true)
+RUN python3 -c \
+    "from transformers import AutoProcessor; AutoProcessor.from_pretrained('PaddlePaddle/PaddleOCR-VL-1.5')" \
+    || echo "WARNING: pre-download del model ha fallat; es descarregarà en runtime"
+
+ENTRYPOINT ["python3", "paddle_vl_runner.py"]
