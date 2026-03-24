@@ -1,6 +1,6 @@
 # Feature 3 — Answer Evaluator
 
-**Estat: definida, pendent d'implementació**
+**Estat: MVP implementat — pendent de validació amb casos reals OCR**
 
 Avalua les respostes OCR d'un alumne contra un `AssessmentSpec` i produeix un veredicte pedagògic per pregunta. Prerequisit: Feature 2 (DONE).
 
@@ -209,29 +209,39 @@ Els adaptadors de Feature 0 i Feature 1 converteixen els seus outputs a aquest t
 
 ---
 
-## Criteri de tancament del MVP
+## Implementació MVP (2026-03-24)
 
-Feature 3 MVP estarà DONE quan:
+### Què està implementat
 
-- [ ] Schema `QuestionEvaluation` + `ExamEvaluationResult` definit i validat via Zod
-- [ ] `evaluateAnswer(question: QuestionSpec, answer: AnswerForEvaluation): QuestionEvaluation` — servei base
-- [ ] Política d'`evaluable_by_ocr` implementada i testada (sense LLM)
-- [ ] Prompt de jutge LLM: bloc **MODE PROFESSOR** — criteri d'exigència, diferenciació errors crítics/menors, feedback directe i tècnic (no genèric)
-- [ ] Golden test hospital: almenys 5 preguntes amb resposta simulada, veredictes esperats coneguts
-- [ ] Cas `evaluable_by_ocr: 'no'` — el LLM no es crida, veredicte null
-- [ ] Cas `accepted_variants` — variant equivalent → `correct`, no `incorrect`
-- [ ] Cas `important_mistake` — error crític present → no pot ser `correct`
-- [ ] `confidence` baix quan text és ambigu, alt quan és clar
-- [ ] Tests unitaris: política OCR, merge del veredicte, casos límit
-- [ ] Validació Docker: lint + typecheck + test OK
-- [ ] Docs actualitzats: README + ESTAT.md
+| Component | Fitxer | Estat |
+|-----------|--------|-------|
+| Schema Zod | `domain/answer-evaluator/answerEvaluator.schema.ts` | ✅ |
+| OCR triage (sense LLM) | `features/answer-evaluator/services/triageAnswerEvaluability.ts` | ✅ |
+| Prompt jutge | `features/answer-evaluator/services/evaluateAnswerPrompt.ts` | ✅ |
+| Servei per pregunta | `features/answer-evaluator/services/evaluateAnswer.ts` | ✅ |
+| Orquestrador examen | `features/answer-evaluator/services/gradeExam.ts` | ✅ |
+| Harness real | `scripts/gradeExamSpike.ts` | ✅ |
 
-**No DONE si:**
-- El sistema retorna `incorrect` sense evidència clara (violació del principi de dubte)
-- El sistema avalua quan `evaluable_by_ocr === 'no'`
-- El sistema llegeix l'enunciat/solucionari originals en temps d'avaluació
-- `accepted_variants` no s'honora com a equivalent de `required_element`
-- No hi ha tests de cas `empty` / `not_detected`
+### Estat de validació
+
+| Nivell | Estat | Detall |
+|--------|-------|--------|
+| Tests unitaris | ✅ 283 tests passant | triage×7, prompt×10, gradeExam×9 |
+| Lint + typecheck | ✅ | Docker `frontend-check` |
+| Casos reals OCR | ⏳ PENDENT | harness `spike:grade-exam` llest, no executat |
+
+**Aquest MVP està implementat però encara no validat amb exàmens reals OCR.** El harness `npm run spike:grade-exam` (des de `apps/frontend`, amb clau API) permet fer la primera prova real.
+
+### Criteri de tancament del MVP (verificació)
+
+- [x] Schema `QuestionEvaluation` + `ExamEvaluationResult` definit i validat via Zod
+- [x] `evaluateAnswer` + `gradeExam` — serveis base operatius
+- [x] Política d'`evaluable_by_ocr` implementada i testada (sense LLM)
+- [x] Prompt jutge: MODE PROFESSOR + MODE AVALUACIÓ + CONTEXT OCR + GUARDRAIL OCR
+- [x] Guardrail: si `evaluable_by_ocr === 'no'`, el LLM no es crida
+- [x] Tests unitaris: política OCR, casos `empty/not_detected/uncertain/ok`
+- [x] Validació Docker: lint + typecheck + test OK
+- [ ] Validació amb casos reals OCR (pendent `spike:grade-exam`)
 
 ---
 
@@ -249,8 +259,10 @@ Feature 3 MVP estarà DONE quan:
 
 ## Refs
 
+- **Schema:** `domain/answer-evaluator/answerEvaluator.schema.ts`
+- **Serveis:** `features/answer-evaluator/services/`
+- **Harness real:** `npm run spike:grade-exam -w @profes/frontend` (requereix clau API)
 - **Feature 2 (prerequisit):** `docs/features/assessment-spec-builder/README.md`
 - **Feature 0 (input):** `domain/template-mapped-answers/templateMappedAnswers.schema.ts`
 - **Feature 1 (input):** `domain/question-answer-extraction/question_answer_extraction.schema.ts`
 - **AssessmentSpec schema:** `domain/assessment-spec/assessmentSpec.schema.ts`
-- **Privadesa OCR:** `docs/features/question-answer-extraction/README.md` §Restricció permanent

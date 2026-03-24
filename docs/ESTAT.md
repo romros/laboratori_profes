@@ -1,6 +1,6 @@
 # Estat del projecte (operatiu)
 
-**Darrera actualització:** 2026-03-23 (Feature 3 definida — pendent d’implementació)
+**Darrera actualització:** 2026-03-24 (Feature 3 MVP implementat — pendent de validació real)
 
 Només **estat i verificació**. Normativa: **`AGENTS_ARQUITECTURA.md`**. Ordre de lectura: **`llm.txt`**.
 
@@ -13,9 +13,9 @@ Només **estat i verificació**. Normativa: **`AGENTS_ARQUITECTURA.md`**. Ordre 
 | **Feature 0** — Template inference + layout mapping | **DONE** | Viabilitat plantilla (LLM) + mapping anchor→zones. 4 PDFs reals validats. |
 | **Feature 1** — Question-answer extraction (OCR) | **DONE** | OCR + segmentació per marcadors. 4 alumnes reals. Limitació: scans de molt baixa qualitat fora d’abast. |
 | **Feature 2** — Assessment Spec Builder | **DONE / CONGELADA** | Dues passades LLM (MODE OPERATIU + MODE PEDAGÒGIC) + `examDocumentContext`. Prerequisit de Feature 3. |
-| **Feature 3** — Answer Evaluator | **DEFINIDA — pendent MVP** | Jutja `answer_text` vs `AssessmentSpec`. Retorna `verdict` + `feedback` + `confidence`. |
+| **Feature 3** — Answer Evaluator | **MVP implementat — pendent validació real** | OCR triage + grading conceptual + MODE PROFESSOR. 283 tests. Casos reals OCR pendents. |
 
-**Validació canònica:** `./scripts/run_frontend.sh lint|typecheck|test|build` (Docker `frontend-check`). 256 tests passant.
+**Validació canònica:** `./scripts/run_frontend.sh lint|typecheck|test|build` (Docker `frontend-check`). 283 tests passant.
 
 ---
 
@@ -122,16 +122,40 @@ Evidència completa: `docs/benchmarks/ocr-benchmark-2026-03-22.md`.
 
 ## Feature 3 — Answer Evaluator — **DEFINIDA, pendent d'implementació**
 
-**Avalua les respostes OCR d'un alumne contra un `AssessmentSpec` i produeix un veredicte pedagògic per pregunta.**
+**Avalua les respostes OCR d’un alumne contra un `AssessmentSpec` i produeix un veredicte pedagògic per pregunta.**
 
-| Input | Font |
-|-------|------|
-| `AssessmentSpec` | Feature 2 (persistit) |
-| `answer_text` + `ocr_status` per pregunta | Feature 0 o Feature 1 |
+### Arquitectura MVP (2026-03-24)
 
-Output per pregunta: `evaluable_by_ocr` (`yes`\|`review`\|`no`) · `verdict` (`correct`\|`partial`\|`incorrect`\|`null`) · `feedback` · `confidence`.
+| Component | Fitxer | Rol |
+|-----------|--------|-----|
+| Schema | `domain/answer-evaluator/answerEvaluator.schema.ts` | Types Zod: `AnswerForEvaluation`, `QuestionEvaluation`, `ExamEvaluationResult` |
+| OCR triage | `features/answer-evaluator/services/triageAnswerEvaluability.ts` | PAS 1 sense LLM |
+| Prompt jutge | `features/answer-evaluator/services/evaluateAnswerPrompt.ts` | MODE PROFESSOR + CONTEXT OCR + GUARDRAIL |
+| Servei | `features/answer-evaluator/services/evaluateAnswer.ts` | 1 LLM call per pregunta |
+| Orquestrador | `features/answer-evaluator/services/gradeExam.ts` | Pipeline complet per examen |
 
-**Guardrails MVP:** no score numèric; no avalua si `evaluable_by_ocr === 'no'`; dubte beneficia l'alumne; `accepted_variants` honoren `required_elements`.
+### Evidència MVP
+
+| Verificació | Commit | Resultat |
+|-------------|--------|---------|
+| Schema + triage + prompt + serveis + tests | `dcbe7a8` | ✅ 283 tests |
+| Context OCR al prompt | `003e231` | ✅ |
+| lint + typecheck | 2026-03-24 | ✅ |
+| Casos reals OCR | — | ⏳ pendent (`spike:grade-exam`) |
+
+### Feature 3 NO inclou (MVP)
+
+- Score numèric per pregunta ni nota global → Feature 3.x
+- Feedback directe a l’alumne (el feedback és per al professor)
+- Batch massiu d’alumnes (un alumne per crida)
+- Persistència de resultats
+- Calibratge de models ni personalització per professor
+
+### Riscos oberts
+
+- Qualitat del grading amb text OCR real corromput
+- Calibratge del llindar `partial` vs `incorrect`
+- Cost LLM per examen complet (un call per pregunta avaluable)
 
 **Doc complet:** `docs/features/answer-evaluator/README.md`.
 
@@ -139,17 +163,18 @@ Output per pregunta: `evaluable_by_ocr` (`yes`\|`review`\|`no`) · `verdict` (`c
 
 ## Falta
 
-- **Feature 0 (coordenades físiques):** geometria en coordenades de pàgina reals (x/y bbox) — fora d'abast del MVP actual. La lògica `ok/ko` + pipeline anchor/zones/mapping ja són funcionals; les coordenades físiques requeririen un backend fora del middleware Vite i integració amb rasteritzador. No prioritat fins que PM ho demani.
+- **Feature 0 (coordenades físiques):** geometria en coordenades de pàgina reals (x/y bbox) — fora d’abast del MVP actual. No prioritat fins que PM ho demani.
 - **Feature 0 (backend Capa 1):** ruta `/api/feature0/analysis` funciona via plugin Vite; en producció caldria backend Node independent. Pendent PM.
 - **Feature 2 (producte):** persistència estable d’`AssessmentSpec` per convocatòria, UI de revisió (pendent PM). No bloqueja Feature 3.
-- **Feature 3 (implementació):** schema `QuestionEvaluation`, servei `evaluateAnswer`, prompt jutge pedagògic, tests golden hospital.
+- **Feature 3 (validació real):** executar `spike:grade-exam` amb exàmens reals OCR. El codi és llest; falta evidència de qualitat real del grading.
 
 ---
 
 ## Següent pas
 
-**Feature 0, Feature 1 i Feature 2 tancades i congelades. Feature 3 definida, pendent d'implementació.**
+**Feature 0, Feature 1 i Feature 2 tancades i congelades. Feature 3 MVP implementat, pendent de validació real.**
 
-- **Feature 3 MVP** — `Answer Evaluator`: avalua `answer_text` per pregunta contra `AssessmentSpec`. Retorna `evaluable_by_ocr`, `verdict` (correct/partial/incorrect), `feedback`, `confidence`. Cap score numèric al MVP. Doc: `docs/features/answer-evaluator/README.md`.
+- **Feature 3 — validació real:** `npm run spike:grade-exam -w @profes/frontend` (requereix clau API). Verificar que el grading és útil per al professor amb text OCR real.
+- **Posteriorment:** Feature 3.2 (batch + export) si PM ho valida.
 
 Validació habitual: `./scripts/run_frontend.sh …` (Docker).

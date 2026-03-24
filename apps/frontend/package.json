@@ -22,7 +22,8 @@
     "spike:template-mapped-answers": "tsx --tsconfig tsconfig.app.json scripts/buildTemplateMappedAnswersSpike.ts",
     "calibration:assessment-spec-models": "tsx --tsconfig tsconfig.app.json scripts/assessmentSpecHospitalModelCalibration.ts",
     "write:assessment-spec-hospital-chain": "tsx --tsconfig tsconfig.app.json scripts/writeAssessmentSpecHospitalChainDocs.ts",
-    "write:hospital-enriched-fixture": "tsx --tsconfig tsconfig.app.json scripts/writeEnrichedHospitalFixture.ts"
+    "write:hospital-enriched-fixture": "tsx --tsconfig tsconfig.app.json scripts/writeEnrichedHospitalFixture.ts",
+    "spike:grade-exam": "tsx --tsconfig tsconfig.app.json scripts/gradeExamSpike.ts"
   },
   "dependencies": {
     "busboy": "^1.6.0",
