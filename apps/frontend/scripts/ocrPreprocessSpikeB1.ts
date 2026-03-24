@@ -1,38 +1,41 @@
 /**
- * Spike B1 — Benchmark engine-agnostic: preprocess × OCR engines
+ * Spike B1 — Benchmark crop-based engine-agnostic (preprocess × OCR engines)
  *
  * Pregunta central:
- *   El guany de preprocessing és transversal (agnòstic de motor) o depèn del motor?
+ *   Sobre crops reals de zona de resposta (Feature 0 layout), hi ha millora
+ *   de corregibilitat entre preprocess variants i motors OCR?
  *
- * Dataset: 13 crops de Spike B0 (dataset congelat)
- * Preprocess: baseline | preA | preB (igual que B0)
- * Engines: tesseract (tesseract.js) | paddleocr (Docker profes-ocr-fallback)
+ * Pipeline (Feature 4 real):
+ *   PDF → rasterize → OCR Tesseract (per layout) → buildTemplateMappedAnswers
+ *       → crop zona resposta → preprocess × engines → text
+ *
+ * NO duplica Feature 1 (no segmentació per text).
+ * Reutilitza: rasterizePdfToPngPages, buildTemplateMappedAnswers, preprocessPngForOcr.
+ *
+ * Prerequisit Docker:
+ *   docker build -t profes-ocr-fallback ./apps/ocr-fallback
  *
  * Ús (des de apps/frontend):
  *   npm run spike:ocr-preprocess-b1
  *
- * Prerequisit:
- *   docker build -t profes-ocr-fallback ./apps/ocr-fallback
- *
- * Output: docs/spikes/feature4/spike-b1-engine-agnostic-benchmark.md
+ * Output: docs/spikes/feature4/spike-b1-crop-ocr-benchmark.md
  */
 
+import { createCanvas, loadImage } from '@napi-rs/canvas'
 import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join, resolve } from 'node:path'
 import { spawnSync } from 'node:child_process'
-
 import { createWorker, PSM } from 'tesseract.js'
 
 import { preprocessPngForOcr } from '../src/infrastructure/ocr/preprocessPngForOcr'
 import { rasterizePdfToPngPages } from '../src/infrastructure/ocr/rasterizePdfToPngPages'
-import {
-  dedupeQuestionMarkersByFirstId,
-  findQuestionMarkers,
-} from '../src/features/question-answer-extraction/services/detectQuestionMarkers'
-import { segmentByQuestionMarkers } from '../src/features/question-answer-extraction/services/segmentByQuestionMarkers'
+import { buildTemplateMappedAnswers } from '../src/features/template-answer-zones/services/buildTemplateMappedAnswers'
+import type { OcrPageLines } from '../src/features/template-answer-zones/types'
+import type { TemplateQuestion } from '../src/features/template-anchor-detection/types'
 
-// ── Dataset congelat (igual que B0) ──────────────────────────────────────────
+// ── Dataset congelat ──────────────────────────────────────────────────────────
+// 13 crops: manual_text_pass=no (pitjors de Feature 1 — dataset Spike B0)
 
 const DATASET_CROP_IDS = [
   'alumne-1_Q12', 'alumne-3_Q11', 'alumne-2_Q7',
@@ -59,7 +62,7 @@ const dataset = fullDataset.filter(
   (d) => DATASET_CROP_IDS.includes(d.id as (typeof DATASET_CROP_IDS)[number]),
 )
 
-// ── PDFs ──────────────────────────────────────────────────────────────────────
+// ── PDFs i template ───────────────────────────────────────────────────────────
 
 const DATA_DIR = resolve(process.cwd(), '../../data')
 
@@ -68,6 +71,15 @@ const ALUMNE_TO_PDF: Record<string, string> = {
   'alumne-2': 'ex_alumne2.pdf',
   'alumne-3': 'ex_alumne3.pdf',
 }
+
+const TEMPLATE_PATH = resolve(
+  process.cwd(),
+  'tests/fixtures/template-anchor/template_hospital_daw.json',
+)
+const templateJson = JSON.parse(readFileSync(TEMPLATE_PATH, 'utf8')) as {
+  questions: TemplateQuestion[]
+}
+const TEMPLATE_QUESTIONS = templateJson.questions
 
 // ── Variants ──────────────────────────────────────────────────────────────────
 
@@ -81,8 +93,8 @@ type Variant = {
 }
 
 const VARIANTS: Variant[] = [
-  { id: 'baseline', label: 'Baseline (sense preprocessing)',              contrast: null, threshold: null },
-  { id: 'preA',     label: 'Preprocess A (grayscale + contrast 0.3)',     contrast: 0.3,  threshold: null },
+  { id: 'baseline', label: 'Baseline (sense preprocessing)',               contrast: null, threshold: null },
+  { id: 'preA',     label: 'Preprocess A (grayscale + contrast 0.3)',      contrast: 0.3,  threshold: null },
   { id: 'preB',     label: 'Preprocess B (grayscale + contrast + th.128)', contrast: 0.3,  threshold: 128  },
 ]
 
@@ -97,9 +109,50 @@ const ENGINES: { id: EngineId; label: string }[] = [
 
 const DOCKER_IMAGE = 'profes-ocr-fallback'
 
-// ── Tesseract ─────────────────────────────────────────────────────────────────
+// ── Tesseract per crop (retorna text i bboxes de línia) ───────────────────────
 
-async function ocrWithTesseract(pngBuffer: Buffer): Promise<string> {
+type TessLine = {
+  text: string
+  y0: number
+  y1: number
+}
+
+type PageOcrData = {
+  pageIndex: number
+  textLines: string[]    // per buildTemplateMappedAnswers
+  tessLines: TessLine[]  // per mapar line_index → pixel Y
+  width: number
+  height: number
+}
+
+async function ocrPageFull(pngBuffer: Buffer, pageIndex: number): Promise<PageOcrData> {
+  const worker = await createWorker('cat')
+  await worker.setParameters({ tessedit_pageseg_mode: PSM.AUTO })
+  try {
+    const { data } = await worker.recognize(pngBuffer)
+    const tessLines: TessLine[] = []
+    for (const block of data.blocks ?? []) {
+      for (const para of block.paragraphs ?? []) {
+        for (const line of para.lines ?? []) {
+          tessLines.push({ text: line.text, y0: line.bbox.y0, y1: line.bbox.y1 })
+        }
+      }
+    }
+    // Obtenir dimensions reals de la imatge
+    const img = await loadImage(pngBuffer)
+    return {
+      pageIndex,
+      textLines: (data.text ?? '').split('\n'),
+      tessLines,
+      width: img.width,
+      height: img.height,
+    }
+  } finally {
+    await worker.terminate()
+  }
+}
+
+async function ocrCropWithTesseract(pngBuffer: Buffer): Promise<string> {
   const worker = await createWorker('cat')
   await worker.setParameters({ tessedit_pageseg_mode: PSM.AUTO })
   try {
@@ -110,19 +163,76 @@ async function ocrWithTesseract(pngBuffer: Buffer): Promise<string> {
   }
 }
 
-// ── PaddleOCR via Docker (batch) ──────────────────────────────────────────────
+// ── Crop de zona de resposta ──────────────────────────────────────────────────
 
 /**
- * Envia un lot de PNGs a PaddleOCR via Docker.
- * Escriu PNGs a un directori temporal, munta el directori al contenidor,
- * llegeix el JSON de sortida i fa cleanup.
- * Un sol docker run = una sola inicialització del model.
+ * Mapeja un índex de línia OCR (en textLines) a la Y pixel corresponent.
  *
- * Privadesa: el directori temporal s'elimina sempre (try/finally).
+ * textLines pot tenir línies buides que tessLines no té.
+ * Estratègia: comptar línies no buides abans de lineIdx → índex a tessLines.
  */
-function runPaddleOcrBatch(
-  items: { id: string; pngBuffer: Buffer }[],
-): Map<string, string> {
+function lineIdxToPixelY(
+  textLines: string[],
+  tessLines: TessLine[],
+  lineIdx: number,
+  side: 'top' | 'bottom',
+): number | null {
+  let nonEmptyCount = 0
+  for (let i = 0; i <= Math.min(lineIdx, textLines.length - 1); i++) {
+    if (textLines[i]?.trim()) nonEmptyCount++
+  }
+  const tessIdx = Math.max(0, nonEmptyCount - 1)
+  const line = tessLines[Math.min(tessIdx, tessLines.length - 1)]
+  if (!line) return null
+  return side === 'top' ? line.y0 : line.y1
+}
+
+/**
+ * Retalla un PNG a la zona de resposta donada pels índexos de línia.
+ * Padding vertical (+5% alçada) per no tallar contingut.
+ * Privacy: no persisteix cap fitxer — retorna Buffer en memòria.
+ */
+async function cropAnswerZone(
+  pagePng: Buffer,
+  pageData: PageOcrData,
+  startLineIdx: number,
+  endLineIdx: number,
+): Promise<Buffer | null> {
+  const y0raw = lineIdxToPixelY(pageData.textLines, pageData.tessLines, startLineIdx, 'top')
+  const y1raw = lineIdxToPixelY(pageData.textLines, pageData.tessLines, endLineIdx, 'bottom')
+
+  if (y0raw === null || y1raw === null) return null
+
+  const padding = Math.round(pageData.height * 0.02)
+  const y0 = Math.max(0, y0raw - padding)
+  const y1 = Math.min(pageData.height, y1raw + padding)
+  const cropH = y1 - y0
+  if (cropH < 10) return null
+
+  const img = await loadImage(pagePng)
+  const canvas = createCanvas(pageData.width, cropH)
+  const ctx = canvas.getContext('2d')
+  ctx.drawImage(img, 0, y0, pageData.width, cropH, 0, 0, pageData.width, cropH)
+  return canvas.toBuffer('image/png')
+}
+
+// ── Preprocessing ─────────────────────────────────────────────────────────────
+
+async function applyPreprocess(pngBuffer: Buffer, variant: Variant): Promise<Buffer> {
+  if (variant.contrast === null && variant.threshold === null) return pngBuffer
+  return preprocessPngForOcr(pngBuffer, {
+    contrast: variant.contrast ?? 0,
+    threshold: variant.threshold ?? 256,
+  })
+}
+
+// ── PaddleOCR batch via Docker ────────────────────────────────────────────────
+
+/**
+ * Envia tots els crops preprocesats a PaddleOCR via un sol docker run.
+ * Fitxers temporals garantidament esborrats (privacy guardrail).
+ */
+function runPaddleOcrBatch(items: { id: string; pngBuffer: Buffer }[]): Map<string, string> {
   if (items.length === 0) return new Map()
 
   const tmpDir = join(tmpdir(), `spike-b1-paddle-${Date.now()}`)
@@ -141,50 +251,20 @@ function runPaddleOcrBatch(
     )
 
     if (proc.stderr) console.error(proc.stderr)
-
     if (proc.status !== 0) {
       throw new Error(`docker run fallat (status ${proc.status}): ${proc.stderr?.slice(0, 300)}`)
     }
 
-    const parsed = JSON.parse(proc.stdout) as Record<string, string>
-    return new Map(Object.entries(parsed))
+    return new Map(Object.entries(JSON.parse(proc.stdout) as Record<string, string>))
   } finally {
     rmSync(tmpDir, { recursive: true, force: true })
   }
 }
 
-// ── Preprocessing ─────────────────────────────────────────────────────────────
-
-async function applyPreprocess(pngBuffer: Buffer, variant: Variant): Promise<Buffer> {
-  if (variant.contrast === null && variant.threshold === null) return pngBuffer
-  return preprocessPngForOcr(pngBuffer, {
-    contrast: variant.contrast ?? 0,
-    threshold: variant.threshold ?? 256,
-  })
-}
-
-// ── Segmentació ───────────────────────────────────────────────────────────────
-
-type QuestionItems = { question_id: string; raw_text_block: string }[]
-
-function segmentText(fullText: string): QuestionItems {
-  const rawMarkers = findQuestionMarkers(fullText)
-  const markers = dedupeQuestionMarkersByFirstId(rawMarkers)
-  return segmentByQuestionMarkers(fullText, markers)
-}
-
-// ── Cache: (pdfName, variantId, engineId) → QuestionItems ────────────────────
-
-const segmentCache = new Map<string, QuestionItems>()
-
-function cacheKey(pdfName: string, variantId: string, engineId: EngineId): string {
-  return `${pdfName}__${variantId}__${engineId}`
-}
-
 // ── Main ──────────────────────────────────────────────────────────────────────
 
 async function main(): Promise<void> {
-  console.error('=== Spike B1 — Benchmark engine-agnostic (preprocess × OCR engines) ===')
+  console.error('=== Spike B1 — Benchmark crop-based engine-agnostic ===')
   console.error(`Dataset: ${dataset.length} crops | Variants: ${VARIANTS.length} | Engines: ${ENGINES.length}`)
   console.error('')
 
@@ -199,100 +279,172 @@ async function main(): Promise<void> {
     const pdfPath = resolve(DATA_DIR, pdfName)
     if (!existsSync(pdfPath)) { console.error(`  SKIP ${pdfName} — no trobat`); continue }
     console.error(`  ${pdfName}`)
-    const pages = await rasterizePdfToPngPages(readFileSync(pdfPath))
-    pdfPages.set(pdfName, pages)
+    pdfPages.set(pdfName, await rasterizePdfToPngPages(readFileSync(pdfPath)))
   }
 
-  // 2. PaddleOCR: preparar batch (variant × pdf × pàgina) i executar un sol docker run
-  console.error('\nPreparant batch PaddleOCR…')
-  type BatchItem = { id: string; pdfName: string; variantId: VariantId; pageIndex: number; pngBuffer: Buffer }
-  const batchItems: BatchItem[] = []
+  // 2. OCR complet (Tesseract) per layout: text + bboxes per línia
+  console.error('\nOCR per layout (Tesseract, una vegada per PDF)…')
+  const pdfOcrData = new Map<string, PageOcrData[]>()
 
-  for (const variant of VARIANTS) {
-    for (const [pdfName, pages] of pdfPages) {
-      for (const page of pages) {
-        const processed = await applyPreprocess(page.png, variant)
-        batchItems.push({
-          id: `${variant.id}__${pdfName}__${page.pageIndex}`,
-          pdfName,
-          variantId: variant.id,
-          pageIndex: page.pageIndex,
-          pngBuffer: processed,
+  for (const [pdfName, pages] of pdfPages) {
+    console.error(`  ${pdfName}`)
+    const ocrPages: PageOcrData[] = []
+    for (const page of pages) {
+      const ocrData = await ocrPageFull(page.png, page.pageIndex)
+      ocrPages.push(ocrData)
+    }
+    pdfOcrData.set(pdfName, ocrPages)
+  }
+
+  // 3. buildTemplateMappedAnswers (layout) per cada PDF
+  console.error('\nLayout mapping (Feature 0)…')
+  type QuestionRange = {
+    start_page_index: number
+    start_line_index: number
+    end_page_index: number
+    end_line_index: number
+  }
+  const pdfQuestionRanges = new Map<string, Map<string, QuestionRange>>()
+
+  for (const [pdfName, ocrPages] of pdfOcrData) {
+    const ocrPageLines: OcrPageLines[] = ocrPages.map((p) => ({
+      pageIndex: p.pageIndex,
+      lines: p.textLines,
+    }))
+    const result = buildTemplateMappedAnswers(TEMPLATE_QUESTIONS, ocrPageLines)
+    const rangeMap = new Map<string, QuestionRange>()
+    for (const q of result.questions) {
+      if (q.range.start_page_index !== null && q.range.start_line_index !== null) {
+        rangeMap.set(q.question_id, {
+          start_page_index: q.range.start_page_index,
+          start_line_index: q.range.start_line_index,
+          end_page_index: q.range.end_page_index ?? q.range.start_page_index,
+          end_line_index: q.range.end_line_index ?? q.range.start_line_index,
         })
       }
     }
+    pdfQuestionRanges.set(pdfName, rangeMap)
+    const detected = result.questions.filter((q) => q.is_detected).length
+    console.error(`  ${pdfName}: ${detected}/${result.questions.length} preguntes detectades`)
   }
 
-  console.error(`  ${batchItems.length} pàgines → docker run (1 sola inicialització del model)`)
-  const paddleResults = runPaddleOcrBatch(batchItems.map(({ id, pngBuffer }) => ({ id, pngBuffer })))
+  // 4. Generar crops per dataset entry
+  console.error('\nGenerant crops de zones de resposta…')
 
-  // Construir text complet per (pdfName, variantId) i segmentar
-  const paddleFullText = new Map<string, string>()
-  for (const item of batchItems) {
-    const key = `${item.pdfName}__${item.variantId}`
-    const pageText = paddleResults.get(item.id) ?? '(no resultat)'
-    paddleFullText.set(key, (paddleFullText.get(key) ?? '') + `\n<<<PAGE ${item.pageIndex}>>>\n${pageText}`)
-  }
-  for (const [key, fullText] of paddleFullText) {
-    const [pdfName, variantId] = key.split('__') as [string, string]
-    segmentCache.set(cacheKey(pdfName, variantId, 'paddleocr'), segmentText(fullText))
+  type CropData = {
+    crop_id: string
+    question_desc: string
+    cropPng: Buffer | null  // null = no s'ha pogut retallar
+    cropNote: string
   }
 
-  // 3. Tesseract: processar (variant × pdf × pàgina) seqüencialment
-  console.error('\nProcessant amb Tesseract…')
-  for (const variant of VARIANTS) {
-    for (const [pdfName, pages] of pdfPages) {
-      const key = cacheKey(pdfName, variant.id, 'tesseract')
-      if (segmentCache.has(key)) continue
-      console.error(`  ${pdfName} × ${variant.id}`)
-      let fullText = ''
-      for (const page of pages) {
-        const processed = await applyPreprocess(page.png, variant)
-        fullText += `\n<<<PAGE ${page.pageIndex}>>>\n${await ocrWithTesseract(processed)}`
-      }
-      segmentCache.set(key, segmentText(fullText))
+  const cropDataList: CropData[] = []
+
+  for (const entry of dataset) {
+    const pdfName = ALUMNE_TO_PDF[entry.alumne]
+    if (!pdfName || !pdfPages.has(pdfName)) {
+      cropDataList.push({ crop_id: entry.id, question_desc: entry.question_desc, cropPng: null, cropNote: 'PDF no disponible' })
+      continue
+    }
+
+    const rangeMap = pdfQuestionRanges.get(pdfName)
+    const questionId = entry.question_id  // 'Q1', 'Q12', etc.
+    const range = rangeMap?.get(questionId)
+
+    if (!range) {
+      cropDataList.push({ crop_id: entry.id, question_desc: entry.question_desc, cropPng: null, cropNote: 'zona no detectada per layout' })
+      console.error(`  SKIP ${entry.id} — zona no detectada`)
+      continue
+    }
+
+    // Agafar la pàgina d'inici de la zona
+    const pageData = pdfOcrData.get(pdfName)?.[range.start_page_index]
+    const pagePng = pdfPages.get(pdfName)?.[range.start_page_index]?.png
+
+    if (!pageData || !pagePng) {
+      cropDataList.push({ crop_id: entry.id, question_desc: entry.question_desc, cropPng: null, cropNote: 'pàgina no disponible' })
+      continue
+    }
+
+    const cropPng = await cropAnswerZone(pagePng, pageData, range.start_line_index, range.end_line_index)
+    cropDataList.push({
+      crop_id: entry.id,
+      question_desc: entry.question_desc,
+      cropPng,
+      cropNote: cropPng ? `pàg.${range.start_page_index} línies ${range.start_line_index}–${range.end_line_index}` : 'crop buit',
+    })
+    console.error(`  ${entry.id}: ${cropPng ? 'OK' : 'FALLIDA'} (pàg.${range.start_page_index} l.${range.start_line_index}–${range.end_line_index})`)
+  }
+
+  // 5. Preparar matriu crops × variants × PaddleOCR (batch)
+  console.error('\nPreparant batch PaddleOCR (crops × variants)…')
+
+  type CropVariantKey = `${string}__${VariantId}`
+  const processedCrops = new Map<CropVariantKey, Buffer>()
+
+  for (const crop of cropDataList) {
+    if (!crop.cropPng) continue
+    for (const variant of VARIANTS) {
+      const processed = await applyPreprocess(crop.cropPng, variant)
+      processedCrops.set(`${crop.crop_id}__${variant.id}`, processed)
     }
   }
 
-  // 4. Recollir resultats per crop
-  type CropResult = {
+  const paddleBatchItems = [...processedCrops.entries()].map(([key, pngBuffer]) => ({
+    id: key,
+    pngBuffer,
+  }))
+
+  console.error(`  ${paddleBatchItems.length} crops a processar amb PaddleOCR`)
+  const paddleResults = runPaddleOcrBatch(paddleBatchItems)
+
+  // 6. OCR Tesseract sobre cada crop × variant
+  console.error('\nOCR Tesseract sobre crops…')
+  const tesseractResults = new Map<CropVariantKey, string>()
+
+  for (const [key, pngBuffer] of processedCrops) {
+    const text = await ocrCropWithTesseract(pngBuffer)
+    tesseractResults.set(key as CropVariantKey, text.replace(/\s+/g, ' ').trim())
+  }
+
+  // 7. Recollir resultats
+  type ResultEntry = {
     crop_id: string
     question_desc: string
+    cropNote: string
     results: { variant_id: VariantId; engine_id: EngineId; ocr_text: string }[]
   }
 
-  const cropResults: CropResult[] = []
-  for (const entry of dataset) {
-    const pdfName = ALUMNE_TO_PDF[entry.alumne]
-    if (!pdfName || !pdfPages.has(pdfName)) { console.error(`SKIP ${entry.id}`); continue }
-
-    const results: CropResult['results'] = []
+  const allResults: ResultEntry[] = cropDataList.map((crop) => {
+    const results: ResultEntry['results'] = []
     for (const variant of VARIANTS) {
-      for (const engine of ENGINES) {
-        const items = segmentCache.get(cacheKey(pdfName, variant.id, engine.id)) ?? []
-        const item = items.find((i) => i.question_id === entry.question_id)
-        results.push({
-          variant_id: variant.id,
-          engine_id: engine.id,
-          ocr_text: item?.raw_text_block.replace(/\s+/g, ' ').trim() ?? '(no detectat)',
-        })
-      }
+      const key: CropVariantKey = `${crop.crop_id}__${variant.id}`
+      results.push({
+        variant_id: variant.id,
+        engine_id: 'tesseract',
+        ocr_text: tesseractResults.get(key) ?? '(no crop)',
+      })
+      results.push({
+        variant_id: variant.id,
+        engine_id: 'paddleocr',
+        ocr_text: paddleResults.get(key)?.replace(/\s+/g, ' ').trim() ?? '(no crop)',
+      })
     }
-    cropResults.push({ crop_id: entry.id, question_desc: entry.question_desc, results })
-  }
+    return { crop_id: crop.crop_id, question_desc: crop.question_desc, cropNote: crop.cropNote, results }
+  })
 
-  // 5. Generar report
+  // 8. Generar report markdown
   const lines: string[] = []
-  lines.push('# Spike B1 — Benchmark engine-agnostic: preprocess × OCR engines')
+  lines.push('# Spike B1 — Benchmark crop-based engine-agnostic')
   lines.push('')
   lines.push(`**Data execució:** ${new Date().toISOString().slice(0, 10)}`)
-  lines.push('**Dataset:** 13 crops (manual_text_pass=no, Spike B0 congelat)')
+  lines.push('**Dataset:** 13 crops (manual_text_pass=no, dataset Spike B0 congelat)')
+  lines.push('**Pipeline crop:** rasterize → Tesseract OCR → buildTemplateMappedAnswers → crop zona resposta')
   lines.push('**Preprocess:** baseline | preA (grayscale+contrast) | preB (+threshold)')
-  lines.push('**Engines:** Tesseract.js (WASM, lang=cat) | PaddleOCR (Docker, lang=en, CPU)')
+  lines.push('**Engines:** Tesseract.js (WASM, lang=cat) | PaddleOCR (Docker, lang=es, CPU)')
   lines.push('')
-  lines.push('> ⚠️ **IMPORTANT — avaluació independent:**')
-  lines.push('> Avalua cada cel·la per separat, sense comparar primer amb baseline.')
-  lines.push('> Pregunta per a cada text: "Amb **aquest** text, podria corregir la resposta?"')
+  lines.push('> ⚠️ **Avaluació independent:** avalua cada cel·la per separat.')
+  lines.push('> Pregunta: "Amb **aquest** text, podria corregir la resposta?"')
   lines.push('> Les variants apareixen **abans** del baseline a cada secció.')
   lines.push('')
   lines.push('---')
@@ -300,24 +452,21 @@ async function main(): Promise<void> {
   lines.push('## Textos per crop')
   lines.push('')
 
-  for (const r of cropResults) {
-    lines.push(`### ${r.crop_id}`)
-    lines.push('')
-    lines.push(`**Pregunta:** ${r.question_desc.slice(0, 80)}`)
+  for (const r of allResults) {
+    lines.push(`### ${r.crop_id} — ${r.question_desc.slice(0, 70)}`)
+    lines.push(`> Crop: ${r.cropNote}`)
     lines.push('')
 
     for (const engine of ENGINES) {
-      lines.push(`#### Engine: ${engine.id} — ${engine.label}`)
+      lines.push(`#### ${engine.id} — ${engine.label}`)
       lines.push('')
-      // Variants en ordre: preA, preB primer; baseline al final (evita contaminació)
       const orderedVariants: VariantId[] = ['preA', 'preB', 'baseline']
       for (const varId of orderedVariants) {
         const res = r.results.find((x) => x.variant_id === varId && x.engine_id === engine.id)
-        if (!res) continue
         const varDef = VARIANTS.find((v) => v.id === varId)!
         lines.push(`**${varId}** — ${varDef.label}:`)
         lines.push('```')
-        lines.push(res.ocr_text.slice(0, 400).trim())
+        lines.push((res?.ocr_text ?? '(sense resultat)').slice(0, 500).trim())
         lines.push('```')
         lines.push('')
       }
@@ -327,15 +476,15 @@ async function main(): Promise<void> {
   }
 
   // Taula de validació manual
+  const validCrops = allResults.filter((r) => r.cropNote.startsWith('pàg.'))
   lines.push('## Taula de validació manual')
   lines.push('')
   lines.push('> Omplir `corregible` (yes/no) i `impact` (high/med/low) per cada fila.')
-  lines.push('> **corregible yes** = puc identificar keywords i reconstruir la intenció.')
-  lines.push('> **impact**: high = borderline (pot rescatar-se) · low = clarament irrecuperable.')
+  lines.push('> **yes** = puc recuperar keywords i reconstruir la intenció tècnica.')
   lines.push('')
   lines.push('| crop_id | preprocess | engine | corregible | impact | notes |')
   lines.push('|---------|-----------|--------|-----------|--------|-------|')
-  for (const r of cropResults) {
+  for (const r of validCrops) {
     for (const variant of VARIANTS) {
       for (const engine of ENGINES) {
         lines.push(`| ${r.crop_id} | ${variant.id} | ${engine.id} | — | — | |`)
@@ -346,10 +495,8 @@ async function main(): Promise<void> {
   lines.push('---')
   lines.push('')
 
-  // Resum agregat
+  // Resum
   lines.push('## Resum agregat (completar manualment)')
-  lines.push('')
-  lines.push('### Per preprocess × engine')
   lines.push('')
   lines.push('| preprocess | tesseract | paddleocr | guany vs baseline |')
   lines.push('|-----------|----------|----------|------------------|')
@@ -357,39 +504,22 @@ async function main(): Promise<void> {
   lines.push('| preA      | X/13 | X/13 | +X/-X |')
   lines.push('| preB      | X/13 | X/13 | +X/-X |')
   lines.push('')
-  lines.push('### Classificació de resultats')
-  lines.push('')
-  lines.push('**1. Preprocess transversal** (millora en els dos engines):')
-  lines.push('_(crops on preX millora tesseract I paddleocr)_')
-  lines.push('')
-  lines.push('**2. Preprocess dependent de motor** (millora en un, no en l\'altre):')
-  lines.push('_(crops on preX millora un engine però no l\'altre)_')
-  lines.push('')
-  lines.push('**3. Sense guany** (cap variant millora cap engine):')
-  lines.push('_(crops on cap combinació és corregible)_')
-  lines.push('')
   lines.push('---')
   lines.push('')
-
-  // Conclusió
   lines.push('## Conclusió (a completar)')
   lines.push('')
-  lines.push('> [ ] **A — Preprocess és base vàlida:** guany consistent en els dos engines')
-  lines.push('>     → integrar preprocessing al pipeline')
+  lines.push('> [ ] **A — Preprocess transversal:** millora en els dos engines → integrar al pipeline')
   lines.push('>')
-  lines.push('> [ ] **B — Preprocess insuficient:** 0-2 rescatats o cap high-impact')
-  lines.push('>     → Spike B2: benchmark motors nous (PaddleOCR vs Kraken vs base)')
+  lines.push('> [ ] **B — Motor nou guanya:** PaddleOCR millor sense preprocess → adoptar com a fallback')
   lines.push('>')
-  lines.push('> [ ] **C — Resultat mixt:** guany dependent de motor')
-  lines.push('>     → estratègia híbrida engine-aware')
+  lines.push('> [ ] **C — Sense millora:** via morta → explorar models més avançats')
   lines.push('')
   lines.push('*(a completar)*')
 
   const report = lines.join('\n')
-
   const outDir = resolve(process.cwd(), '../../docs/spikes/feature4')
   if (!existsSync(outDir)) mkdirSync(outDir, { recursive: true })
-  const outPath = resolve(outDir, 'spike-b1-engine-agnostic-benchmark.md')
+  const outPath = resolve(outDir, 'spike-b1-crop-ocr-benchmark.md')
   writeFileSync(outPath, report, 'utf8')
 
   console.error('')
