@@ -14,7 +14,7 @@ Només **estat i verificació**. Normativa: **`AGENTS_ARQUITECTURA.md`**. Ordre 
 | **Feature 1** — Question-answer extraction (OCR) | **DONE** | OCR + segmentació per marcadors. 4 alumnes reals. Limitació: scans de molt baixa qualitat fora d’abast. |
 | **Feature 2** — Assessment Spec Builder | **DONE / CONGELADA** | Dues passades LLM (MODE OPERATIU + MODE PEDAGÒGIC) + `examDocumentContext`. Prerequisit de Feature 3. |
 | **Feature 3** — Answer Evaluator | **MVP implementat — VIA MORTA gate (iter 2/4)** | Router + gate semàntic. 327 tests. Gate pre-LLM no arriba a precision ≥ 70%. Pròxim: Feature 4. |
-| **Feature 4** — OCR Fallback Server-side | **DEFINICIÓ** | Servei Python Docker separat, efímer, privacy-first. Millora OCR en origen per crops difícils. Pla: Spikes A→B→C→D. |
+| **Feature 4** — OCR Fallback Server-side | **DEFINICIÓ + Spike B0 definit** | Servei Python Docker separat, efímer, privacy-first. Spike B0 (preprocessing mínim) definit i harness implementat. Pendent: execució + validació manual. |
 
 **Validació canònica:** `./scripts/run_frontend.sh lint|typecheck|test|build` (Docker `frontend-check`). 327 tests passant.
 
@@ -203,7 +203,7 @@ Evidència completa: `docs/spikes/ocr-gate-loop/`
 
 **Feature 0, 1, 2 tancades. Feature 3 MVP funcional. Feature 4: DEFINICIÓ tancada.**
 
-- **Pròxim:** Spike A de Feature 4 — contracte API, guardrails privadesa, estructura Docker Python.
+- **Pròxim:** executar Spike B0 (`npm run spike:ocr-preprocess-b0`) i validar manualment la taula de corregibilitat. Decisió: preprocessing útil → base de Feature 4 + Spike B engines; insuficient → Spike B engines directament.
 - **Evidència VIA MORTA Feature 3:** `docs/spikes/ocr-gate-loop/iteration-02.md`.
 
 Validació habitual: `./scripts/run_frontend.sh …` (Docker).
