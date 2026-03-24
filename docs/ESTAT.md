@@ -1,6 +1,6 @@
 # Estat del projecte (operatiu)
 
-**Darrera actualització:** 2026-03-24 (Loop de validació OCR gate — iteració 1/4)
+**Darrera actualització:** 2026-03-24 (Loop validació OCR gate — VIA MORTA declarada iter 2/4)
 
 Només **estat i verificació**. Normativa: **`AGENTS_ARQUITECTURA.md`**. Ordre de lectura: **`llm.txt`**.
 
@@ -13,7 +13,7 @@ Només **estat i verificació**. Normativa: **`AGENTS_ARQUITECTURA.md`**. Ordre 
 | **Feature 0** — Template inference + layout mapping | **DONE** | Viabilitat plantilla (LLM) + mapping anchor→zones. 4 PDFs reals validats. |
 | **Feature 1** — Question-answer extraction (OCR) | **DONE** | OCR + segmentació per marcadors. 4 alumnes reals. Limitació: scans de molt baixa qualitat fora d’abast. |
 | **Feature 2** — Assessment Spec Builder | **DONE / CONGELADA** | Dues passades LLM (MODE OPERATIU + MODE PEDAGÒGIC) + `examDocumentContext`. Prerequisit de Feature 3. |
-| **Feature 3** — Answer Evaluator | **MVP implementat — loop validació OCR gate (iter 1/4)** | Router integrat, gate semàntic domain-agnostic. 327 tests. Loop actiu: `docs/spikes/ocr-gate-loop/`. |
+| **Feature 3** — Answer Evaluator | **MVP implementat — VIA MORTA gate (iter 2/4)** | Router + gate semàntic. 327 tests. Gate pre-LLM no arriba a precision ≥ 70%. Pròxim: OCR server-side / vision. |
 
 **Validació canònica:** `./scripts/run_frontend.sh lint|typecheck|test|build` (Docker `frontend-check`). 327 tests passant.
 
@@ -145,15 +145,25 @@ Evidència completa: `docs/benchmarks/ocr-benchmark-2026-03-22.md`.
 | Gate domain-agnostic (`hasTechnicalSignal`) | `0c9f570` | ✅ 327 tests |
 | Spike 3.D (validació canal text) | `spike-3d-...md` | ⚠ 33% concordança — loop actiu |
 
-### Loop de validació OCR gate (actiu)
+### Loop de validació OCR gate — **VIA MORTA** (2026-03-24)
 
 **Objectiu:** determinar si el gate pot separar amb fiabilitat raonable `text` de `skip`.
 
-**Estat:** Iteració 1 en curs. Dataset congelat: 36 preguntes (alumne-1/2/3). Màxim 4 iteracions.
+**Resultat:** VIA MORTA declarada a iteració 2/4.
 
-Evidència: `docs/spikes/ocr-gate-loop/`
+| Iteració | Precision | FP rate | Resultat |
+|----------|-----------|---------|---------|
+| 1 | 30.6% | 69.4% | Baseline — skip=0, tot va a text |
+| 2 | ~33% (simulat) | ~67% | Cap heurística funciona — distributions TP≈FP |
 
-**Sortides possibles:** FET (precision ≥ 0.70) o VIA MORTA → OCR server-side / vision.
+**Causa arrel:** el QAE upstream etiqueta `ok` textos semànticament il·legibles.
+Cap comptador de tokens (plausibleRatio, sql_signals, gibberish, noise) pot
+discriminar "CREATE TABLE amb camps llegibles" de "CREATE TABLE amb camps corromputs"
+sense comprensió semàntica.
+
+**Decisió:** no invertir més en heurístiques pre-LLM. Pròxim pas: OCR server-side o vision.
+
+Evidència completa: `docs/spikes/ocr-gate-loop/`
 
 ### Feature 3 NO inclou (MVP)
 
@@ -171,16 +181,16 @@ Evidència: `docs/spikes/ocr-gate-loop/`
 - **Feature 0 (coordenades físiques):** geometria en coordenades de pàgina reals (x/y bbox) — fora d’abast del MVP actual. No prioritat fins que PM ho demani.
 - **Feature 0 (backend Capa 1):** ruta `/api/feature0/analysis` funciona via plugin Vite; en producció caldria backend Node independent. Pendent PM.
 - **Feature 2 (producte):** persistència estable d’`AssessmentSpec` per convocatòria, UI de revisió (pendent PM). No bloqueja Feature 3.
-- **Feature 3 (loop OCR gate):** Loop actiu a `docs/spikes/ocr-gate-loop/`. Màxim 4 iteracions. Sortida: FET o VIA MORTA → OCR server-side / vision.
+- **Feature 3 (pròxim pas):** VIA MORTA gate pre-LLM. Pendent decisió PM: OCR server-side fallback o canal vision. Evidència: `docs/spikes/ocr-gate-loop/`.
 
 ---
 
 ## Següent pas
 
-**Feature 0, Feature 1 i Feature 2 tancades i congelades. Feature 3 MVP implementat, en loop de validació OCR gate.**
+**Feature 0, Feature 1 i Feature 2 tancades i congelades. Feature 3 MVP implementat. Loop OCR gate: VIA MORTA.**
 
-- **Actiu:** Loop OCR gate — iteració 1/4. Veure `docs/spikes/ocr-gate-loop/iteration-01.md`.
-- **Si FET:** Feature 3 validada, passar a Feature 3.2 (batch + export) si PM ho valida.
-- **Si VIA MORTA (≤ iter 4):** tancar línia gate i passar a OCR server-side fallback o canal vision.
+- **Decisió pendent PM:** OCR server-side fallback efímer (reprocessar PDFs) o canal vision (enviar imatge al grader).
+- **Evidència de la decisió:** `docs/spikes/ocr-gate-loop/iteration-01.md` + `iteration-02.md`.
+- **El codi MVP és funcional:** router + gate + grader estàn implementats i testats. El problema és upstream (QAE etiqueta mal).
 
 Validació habitual: `./scripts/run_frontend.sh …` (Docker).
