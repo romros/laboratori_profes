@@ -16,7 +16,7 @@ COPY paddle_ocr_batch.py .
 
 # Pre-descarregar els models PaddleOCR durant el build (no en runtime)
 RUN PADDLE_PDX_DISABLE_MODEL_SOURCE_CHECK=True python3 -c \
-    "from paddleocr import PaddleOCR; PaddleOCR(lang='en')" \
+    "from paddleocr import PaddleOCR; PaddleOCR(lang='es')" \
     2>/dev/null || true
 
 ENTRYPOINT ["python3", "paddle_ocr_batch.py"]

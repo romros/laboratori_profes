@@ -92,7 +92,7 @@ type EngineId = 'tesseract' | 'paddleocr'
 
 const ENGINES: { id: EngineId; label: string }[] = [
   { id: 'tesseract', label: 'Tesseract.js (WASM, lang=cat, PSM=AUTO)' },
-  { id: 'paddleocr', label: 'PaddleOCR (Docker profes-ocr-fallback, lang=en, CPU)' },
+  { id: 'paddleocr', label: 'PaddleOCR (Docker profes-ocr-fallback, lang=es, CPU)' },
 ]
 
 const DOCKER_IMAGE = 'profes-ocr-fallback'

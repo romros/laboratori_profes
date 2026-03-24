@@ -35,7 +35,7 @@
 (no detectat)
 ```
 
-#### Engine: paddleocr — PaddleOCR (Docker profes-ocr-fallback, lang=en, CPU)
+#### Engine: paddleocr — PaddleOCR (Docker profes-ocr-fallback, lang=es, CPU)
 
 **preA** — Preprocess A (grayscale + contrast 0.3):
 ```
@@ -75,7 +75,7 @@
 (no detectat)
 ```
 
-#### Engine: paddleocr — PaddleOCR (Docker profes-ocr-fallback, lang=en, CPU)
+#### Engine: paddleocr — PaddleOCR (Docker profes-ocr-fallback, lang=es, CPU)
 
 **preA** — Preprocess A (grayscale + contrast 0.3):
 ```
@@ -115,7 +115,7 @@
 (no detectat)
 ```
 
-#### Engine: paddleocr — PaddleOCR (Docker profes-ocr-fallback, lang=en, CPU)
+#### Engine: paddleocr — PaddleOCR (Docker profes-ocr-fallback, lang=es, CPU)
 
 **preA** — Preprocess A (grayscale + contrast 0.3):
 ```
@@ -155,7 +155,7 @@
 (no detectat)
 ```
 
-#### Engine: paddleocr — PaddleOCR (Docker profes-ocr-fallback, lang=en, CPU)
+#### Engine: paddleocr — PaddleOCR (Docker profes-ocr-fallback, lang=es, CPU)
 
 **preA** — Preprocess A (grayscale + contrast 0.3):
 ```
@@ -195,7 +195,7 @@
 (no detectat)
 ```
 
-#### Engine: paddleocr — PaddleOCR (Docker profes-ocr-fallback, lang=en, CPU)
+#### Engine: paddleocr — PaddleOCR (Docker profes-ocr-fallback, lang=es, CPU)
 
 **preA** — Preprocess A (grayscale + contrast 0.3):
 ```
@@ -235,7 +235,7 @@
 (no detectat)
 ```
 
-#### Engine: paddleocr — PaddleOCR (Docker profes-ocr-fallback, lang=en, CPU)
+#### Engine: paddleocr — PaddleOCR (Docker profes-ocr-fallback, lang=es, CPU)
 
 **preA** — Preprocess A (grayscale + contrast 0.3):
 ```
@@ -275,7 +275,7 @@
 (no detectat)
 ```
 
-#### Engine: paddleocr — PaddleOCR (Docker profes-ocr-fallback, lang=en, CPU)
+#### Engine: paddleocr — PaddleOCR (Docker profes-ocr-fallback, lang=es, CPU)
 
 **preA** — Preprocess A (grayscale + contrast 0.3):
 ```
@@ -315,7 +315,7 @@
 (no detectat)
 ```
 
-#### Engine: paddleocr — PaddleOCR (Docker profes-ocr-fallback, lang=en, CPU)
+#### Engine: paddleocr — PaddleOCR (Docker profes-ocr-fallback, lang=es, CPU)
 
 **preA** — Preprocess A (grayscale + contrast 0.3):
 ```
@@ -355,7 +355,7 @@
 (no detectat)
 ```
 
-#### Engine: paddleocr — PaddleOCR (Docker profes-ocr-fallback, lang=en, CPU)
+#### Engine: paddleocr — PaddleOCR (Docker profes-ocr-fallback, lang=es, CPU)
 
 **preA** — Preprocess A (grayscale + contrast 0.3):
 ```
@@ -395,7 +395,7 @@
 (no detectat)
 ```
 
-#### Engine: paddleocr — PaddleOCR (Docker profes-ocr-fallback, lang=en, CPU)
+#### Engine: paddleocr — PaddleOCR (Docker profes-ocr-fallback, lang=es, CPU)
 
 **preA** — Preprocess A (grayscale + contrast 0.3):
 ```
@@ -435,7 +435,7 @@
 (no detectat)
 ```
 
-#### Engine: paddleocr — PaddleOCR (Docker profes-ocr-fallback, lang=en, CPU)
+#### Engine: paddleocr — PaddleOCR (Docker profes-ocr-fallback, lang=es, CPU)
 
 **preA** — Preprocess A (grayscale + contrast 0.3):
 ```
@@ -475,7 +475,7 @@
 (no detectat)
 ```
 
-#### Engine: paddleocr — PaddleOCR (Docker profes-ocr-fallback, lang=en, CPU)
+#### Engine: paddleocr — PaddleOCR (Docker profes-ocr-fallback, lang=es, CPU)
 
 **preA** — Preprocess A (grayscale + contrast 0.3):
 ```
@@ -515,7 +515,7 @@
 (no detectat)
 ```
 
-#### Engine: paddleocr — PaddleOCR (Docker profes-ocr-fallback, lang=en, CPU)
+#### Engine: paddleocr — PaddleOCR (Docker profes-ocr-fallback, lang=es, CPU)
 
 **preA** — Preprocess A (grayscale + contrast 0.3):
 ```
