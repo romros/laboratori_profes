@@ -550,3 +550,35 @@
 > [ ] **C — Sense millora:** via morta → explorar models més avançats
 
 *(a completar)*
+---
+
+## ⚠️ BLOQUEIG — Spike tancat sense dades útils (2026-03-24)
+
+**Resultat:** tots els 13 crops retornen `(no crop)` — el spike no ha pogut generar cap dada avaluable.
+
+**Causa arrel: dependència circular.**
+
+Els 13 crops del dataset són els pitjors casos de Feature 1 — aquells on l'OCR Tesseract falla.
+L'estratègia d'aquest spike obtenia el crop via `buildTemplateMappedAnswers` (Feature 0 layout),
+que depèn d'un OCR mínimament llegible per detectar anchors. En els casos de baixa qualitat,
+el text OCR és tan dolent que el layout no detecta cap anchor → no hi ha bbox → no hi ha crop.
+
+```
+Feature 4 necessita crop per millorar OCR
+   ↓
+Per obtenir crop cal layout (Feature 0)
+   ↓
+Layout necessita OCR llegible per detectar anchors
+   ↓
+OCR il·legible → layout no detecta anchors → no hi ha crop  ← BUCLE
+```
+
+**Decisió pendent (PM):** redefinir l'origen del crop perquè no depengui del text OCR. Opcions:
+
+| Opció | Descripció | Trade-off |
+|-------|-----------|-----------|
+| A | Crop per franja vertical proporcional (estructura regular de l'examen) | Assumeix distribució de pàgina estable |
+| B | Coordenades relatives del template (posicions esperades) | Requereix template amb coords pixel, no tenim |
+| C | OCR pàgina sencera amb motor nou + segmentació posterior | Equivalent a B1 original (pàgina completa) |
+
+**Pròxim pas:** decisió PM sobre quin origen de crop s'usa, o si es passa directament a Spike B engines sobre pàgina completa (opció C).

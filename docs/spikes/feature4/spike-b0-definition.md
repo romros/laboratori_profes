@@ -112,6 +112,24 @@ L'script genera `docs/spikes/feature4/spike-b0-preprocess-benchmark.md` amb:
 
 ---
 
+## ⚠️ Bloqueig descobert a Spike B1 (2026-03-24)
+
+**Problema:** l'estratègia de Spike B1 d'obtenir el crop a partir del layout OCR-dependent
+(`buildTemplateMappedAnswers`) introdueix una **dependència circular**:
+
+- Feature 4 necessita el crop per millorar l'OCR
+- Per obtenir el crop necessita un OCR mínimament llegible (per detectar anchors)
+- Els 13 crops del dataset són exactament els casos on l'OCR falla → layout no detecta anchors → no hi ha crop
+
+**Conseqüència:** els 13 crops (els pitjors) retornen tots `(no crop)` — el spike no genera dades útils.
+
+**Decisió pendent (PM):** redefinir l'origen del crop perquè no depengui del text OCR. Opcions:
+- A) Crop per franja vertical proporcional (estructura regular de l'examen, sense text)
+- B) Coordenades relatives del template (posicions esperades de cada pregunta)
+- C) OCR de pàgina sencera amb el motor nou, segmentació posterior
+
+---
+
 ## Refs
 
 - **Harness:** `apps/frontend/scripts/ocrPreprocessSpikeB0.ts`

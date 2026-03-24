@@ -179,7 +179,8 @@ async function getQuestionText(
   }
 
   const items = cache.items[variant.id]!
-  const item = items.find((i) => i.question_id === questionId)
+  const qId = questionId.replace(/^Q/, '')
+  const item = items.find((i) => i.question_id === qId)
   return item?.raw_text_block.replace(/\s+/g, ' ').trim() ?? '(no detectat)'
 }
 

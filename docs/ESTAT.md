@@ -183,7 +183,7 @@ Evidència completa: `docs/spikes/ocr-gate-loop/`
 - **Feature 0 (backend Capa 1):** ruta `/api/feature0/analysis` funciona via plugin Vite; en producció caldria backend Node independent. Pendent PM.
 - **Feature 2 (producte):** persistència estable d’`AssessmentSpec` per convocatòria, UI de revisió (pendent PM). No bloqueja Feature 3.
 - **Feature 3 (pròxim pas):** VIA MORTA gate pre-LLM → Feature 4 (OCR fallback server-side). Evidència: `docs/spikes/ocr-gate-loop/`.
-- **Feature 4 (pròxim pas actiu):** DEFINICIÓ tancada. Pròxim: Spike A (contracte i arquitectura del servei Python).
+- **Feature 4 (pròxim pas):** DEFINICIÓ tancada. Spike B1 bloquejat per dependència circular (veure `docs/spikes/feature4/spike-b1-crop-ocr-benchmark.md`). **Pendent decisió PM** sobre origen del crop.
 
 ---
 
@@ -203,7 +203,9 @@ Evidència completa: `docs/spikes/ocr-gate-loop/`
 
 **Feature 0, 1, 2 tancades. Feature 3 MVP funcional. Feature 4: DEFINICIÓ tancada.**
 
-- **Pròxim:** executar Spike B0 (`npm run spike:ocr-preprocess-b0`) i validar manualment la taula de corregibilitat. Decisió: preprocessing útil → base de Feature 4 + Spike B engines; insuficient → Spike B engines directament.
+- **Spike B0:** harness implementat, pendent d'execució i validació manual.
+- **Spike B1 (crop-based):** ⚠️ **BLOQUEJAT** — dependència circular: els pitjors casos (dataset congelat) fallen al layout (Feature 0) perquè l'OCR és massa dolent per detectar anchors → no es genera cap crop → no hi ha dades. Documentat a `docs/spikes/feature4/spike-b1-crop-ocr-benchmark.md`.
+- **Decisió pendent (PM):** redefinir l'origen del crop (franja proporcional / coords template / pàgina sencera). Opcions a `spike-b1-crop-ocr-benchmark.md §BLOQUEIG`.
 - **Evidència VIA MORTA Feature 3:** `docs/spikes/ocr-gate-loop/iteration-02.md`.
 
 Validació habitual: `./scripts/run_frontend.sh …` (Docker).
