@@ -1,6 +1,6 @@
 # Estat del projecte (operatiu)
 
-**Darrera actualització:** 2026-03-24 (Loop validació OCR gate — VIA MORTA declarada iter 2/4)
+**Darrera actualització:** 2026-03-24 (Feature 4 definida — OCR fallback server-side efímer)
 
 Només **estat i verificació**. Normativa: **`AGENTS_ARQUITECTURA.md`**. Ordre de lectura: **`llm.txt`**.
 
@@ -13,7 +13,8 @@ Només **estat i verificació**. Normativa: **`AGENTS_ARQUITECTURA.md`**. Ordre 
 | **Feature 0** — Template inference + layout mapping | **DONE** | Viabilitat plantilla (LLM) + mapping anchor→zones. 4 PDFs reals validats. |
 | **Feature 1** — Question-answer extraction (OCR) | **DONE** | OCR + segmentació per marcadors. 4 alumnes reals. Limitació: scans de molt baixa qualitat fora d’abast. |
 | **Feature 2** — Assessment Spec Builder | **DONE / CONGELADA** | Dues passades LLM (MODE OPERATIU + MODE PEDAGÒGIC) + `examDocumentContext`. Prerequisit de Feature 3. |
-| **Feature 3** — Answer Evaluator | **MVP implementat — VIA MORTA gate (iter 2/4)** | Router + gate semàntic. 327 tests. Gate pre-LLM no arriba a precision ≥ 70%. Pròxim: OCR server-side / vision. |
+| **Feature 3** — Answer Evaluator | **MVP implementat — VIA MORTA gate (iter 2/4)** | Router + gate semàntic. 327 tests. Gate pre-LLM no arriba a precision ≥ 70%. Pròxim: Feature 4. |
+| **Feature 4** — OCR Fallback Server-side | **DEFINICIÓ** | Servei Python Docker separat, efímer, privacy-first. Millora OCR en origen per crops difícils. Pla: Spikes A→B→C→D. |
 
 **Validació canònica:** `./scripts/run_frontend.sh lint|typecheck|test|build` (Docker `frontend-check`). 327 tests passant.
 
@@ -181,16 +182,28 @@ Evidència completa: `docs/spikes/ocr-gate-loop/`
 - **Feature 0 (coordenades físiques):** geometria en coordenades de pàgina reals (x/y bbox) — fora d’abast del MVP actual. No prioritat fins que PM ho demani.
 - **Feature 0 (backend Capa 1):** ruta `/api/feature0/analysis` funciona via plugin Vite; en producció caldria backend Node independent. Pendent PM.
 - **Feature 2 (producte):** persistència estable d’`AssessmentSpec` per convocatòria, UI de revisió (pendent PM). No bloqueja Feature 3.
-- **Feature 3 (pròxim pas):** VIA MORTA gate pre-LLM. Pendent decisió PM: OCR server-side fallback o canal vision. Evidència: `docs/spikes/ocr-gate-loop/`.
+- **Feature 3 (pròxim pas):** VIA MORTA gate pre-LLM → Feature 4 (OCR fallback server-side). Evidència: `docs/spikes/ocr-gate-loop/`.
+- **Feature 4 (pròxim pas actiu):** DEFINICIÓ tancada. Pròxim: Spike A (contracte i arquitectura del servei Python).
+
+---
+
+## Feature 4 — OCR Fallback Server-side — **DEFINICIÓ**
+
+**Servei Python Docker separat, efímer i privacy-first, que millora l'OCR en origen per crops difícils.**
+
+- **Doc:** `docs/features/ocr-fallback/README.md`
+- **Motivació:** VIA MORTA del gate pre-LLM de Feature 3 — el text OCR base és massa sorollós per al grader textual
+- **Arquitectura:** Python + FastAPI + Docker separat — no al `qae-api`
+- **Pla:** Spike A (contracte) → Spike B (comparació engines) → Spike C (validació manual) → Spike D (wiring)
+- **Decisió pendent:** quin motor OCR guanya (Kraken vs PaddleOCR vs altres) — es decideix a Spike B+C
 
 ---
 
 ## Següent pas
 
-**Feature 0, Feature 1 i Feature 2 tancades i congelades. Feature 3 MVP implementat. Loop OCR gate: VIA MORTA.**
+**Feature 0, 1, 2 tancades. Feature 3 MVP funcional. Feature 4: DEFINICIÓ tancada.**
 
-- **Decisió pendent PM:** OCR server-side fallback efímer (reprocessar PDFs) o canal vision (enviar imatge al grader).
-- **Evidència de la decisió:** `docs/spikes/ocr-gate-loop/iteration-01.md` + `iteration-02.md`.
-- **El codi MVP és funcional:** router + gate + grader estàn implementats i testats. El problema és upstream (QAE etiqueta mal).
+- **Pròxim:** Spike A de Feature 4 — contracte API, guardrails privadesa, estructura Docker Python.
+- **Evidència VIA MORTA Feature 3:** `docs/spikes/ocr-gate-loop/iteration-02.md`.
 
 Validació habitual: `./scripts/run_frontend.sh …` (Docker).
