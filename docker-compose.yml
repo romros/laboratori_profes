@@ -22,6 +22,10 @@ services:
     environment:
       QAE_DEV_HOST: "0.0.0.0"
       QAE_API_PORT: "8787"
+      # llama-server PaddleVL corre al host (no dins Docker); cal usar la IP del gateway
+      VL_SERVER_URL: "http://172.25.0.1:8111/v1"
+      FEATURE0_OPENAI_API_KEY: "${FEATURE0_OPENAI_API_KEY:-}"
+      OPENAI_API_KEY: "${OPENAI_API_KEY:-}"
     volumes:
       - .:/app
       - node_modules_root:/app/node_modules
