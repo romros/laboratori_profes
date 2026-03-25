@@ -1,0 +1,36 @@
+# Spike VL-GGUF — PaddleOCR-VL-1.5 via llama.cpp (CPU, AMD x64)
+#
+# Arquitectura:
+#   llama-server (llama.cpp) serveix el model GGUF
+#   paddleocr (PaddlePaddle CPU) fa de client
+#
+# Dos serveis (docker-compose o docker run + network):
+#   1. profes-ocr-vl-server  -> llama-server (port 8111)
+#   2. profes-ocr-vl-client  -> paddleocr (aquest Dockerfile)
+#
+# Per a la inferència CPU eficient:
+#   - llama.cpp usa OpenBLAS/BLAS natiu (NO bfloat16 simulat)
+#   - GGUF quantitzat Q8 (~1.8GB) vs bfloat16 raw (2GB+slow)
+
+# ── Etapa 1: llama-server (imatge oficial, 43MB comprimida) ──────────────────
+FROM ghcr.io/ggml-org/llama.cpp:server AS llama-server
+
+# ── Etapa 2: client PaddleOCR (PaddlePaddle CPU) ────────────────────────────
+FROM python:3.11-slim AS paddleocr-client
+
+WORKDIR /app
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    libglib2.0-0 \
+    libgl1 \
+    libgomp1 \
+    wget \
+    && rm -rf /var/lib/apt/lists/*
+
+# PaddleOCR-VL via llama-server: crida directa OpenAI API
+# No cal paddlepaddle ni paddleocr — només el client openai
+RUN pip install --no-cache-dir openai
+
+COPY paddle_vl_runner_gguf.py .
+
+ENTRYPOINT ["python3", "paddle_vl_runner_gguf.py"]

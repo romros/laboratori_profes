@@ -206,9 +206,13 @@ Evidència completa: `docs/spikes/ocr-gate-loop/`
 - **Spike B0:** harness implementat, pendent d'execució i validació manual.
 - **Spike B1 (engine-agnostic, pàgina sencera):** ✅ **TANCAT** — PaddleOCR 3.x 0/39 deteccions, Tesseract baseline 5/13. Ambdós insuficients per a text manuscrit. Documentat a `docs/spikes/feature4/spike-b1-engine-agnostic-benchmark.md`.
 - **Spike B1 (crop-based):** ⚠️ **BLOQUEJAT** — dependència circular. Documentat a `docs/spikes/feature4/spike-b1-crop-ocr-benchmark.md`.
-- **Spike 4A (PaddleOCR-VL-1.5, CPU):** ⚠️ **VIA MORTA** — model carrega bé (14s, 1.3GB RAM) però inferència en CPU és inviable: >8h per pàgina sense completar. Requereix GPU. Documentat a `docs/spikes/feature4/paddleocr-vl-spike-a.md`.
-- **Pròxim pas recomanat:** EasyOCR (dissenyat per a text manuscrit, significativament més lleuger que PaddleOCR-VL, funcional en CPU).
-- **Decisió pendent (PM):** redefinir l'origen del crop (franja proporcional / coords template / pàgina sencera). Opcions a `spike-b1-crop-ocr-benchmark.md §BLOQUEIG`.
+- **Spike 4A (PaddleOCR-VL-1.5, transformers, CPU):** ⚠️ **VIA MORTA** — inferència >8h per pàgina. Documentat a `docs/spikes/feature4/paddleocr-vl-spike-a.md`.
+- **Spike VL-GGUF (PaddleOCR-VL-1.5 via llama.cpp, CPU):** ✅ **TANCAT** — **9/13 deteccions** (vs 5/13 Tesseract, +80%). Prompt `OCR:` + `repeat_penalty=1.15` + 200dpi. ~15s/pàgina. Errors residuals atribuïts a lletra manuscrita ambigua (no escàner). Documentat a `docs/spikes/feature4/spike-vl-gguf.md`.
+- **Decisions pendents (PM):**
+  1. Llindar qualitat: 9/13 és suficient per activar Feature 3, o cal millorar (Qwen2.5-VL-2B, CER ~3.8% vs 5.8%)?
+  2. Origen del crop: pàgina sencera (actual) vs franja proporcional vs coords template (`spike-b1-crop-ocr-benchmark.md §BLOQUEIG`)
+  3. Nivell scrubbing PII: fort (tot PII) vs dèbil (només DNI+telèfon) — veure `spike-vl-gguf.md §Estratègia privacitat`
+- **Arquitectura privacitat dissenyada:** rasterització en memòria (browser) → base64 → servei local → scrubbing PII pre-retorn. Cap dada d'alumne a disc ni a serveis externs.
 - **Evidència VIA MORTA Feature 3:** `docs/spikes/ocr-gate-loop/iteration-02.md`.
 
 Validació habitual: `./scripts/run_frontend.sh …` (Docker).

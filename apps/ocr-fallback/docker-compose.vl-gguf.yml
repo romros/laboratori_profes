@@ -1,0 +1,41 @@
+version: "3.9"
+
+# Spike VL-GGUF — PaddleOCR-VL-1.5 via llama.cpp
+#
+# Ús:
+#   docker compose -f docker-compose.vl-gguf.yml up -d vl-server
+#   docker compose -f docker-compose.vl-gguf.yml run --rm vl-client /data
+#
+# El model GGUF es munta com a volum des de la màquina host.
+# Descarregar prèviament (1.8GB total):
+#   mkdir -p /mnt/volume-SQ/models/paddleocr-vl-gguf
+#   huggingface-cli download PaddlePaddle/PaddleOCR-VL-1.5-GGUF \
+#     --local-dir /mnt/volume-SQ/models/paddleocr-vl-gguf
+
+services:
+  vl-server:
+    image: ghcr.io/ggml-org/llama.cpp:server
+    container_name: profes-ocr-vl-server
+    ports:
+      - "8111:8111"
+    volumes:
+      - /mnt/volume-SQ/models/paddleocr-vl-gguf:/models:ro
+    command: >
+      --model /models/PaddleOCR-VL-1.5.gguf
+      --mmproj /models/PaddleOCR-VL-1.5-mmproj.gguf
+      --port 8111
+      --host 0.0.0.0
+      --temp 0
+      --threads 8
+    restart: unless-stopped
+
+  vl-client:
+    image: profes-ocr-vl-client:latest
+    container_name: profes-ocr-vl-client
+    volumes:
+      - /tmp:/tmp
+      - ./data:/data:ro
+    environment:
+      VL_SERVER_URL: "http://profes-ocr-vl-server:8111/v1"
+    depends_on:
+      - vl-server
