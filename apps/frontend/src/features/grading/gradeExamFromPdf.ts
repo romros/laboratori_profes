@@ -43,6 +43,8 @@ export type GradeExamFromPdfOptions = {
   model?: string
   /** URL base de l'API LLM. */
   baseUrl?: string
+  /** Logger injectable. Default: console.error */
+  log?: (msg: string) => void
 }
 
 /** Resultat del pipeline complet (mapping + grading). */
@@ -101,22 +103,31 @@ export async function gradeExamFromPdf(
   apiKey: string | undefined,
   options: GradeExamFromPdfOptions = {},
 ): Promise<GradeExamFromPdfResult> {
+  const log = options.log ?? ((msg: string) => console.error(msg))
   const t0 = Date.now()
 
   // ── Pas 1: Rasterització ──────────────────────────────────────────────────
+  log(`[pipeline] Inici rasterització PDF (${(pdfBuffer.length / 1024).toFixed(0)} KiB)`)
   const t0_raster = Date.now()
   const pages = await rasterizePdfToPngPages(pdfBuffer)
   const rasterize_ms = Date.now() - t0_raster
+  log(`[pipeline] Rasterització OK — ${pages.length} pàgines en ${rasterize_ms}ms`)
 
   // ── Pas 2: OCR ───────────────────────────────────────────────────────────
+  log(`[pipeline] Inici OCR (PaddleVL) — ${pages.length} pàgines`)
   const t0_ocr = Date.now()
   const pngs = pages.map((p) => p.png)
   const ocrTexts = await ocrPngBuffersWithPaddleVl(pngs, {
     serverUrl: options.ocrServerUrl,
     fetchImpl: options.fetchImpl,
-    onProgress: options.onOcrProgress,
+    onProgress: (pageIndex, total) => {
+      log(`[ocr] Pàgina ${pageIndex + 1}/${total} processada`)
+      options.onOcrProgress?.(pageIndex, total)
+    },
   })
   const ocr_ms = Date.now() - t0_ocr
+  const totalLines = ocrTexts.reduce((acc, t) => acc + (t ?? '').split('\n').length, 0)
+  log(`[pipeline] OCR OK — ${totalLines} línies totals en ${ocr_ms}ms`)
 
   const ocrPages: OcrPageLines[] = pages.map((p, i) => ({
     pageIndex: p.pageIndex,
@@ -124,12 +135,18 @@ export async function gradeExamFromPdf(
   }))
 
   // ── Pas 3: Mapping ───────────────────────────────────────────────────────
+  log(`[pipeline] Inici mapping — ${templateQuestions.length} preguntes template`)
   const t0_map = Date.now()
   const mapping = buildTemplateMappedAnswers(templateQuestions, ocrPages)
   const mapping_ms = Date.now() - t0_map
+  const detected = mapping.questions.filter((q) => q.is_detected).length
+  log(
+    `[pipeline] Mapping OK — is_match=${String(mapping.is_match)} conf=${mapping.confidence.toFixed(2)} detectades=${detected}/${mapping.questions.length} en ${mapping_ms}ms`,
+  )
 
   // ── Pas 4: Grading (opcional) ────────────────────────────────────────────
   if (!apiKey) {
+    log(`[pipeline] Mode mapping-only (sense API key). Total: ${Date.now() - t0}ms`)
     return {
       timing: { rasterize_ms, ocr_ms, mapping_ms, grading_ms: 0, total_ms: Date.now() - t0 },
       mapping,
@@ -139,6 +156,9 @@ export async function gradeExamFromPdf(
   }
 
   const answers: AnswerForEvaluation[] = mapping.questions.map(toAnswerForEvaluation)
+  const model = options.model ?? '(default)'
+  const baseUrl = options.baseUrl ?? '(default)'
+  log(`[pipeline] Inici grading — model=${model} baseUrl=${baseUrl} preguntes=${answers.length}`)
 
   const t0_grade = Date.now()
   const grading = await gradeExam({
@@ -150,8 +170,13 @@ export async function gradeExamFromPdf(
     baseUrl: options.baseUrl,
     model: options.model,
     fetchImpl: options.fetchImpl,
+    log,
   })
   const grading_ms = Date.now() - t0_grade
+
+  const graded = grading.question_results.filter((q) => q.verdict !== null).length
+  log(`[pipeline] Grading OK — ${graded}/${grading.question_results.length} avaluades en ${grading_ms}ms`)
+  log(`[pipeline] TOTAL: ${Date.now() - t0}ms`)
 
   return {
     timing: { rasterize_ms, ocr_ms, mapping_ms, grading_ms, total_ms: Date.now() - t0 },

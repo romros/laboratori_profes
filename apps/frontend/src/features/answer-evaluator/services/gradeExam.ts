@@ -18,6 +18,7 @@ export type GradeExamParams = GradeExamInput & {
   baseUrl?: string
   model?: string
   fetchImpl?: typeof fetch
+  log?: (msg: string) => void
 }
 
 /**
@@ -40,6 +41,7 @@ export async function gradeExam(params: GradeExamParams): Promise<ExamEvaluation
     baseUrl,
     model,
     fetchImpl,
+    log,
   } = params
 
   const specById = new Map(assessment_spec.questions.map((q) => [q.question_id, q]))
@@ -95,6 +97,7 @@ export async function gradeExam(params: GradeExamParams): Promise<ExamEvaluation
         model,
         examDocumentContext: exam_document_context,
         fetchImpl,
+        log,
       })
     }),
   )

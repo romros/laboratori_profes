@@ -7,7 +7,7 @@ import type {
 } from '../../../domain/answer-evaluator/answerEvaluator.schema'
 import {
   type ChatMessage,
-  callOpenAiCompatibleChat,
+  callOpenAiCompatibleChatWithMeta,
 } from '../../template-inference/services/openAiCompatibleChat'
 import { buildEvaluateAnswerPrompt } from './evaluateAnswerPrompt'
 import { triageAnswerEvaluability } from './triageAnswerEvaluability'
@@ -26,6 +26,7 @@ export type EvaluateAnswerParams = {
   model?: string
   examDocumentContext?: string
   fetchImpl?: typeof fetch
+  log?: (msg: string) => void
 }
 
 const DEFAULT_EVALUATOR_BASE_URL = 'https://api.openai.com/v1'
@@ -39,11 +40,13 @@ export async function evaluateAnswer(params: EvaluateAnswerParams): Promise<Ques
   const { questionSpec, answer, apiKey, examDocumentContext, fetchImpl } = params
   const baseUrl = params.baseUrl?.trim() || DEFAULT_EVALUATOR_BASE_URL
   const model = params.model?.trim() || DEFAULT_EVALUATOR_MODEL
+  const log = params.log ?? ((msg: string) => console.error(msg))
 
   const triage = triageAnswerEvaluability(answer)
 
   // Guardrail: no cridar LLM si no és avaluable
   if (triage.evaluable_by_ocr === 'no') {
+    log(`[grading] ${answer.question_id}: skip (${triage.evaluability_reason})`)
     return {
       question_id: answer.question_id,
       ...triage,
@@ -52,6 +55,8 @@ export async function evaluateAnswer(params: EvaluateAnswerParams): Promise<Ques
       confidence: null,
     }
   }
+
+  log(`[grading] ${answer.question_id}: avaluant amb ${model}…`)
 
   const userContent = buildEvaluateAnswerPrompt({
     questionSpec,
@@ -68,7 +73,7 @@ export async function evaluateAnswer(params: EvaluateAnswerParams): Promise<Ques
     { role: 'user', content: userContent },
   ]
 
-  const rawContent = await callOpenAiCompatibleChat({
+  const meta = await callOpenAiCompatibleChatWithMeta({
     apiKey,
     baseUrl,
     model,
@@ -78,12 +83,16 @@ export async function evaluateAnswer(params: EvaluateAnswerParams): Promise<Ques
 
   let parsed: unknown
   try {
-    parsed = JSON.parse(rawContent.trim())
+    parsed = JSON.parse(meta.content.trim())
   } catch {
     throw new Error(`evaluateAnswer: JSON invàlid del model per a ${answer.question_id}`)
   }
 
   const llmResult = llmVerdictSchema.parse(parsed)
+  const tokens = meta.usage?.total_tokens != null ? ` tokens=${meta.usage.total_tokens}` : ''
+  log(
+    `[grading] ${answer.question_id}: ${llmResult.verdict} conf=${llmResult.confidence.toFixed(2)} lat=${meta.latencyMs.toFixed(0)}ms${tokens}`,
+  )
 
   return {
     question_id: answer.question_id,

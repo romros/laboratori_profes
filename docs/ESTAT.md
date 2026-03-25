@@ -14,7 +14,7 @@ Només **estat i verificació**. Normativa: **`AGENTS_ARQUITECTURA.md`**. Ordre 
 | **Feature 1** — Question-answer extraction (OCR) | **DONE** | OCR + segmentació per marcadors. 4 alumnes reals. Limitació: scans de molt baixa qualitat fora d’abast. |
 | **Feature 2** — Assessment Spec Builder | **DONE / CONGELADA** | Dues passades LLM (MODE OPERATIU + MODE PEDAGÒGIC) + `examDocumentContext`. Prerequisit de Feature 3. |
 | **Feature 3** — Answer Evaluator | **MVP implementat — VIA MORTA gate (iter 2/4)** | Router + gate semàntic. 327 tests. Gate pre-LLM no arriba a precision ≥ 70%. Pròxim: Feature 4. |
-| **Feature 4** — OCR Fallback Server-side | **UX MVP DONE** | Flux professor complet: `/demo/grade` → upload PDF → OCR → grading → resultat. `gradeExamFromPdf()` + `GradeExamPage.tsx` + `/api/grade-exam`. 327 tests passant. |
+| **Feature 4 — Grading E2E** | **DONE / TANCADA** | Pipeline complet: upload PDF → OCR (PaddleVL) → mapping → grading (Claude/GPT). Logs per fase. Comparativa Claude vs GPT validada. Problema OCR 72 DPI documentat. Doc: `docs/features/grading/README.md` |
 
 **Validació canònica:** `./scripts/run_frontend.sh lint|typecheck|test|build` (Docker `frontend-check`). 327 tests passant.
 
@@ -210,32 +210,51 @@ Evidència completa: `docs/spikes/ocr-gate-loop/`
 
 ## Seguent pas
 
-**Feature 0, 1, 2 tancades. Feature 3 MVP funcional. Feature 4: Integration E2E DONE.**
+**Feature 0, 1, 2 tancades. Feature 3 MVP funcional. Feature 4 (Grading E2E): DONE i TANCADA.**
 
 **Resposta a la pregunta PM: SÍ, un professor pot corregir un examen real sense ajuda.**
 
 ### Evidència UX MVP (2026-03-25)
 
-- URL: `http://<servidor>:9088/demo/grade`
+- URL: `http://<servidor>:9088/` (pàgina principal)
 - Flux: Choose File → "Corregir examen" → fases visibles → resultat per pregunta (expandible)
 - Mode degradat: sense API key → mapping-only (no crash)
+- Logs servidor: rubrica, OCR per pàgina, grading per pregunta amb latència i tokens
 
-### Evidència E2E (2026-03-25, `ex_alumne2.pdf`, 15 preguntes)
+### Evidència E2E (2026-03-25, `ex_alumne2.pdf`, 15 preguntes, Claude Sonnet 4.6)
 
 | Fase | Resultat | Temps |
 |------|----------|-------|
 | Rasterització | 5 pàgines | 4s |
-| OCR (PaddleVL) | 15/15 detectades | 77s (15s/pàg) |
-| Mapping | is_match: true, conf: 0.84 | <1s |
-| Grading (LLM) | 15/15 avaluades | 4s |
-| **TOTAL** | **1 correcta, 3 parcials, 11 incorrectes** | **86s** |
+| OCR (PaddleVL) | 15/15 detectades | 80s (15s/pàg) |
+| Mapping | is_match=true, conf=0.84 | <1s |
+| Grading (Claude) | 15/15 avaluades | 9s |
+| **TOTAL** | **Pipeline complet** | **~96s** |
 
-### Pròxims passos
+### Comparativa models (ex_alumne2.pdf)
 
-- **Spike D (wiring):** ✅ **DONE** — `paddleVlOcrClient.ts` + pipeline complet validat
-- **Integration E2E:** ✅ **DONE** — `gradeExamFromPdf()` a `features/grading/gradeExamFromPdf.ts`
-- **UX MVP:** ✅ **DONE** — `/demo/grade`, `GradeExamPage.tsx`, `POST /api/grade-exam`
+| Model | Nota calculada | Concordança vs professor real |
+|---|---|---|
+| Professor real | ~5.3/10 | — |
+| Agent (llegint PDF) | 4.3/10 | referència |
+| **Claude Sonnet 4.6** | **3.0/10** | **13/15 ✅** |
+| GPT-5.4 | 1.3/10 | 9/15 |
 
-**Proper pas: → Export resultats (CSV / resum professor) o batch (20-30 alumnes)**
+Claude s'assembla molt més a l'avaluació humana. GPT és massa sever amb errors d'OCR.
+
+### Problema detectat: OCR de baixa resolució
+
+PDFs de foto de mòbil arriben a 72 DPI natiu (595×842px). El sistema escala a 1800px però no guanya detall. Q1-Q6 (DDL denses) reben `low_similarity=0.60` i el text és inutilitzable. Q7-Q15 (SQL curt) funcionen perfectament (sim=1.00).
+
+**Solució recomanada:** demanar als alumnes escaneig ≥200 DPI (CamScanner, Adobe Scan).
+
+Doc complet: `docs/features/grading/README.md`
+
+### Pròxims passos suggerts
+
+- Avís UI quan `low_similarity` — indicar revisió manual al professor
+- Export CSV / resum professor
+- Batch (20-30 alumnes)
+- Formalitzar excepció privadesa (grading LLM amb text d'alumnes)
 
 Validació habitual: `./scripts/run_frontend.sh …` (Docker).

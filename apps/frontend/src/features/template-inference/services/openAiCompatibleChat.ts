@@ -113,52 +113,83 @@ export function extractTextFromOpenAiResponsesBody(body: unknown): string | unde
   return chunks.join('')
 }
 
+function isAnthropicBaseUrl(baseUrl: string): boolean {
+  return baseUrl.includes('api.anthropic.com')
+}
+
 async function postOpenAiChatCompletionsWithMeta(
   params: CallOpenAiCompatibleChatParams,
 ): Promise<CallOpenAiCompatibleChatMetaResult> {
   const { apiKey, baseUrl, model, messages, fetchImpl = fetch } = params
-  const url = `${baseUrl.replace(/\/$/, '')}/chat/completions`
+  const isAnthropic = isAnthropicBaseUrl(baseUrl)
+  const url = isAnthropic
+    ? `${baseUrl.replace(/\/$/, '')}/messages`
+    : `${baseUrl.replace(/\/$/, '')}/chat/completions`
   const t0 = performance.now()
-  const res = await fetchImpl(url, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${apiKey}`,
-    },
-    body: JSON.stringify({
-      model,
-      messages,
-      temperature: 0,
-    }),
-  })
+
+  const headers: Record<string, string> = { 'Content-Type': 'application/json' }
+  if (isAnthropic) {
+    headers['x-api-key'] = apiKey
+    headers['anthropic-version'] = '2023-06-01'
+  } else {
+    headers['Authorization'] = `Bearer ${apiKey}`
+  }
+
+  // Anthropic separa system i user messages
+  const systemMsg = messages.find((m) => m.role === 'system')
+  const userMessages = messages.filter((m) => m.role !== 'system')
+  const requestBody = isAnthropic
+    ? JSON.stringify({
+        model,
+        max_tokens: 1024,
+        ...(systemMsg ? { system: systemMsg.content } : {}),
+        messages: userMessages,
+      })
+    : JSON.stringify({ model, messages, temperature: 0 })
+
+  const res = await fetchImpl(url, { method: 'POST', headers, body: requestBody })
 
   const text = await res.text()
   const latencyMs = performance.now() - t0
-  let body: unknown
+  let parsedBody: unknown
   try {
-    body = text ? JSON.parse(text) : {}
+    parsedBody = text ? JSON.parse(text) : {}
   } catch {
     throw new Error(`API model: cos no JSON (HTTP ${res.status})`)
   }
 
   if (!res.ok) {
     const errMsg =
-      typeof body === 'object' &&
-      body !== null &&
-      'error' in body &&
-      typeof (body as { error?: { message?: string } }).error?.message === 'string'
-        ? (body as { error: { message: string } }).error.message
+      typeof parsedBody === 'object' &&
+      parsedBody !== null &&
+      'error' in parsedBody &&
+      typeof (parsedBody as { error?: { message?: string } }).error?.message === 'string'
+        ? (parsedBody as { error: { message: string } }).error.message
         : `HTTP ${res.status}`
     throw new Error(`API model: ${errMsg}`)
   }
 
-  const choices = (body as { choices?: { message?: { content?: string } }[] }).choices
-  const content = choices?.[0]?.message?.content
+  // Extracció contingut: Anthropic retorna { content: [{ type: 'text', text: '...' }] }
+  let content: string | undefined
+  if (isAnthropic) {
+    const anthropicContent = (parsedBody as { content?: { type: string; text?: string }[] })
+      .content
+    const raw = anthropicContent?.find((c) => c.type === 'text')?.text
+    // Claude de vegades envolta el JSON en ```json ... ```
+    content = raw
+      ?.replace(/^```(?:json)?\s*/i, '')
+      .replace(/\s*```$/, '')
+      .trim()
+  } else {
+    const choices = (parsedBody as { choices?: { message?: { content?: string } }[] }).choices
+    content = choices?.[0]?.message?.content
+  }
+
   if (typeof content !== 'string' || !content.trim()) {
     throw new Error('API model: resposta sense contingut text')
   }
 
-  const usage = parseUsageFromBody(body)
+  const usage = parseUsageFromBody(parsedBody)
   return { content, latencyMs, usage, endpointKind: 'chat_completions' }
 }
 

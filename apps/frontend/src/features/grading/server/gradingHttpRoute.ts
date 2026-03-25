@@ -43,6 +43,12 @@ function loadFixtures(): { questions: TemplateQuestion[]; spec: AssessmentSpec }
   return { questions: templateJson.questions, spec }
 }
 
+// ─── Logger ───────────────────────────────────────────────────────────────────
+
+function makeLogger(prefix: string): (msg: string) => void {
+  return (msg: string) => console.error(`${new Date().toISOString()} ${prefix} ${msg}`)
+}
+
 // ─── Tipus HTTP ───────────────────────────────────────────────────────────────
 
 export type GradeExamHttpSuccessBody = {
@@ -60,6 +66,8 @@ export type GradeExamHttpOutcome =
 // ─── Handler ─────────────────────────────────────────────────────────────────
 
 export async function executeGradeExamForPdfBuffer(buffer: Buffer): Promise<GradeExamHttpOutcome> {
+  const log = makeLogger('[grade-exam]')
+
   if (!isLikelyPdfBuffer(buffer)) {
     return {
       ok: false,
@@ -70,20 +78,43 @@ export async function executeGradeExamForPdfBuffer(buffer: Buffer): Promise<Grad
 
   try {
     const { questions, spec } = loadFixtures()
-    const apiKey =
-      process.env['ASSESSMENT_SPEC_OPENAI_API_KEY'] ??
-      process.env['OPENAI_API_KEY'] ??
+
+    // ── API key + model: Claude si hi ha CLAUDE_API_KEY, sinó OpenAI ──
+    const claudeKey = process.env['CLAUDE_API_KEY'] || process.env['ANTHROPIC_API_KEY']
+    const openAiKey =
+      process.env['ASSESSMENT_SPEC_OPENAI_API_KEY'] ||
+      process.env['OPENAI_API_KEY'] ||
       process.env['FEATURE0_OPENAI_API_KEY']
+
+    const apiKey = claudeKey || openAiKey
+    const baseUrl = claudeKey
+      ? 'https://api.anthropic.com/v1'
+      : (process.env['GRADER_BASE_URL'] ?? undefined)
+    const model =
+      (process.env['GRADER_MODEL'] || undefined) ?? (claudeKey ? 'claude-sonnet-4-6' : undefined)
+
+    // ── Log rubrica ──
+    log(`Rubrica: ${spec.questions.length} preguntes`)
+    for (const q of spec.questions) {
+      const criteris = q.what_to_evaluate.join(' | ') || '—'
+      log(`  ${q.question_id}: ${criteris.slice(0, 120)}`)
+    }
+    log(`Model grader: ${model ?? '(default)'} | baseUrl: ${baseUrl ?? '(default)'}`)
+    log(`API key present: ${apiKey ? 'SÍ' : 'NO'} (${claudeKey ? 'Claude/Anthropic' : 'OpenAI'})`)
 
     const result = await gradeExamFromPdf(buffer, questions, spec, apiKey, {
       ocrServerUrl: process.env['VL_SERVER_URL'],
       studentId: 'ui-upload',
       examDocumentContext: hospitalDawExamDocumentContext,
+      baseUrl,
+      model,
+      log,
     })
 
     return { ok: true, status: 200, body: { result } }
   } catch (e) {
     const msg = e instanceof Error ? e.message : String(e)
+    log(`ERROR: ${msg}`)
     return {
       ok: false,
       status: 500,
