@@ -1,6 +1,6 @@
 # Estat del projecte (operatiu)
 
-**Darrera actualització:** 2026-03-25 (Spike D — wiring Feature 4 → Feature 3 DONE)
+**Darrera actualització:** 2026-03-25 (Integration E2E — pipeline complet PDF→grade DONE)
 
 Només **estat i verificació**. Normativa: **`AGENTS_ARQUITECTURA.md`**. Ordre de lectura: **`llm.txt`**.
 
@@ -14,7 +14,7 @@ Només **estat i verificació**. Normativa: **`AGENTS_ARQUITECTURA.md`**. Ordre 
 | **Feature 1** — Question-answer extraction (OCR) | **DONE** | OCR + segmentació per marcadors. 4 alumnes reals. Limitació: scans de molt baixa qualitat fora d’abast. |
 | **Feature 2** — Assessment Spec Builder | **DONE / CONGELADA** | Dues passades LLM (MODE OPERATIU + MODE PEDAGÒGIC) + `examDocumentContext`. Prerequisit de Feature 3. |
 | **Feature 3** — Answer Evaluator | **MVP implementat — VIA MORTA gate (iter 2/4)** | Router + gate semàntic. 327 tests. Gate pre-LLM no arriba a precision ≥ 70%. Pròxim: Feature 4. |
-| **Feature 4** — OCR Fallback Server-side | **SPIKE D DONE — wiring Feature 4 → Feature 3 validat** | Motor seleccionat: PaddleOCR-VL-1.5 (9/13 spike, 15/15 ex_alumne2). Pipeline complet PDF→OCR→grade operatiu. Harness: `npm run spike:grade-exam-full-pipeline`. |
+| **Feature 4** — OCR Fallback Server-side | **INTEGRATION E2E DONE** | Pipeline complet PDF→OCR(PaddleVL)→mapping→grading operatiu. 15/15 detectades, 15/15 avaluades. Temps: ~86s/examen. `gradeExamFromPdf()` a `features/grading/gradeExamFromPdf.ts`. |
 
 **Validació canònica:** `./scripts/run_frontend.sh lint|typecheck|test|build` (Docker `frontend-check`). 327 tests passant.
 
@@ -210,16 +210,26 @@ Evidència completa: `docs/spikes/ocr-gate-loop/`
 
 ## Seguent pas
 
-**Feature 0, 1, 2 tancades. Feature 3 MVP funcional. Feature 4: Spike D DONE.**
+**Feature 0, 1, 2 tancades. Feature 3 MVP funcional. Feature 4: Integration E2E DONE.**
 
-**Motor OCR seleccionat: PaddleOCR-VL-1.5. Wiring Feature 4 → Feature 3: VALIDAT.**
+**Resposta a la pregunta PM: SÍ, podem corregir un examen real de punta a punta.**
 
-- **Spike D (wiring):** ✅ **DONE** — `paddleVlOcrClient.ts` + `gradeExamFullPipelineSpike.ts`. Pipeline PDF→OCR(PaddleVL)→buildTemplateMappedAnswers→gradeExam validat sobre `ex_alumne2.pdf` (15/15 detectades, ~57s/pàg CPU fred). `npm run spike:grade-exam-full-pipeline`.
-- **Spike C (comparativa final):** ✅ **TANCAT** — TrOCR 0/13 (fora de domini), Qwen2.5-VL VIA MORTA CPU (>1h/pàg). **Decisió: mantenir PaddleOCR-VL-1.5.** Documentat a `docs/spikes/feature4/spike-c-comparativa-final.md`.
-- **Spike VL-GGUF (PaddleOCR-VL-1.5 via llama.cpp):** ✅ **VALIDATED** — 9/13, ~15s/pàg. Documentat a `docs/spikes/feature4/spike-vl-gguf.md`.
-- **Spike B1 (crop-based):** ⚠️ **BLOQUEJAT** — dependència circular. Documentat a `docs/spikes/feature4/spike-b1-crop-ocr-benchmark.md`.
-- **Evidència VIA MORTA Feature 3:** `docs/spikes/ocr-gate-loop/iteration-02.md`.
+### Evidència E2E (2026-03-25, `ex_alumne2.pdf`, 15 preguntes)
 
-**Proper pas: → millorar UX i latència (Feature 4 optimització) o integrar al producte real.**
+| Fase | Resultat | Temps |
+|------|----------|-------|
+| Rasterització | 5 pàgines | 4s |
+| OCR (PaddleVL) | 15/15 detectades | 77s (15s/pàg) |
+| Mapping | is_match: true, conf: 0.84 | <1s |
+| Grading (LLM) | 15/15 avaluades | 4s |
+| **TOTAL** | **1 correcta, 3 parcials, 11 incorrectes** | **86s** |
+
+### Pròxims passos
+
+- **Spike D (wiring):** ✅ **DONE** — `paddleVlOcrClient.ts` + pipeline complet validat
+- **Integration E2E:** ✅ **DONE** — `gradeExamFromPdf()` a `features/grading/gradeExamFromPdf.ts`
+- **Spike C (comparativa final):** ✅ **TANCAT** — PaddleOCR-VL-1.5 seleccionat
+
+**Proper pas: → UX / flux professor (upload → resultat)**
 
 Validació habitual: `./scripts/run_frontend.sh …` (Docker).
