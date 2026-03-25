@@ -1,6 +1,6 @@
 # Estat del projecte (operatiu)
 
-**Darrera actualització:** 2026-03-25 (Integration E2E — pipeline complet PDF→grade DONE)
+**Darrera actualització:** 2026-03-25 (UX MVP — flux professor upload→correcció→resultat DONE)
 
 Només **estat i verificació**. Normativa: **`AGENTS_ARQUITECTURA.md`**. Ordre de lectura: **`llm.txt`**.
 
@@ -14,7 +14,7 @@ Només **estat i verificació**. Normativa: **`AGENTS_ARQUITECTURA.md`**. Ordre 
 | **Feature 1** — Question-answer extraction (OCR) | **DONE** | OCR + segmentació per marcadors. 4 alumnes reals. Limitació: scans de molt baixa qualitat fora d’abast. |
 | **Feature 2** — Assessment Spec Builder | **DONE / CONGELADA** | Dues passades LLM (MODE OPERATIU + MODE PEDAGÒGIC) + `examDocumentContext`. Prerequisit de Feature 3. |
 | **Feature 3** — Answer Evaluator | **MVP implementat — VIA MORTA gate (iter 2/4)** | Router + gate semàntic. 327 tests. Gate pre-LLM no arriba a precision ≥ 70%. Pròxim: Feature 4. |
-| **Feature 4** — OCR Fallback Server-side | **INTEGRATION E2E DONE** | Pipeline complet PDF→OCR(PaddleVL)→mapping→grading operatiu. 15/15 detectades, 15/15 avaluades. Temps: ~86s/examen. `gradeExamFromPdf()` a `features/grading/gradeExamFromPdf.ts`. |
+| **Feature 4** — OCR Fallback Server-side | **UX MVP DONE** | Flux professor complet: `/demo/grade` → upload PDF → OCR → grading → resultat. `gradeExamFromPdf()` + `GradeExamPage.tsx` + `/api/grade-exam`. 327 tests passant. |
 
 **Validació canònica:** `./scripts/run_frontend.sh lint|typecheck|test|build` (Docker `frontend-check`). 327 tests passant.
 
@@ -212,7 +212,13 @@ Evidència completa: `docs/spikes/ocr-gate-loop/`
 
 **Feature 0, 1, 2 tancades. Feature 3 MVP funcional. Feature 4: Integration E2E DONE.**
 
-**Resposta a la pregunta PM: SÍ, podem corregir un examen real de punta a punta.**
+**Resposta a la pregunta PM: SÍ, un professor pot corregir un examen real sense ajuda.**
+
+### Evidència UX MVP (2026-03-25)
+
+- URL: `http://<servidor>:9088/demo/grade`
+- Flux: Choose File → "Corregir examen" → fases visibles → resultat per pregunta (expandible)
+- Mode degradat: sense API key → mapping-only (no crash)
 
 ### Evidència E2E (2026-03-25, `ex_alumne2.pdf`, 15 preguntes)
 
@@ -228,8 +234,8 @@ Evidència completa: `docs/spikes/ocr-gate-loop/`
 
 - **Spike D (wiring):** ✅ **DONE** — `paddleVlOcrClient.ts` + pipeline complet validat
 - **Integration E2E:** ✅ **DONE** — `gradeExamFromPdf()` a `features/grading/gradeExamFromPdf.ts`
-- **Spike C (comparativa final):** ✅ **TANCAT** — PaddleOCR-VL-1.5 seleccionat
+- **UX MVP:** ✅ **DONE** — `/demo/grade`, `GradeExamPage.tsx`, `POST /api/grade-exam`
 
-**Proper pas: → UX / flux professor (upload → resultat)**
+**Proper pas: → Export resultats (CSV / resum professor) o batch (20-30 alumnes)**
 
 Validació habitual: `./scripts/run_frontend.sh …` (Docker).
