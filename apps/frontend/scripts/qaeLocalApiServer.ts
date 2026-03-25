@@ -23,9 +23,11 @@ import {
 } from '../src/features/question-answer-extraction/dev/qaeDevServerConstants'
 import { executeTemplateDebugFromHttpRequest } from '../src/features/template-debug/server/templateDebugHttpRoute'
 import { executeAssessmentSpecBuildFromJsonBody } from '../src/features/assessment-spec-builder/server/assessmentSpecHttpRoute'
+import { executeGradeExamFromHttpRequest } from '../src/features/grading/server/gradingHttpRoute'
 
 const TEMPLATE_DEBUG_API_PATH = '/api/template-debug'
 const ASSESSMENT_SPEC_API_PATH = '/api/assessment-spec/build'
+const GRADE_EXAM_API_PATH = '/api/grade-exam'
 
 const host = process.env[QAE_DEV_HOST_ENV] ?? QAE_DEV_DEFAULT_HOST
 const port = Number(process.env[QAE_API_PORT_ENV] ?? String(QAE_DEV_DEFAULT_PORT))
@@ -143,10 +145,31 @@ createServer((req, res) => {
     return
   }
 
+  if (url === GRADE_EXAM_API_PATH) {
+    if (req.method !== 'POST') {
+      setCors(req, res)
+      res.statusCode = 405
+      res.setHeader('Allow', 'POST, OPTIONS')
+      res.end()
+      return
+    }
+    void (async () => {
+      try {
+        const out = await executeGradeExamFromHttpRequest(req as IncomingMessage)
+        sendJson(req, res, out.ok ? 200 : out.status, out.body)
+      } catch {
+        sendJson(req, res, 500, {
+          error: { code: 'internal_error', message: 'Error intern no capturat a grade-exam.' },
+        })
+      }
+    })()
+    return
+  }
+
   res.statusCode = 404
   res.setHeader('Content-Type', 'text/plain; charset=utf-8')
   res.end(
-    `QAE API: POST ${QAE_API_PATH} | POST ${TEMPLATE_DEBUG_API_PATH} | POST ${ASSESSMENT_SPEC_API_PATH}`,
+    `QAE API: POST ${QAE_API_PATH} | POST ${TEMPLATE_DEBUG_API_PATH} | POST ${ASSESSMENT_SPEC_API_PATH} | POST ${GRADE_EXAM_API_PATH}`,
   )
 }).listen(port, host, () => {
   console.error(`QAE API escoltant ${buildQaeDevServerListenUrl(host, port)}`)

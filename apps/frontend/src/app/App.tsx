@@ -3,6 +3,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { QaeDemoPage } from '@/features/question-answer-extraction/ui/QaeDemoPage'
 import { Feature0DemoPage } from '@/features/template-inference/ui/Feature0DemoPage'
 import { TemplateDebugPage } from '@/features/template-debug/ui/TemplateDebugPage'
+import { GradeExamPage } from '@/features/grading/ui/GradeExamPage'
 
 /**
  * Capa d’aplicació: composició de la UI i wiring.
@@ -34,6 +35,10 @@ export function App() {
     return <TemplateDebugPage onBack={() => navigate('/')} />
   }
 
+  if (path === '/demo/grade') {
+    return <GradeExamPage onBack={() => navigate('/')} />
+  }
+
   return (
     <main className="app-shell">
       <h1>Laboratori Profes</h1>
@@ -50,6 +55,15 @@ export function App() {
       <p>
         <button type="button" className="app-shell__linkbtn" onClick={() => navigate('/demo/qae')}>
           Demo QAE (question-answer-extraction, servidor Node local)
+        </button>
+      </p>
+      <p>
+        <button
+          type="button"
+          className="app-shell__linkbtn"
+          onClick={() => navigate('/demo/grade')}
+        >
+          Corrector d'examen (Feature 4+3 · Hospital DAW · MVP)
         </button>
       </p>
       <p>
