@@ -204,7 +204,10 @@ Evidència completa: `docs/spikes/ocr-gate-loop/`
 **Feature 0, 1, 2 tancades. Feature 3 MVP funcional. Feature 4: DEFINICIÓ tancada.**
 
 - **Spike B0:** harness implementat, pendent d'execució i validació manual.
-- **Spike B1 (crop-based):** ⚠️ **BLOQUEJAT** — dependència circular: els pitjors casos (dataset congelat) fallen al layout (Feature 0) perquè l'OCR és massa dolent per detectar anchors → no es genera cap crop → no hi ha dades. Documentat a `docs/spikes/feature4/spike-b1-crop-ocr-benchmark.md`.
+- **Spike B1 (engine-agnostic, pàgina sencera):** ✅ **TANCAT** — PaddleOCR 3.x 0/39 deteccions, Tesseract baseline 5/13. Ambdós insuficients per a text manuscrit. Documentat a `docs/spikes/feature4/spike-b1-engine-agnostic-benchmark.md`.
+- **Spike B1 (crop-based):** ⚠️ **BLOQUEJAT** — dependència circular. Documentat a `docs/spikes/feature4/spike-b1-crop-ocr-benchmark.md`.
+- **Spike 4A (PaddleOCR-VL-1.5, CPU):** ⚠️ **VIA MORTA** — model carrega bé (14s, 1.3GB RAM) però inferència en CPU és inviable: >8h per pàgina sense completar. Requereix GPU. Documentat a `docs/spikes/feature4/paddleocr-vl-spike-a.md`.
+- **Pròxim pas recomanat:** EasyOCR (dissenyat per a text manuscrit, significativament més lleuger que PaddleOCR-VL, funcional en CPU).
 - **Decisió pendent (PM):** redefinir l'origen del crop (franja proporcional / coords template / pàgina sencera). Opcions a `spike-b1-crop-ocr-benchmark.md §BLOQUEIG`.
 - **Evidència VIA MORTA Feature 3:** `docs/spikes/ocr-gate-loop/iteration-02.md`.
 
