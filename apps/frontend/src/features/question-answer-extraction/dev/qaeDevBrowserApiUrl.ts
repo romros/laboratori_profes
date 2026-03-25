@@ -24,8 +24,13 @@ export function getQaeApiUrlForBrowser(): string {
     return `http://127.0.0.1:${QAE_DEV_DEFAULT_PORT}${QAE_API_PATH}`
   }
   // Vite dev local: el servidor QAE corre en un port apart
-  const { hostname } = window.location
-  const isViteDev = hostname === 'localhost' || hostname === '127.0.0.1'
+  const { hostname, port } = window.location
+  // Vite dev corre al port 5173 (o similar); Docker/nginx serveix al 9088/9443/80/443.
+  // Si el port és el del servidor QAE (8787) o Vite dev (5173), usa la URL directa al servidor Node.
+  // En qualsevol altre cas (Docker/nginx), usa la URL relativa (nginx fa el proxy).
+  const isViteDev =
+    (hostname === 'localhost' || hostname === '127.0.0.1') &&
+    (port === String(QAE_DEV_DEFAULT_PORT) || port === '5173' || port === '5174')
   if (isViteDev) {
     return `http://127.0.0.1:${QAE_DEV_DEFAULT_PORT}${QAE_API_PATH}`
   }
