@@ -1,0 +1,34 @@
+services:
+  qwen-server:
+    image: ghcr.io/ggml-org/llama.cpp:server
+    container_name: spike-c-qwen-server
+    volumes:
+      - /tmp/models/qwen-vl:/models:ro
+    command: >
+      --model /models/Qwen2.5_VL_2B.Q4_K_M.gguf
+      --mmproj /models/Qwen2.5_VL_2B.mmproj-Q8_0.gguf
+      --host 0.0.0.0
+      --port 8112
+      --ctx-size 4096
+      --n-gpu-layers 0
+    ports:
+      - "8112:8112"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8112/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 18
+
+  qwen-client:
+    image: profes-ocr-vl-client:latest
+    container_name: spike-c-qwen-client
+    volumes:
+      - /tmp:/tmp
+      - /mnt/volume-SQ/dev/profes/apps/ocr-fallback/qwen_vl_runner.py:/app/qwen_vl_runner.py:ro
+    environment:
+      VL_SERVER_URL: "http://spike-c-qwen-server:8112/v1"
+    depends_on:
+      qwen-server:
+        condition: service_healthy
+    entrypoint: ["python3", "/app/qwen_vl_runner.py"]
+    command: ["/tmp/tmp.MwUimx8HcN"]

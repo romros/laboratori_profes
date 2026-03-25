@@ -1,0 +1,30 @@
+FROM python:3.11-slim
+
+WORKDIR /app
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    libgl1 libglib2.0-0 libgomp1 \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN pip install --no-cache-dir "numpy<2"
+
+RUN pip install --no-cache-dir \
+    torch==2.2.2 torchvision==0.17.2 \
+    --index-url https://download.pytorch.org/whl/cpu
+
+RUN pip install --no-cache-dir \
+    transformers==4.40.0 \
+    Pillow \
+    sentencepiece \
+    timm
+
+COPY trocr_runner.py .
+
+# Predescarregar model en build per no perdre temps en runtime
+RUN python3 -c "\
+from transformers import TrOCRProcessor, VisionEncoderDecoderModel; \
+TrOCRProcessor.from_pretrained('microsoft/trocr-large-handwritten'); \
+VisionEncoderDecoderModel.from_pretrained('microsoft/trocr-large-handwritten'); \
+print('Model descarregat')"
+
+ENTRYPOINT ["python3", "trocr_runner.py"]
