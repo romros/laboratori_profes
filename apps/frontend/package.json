@@ -26,6 +26,7 @@
     "spike:grade-exam": "tsx --tsconfig tsconfig.app.json scripts/gradeExamSpike.ts",
     "spike:grade-exam-compare": "tsx --tsconfig tsconfig.app.json scripts/gradeExamCompareSpike.ts",
     "spike:grade-exam-benchmark": "tsx --tsconfig tsconfig.app.json scripts/gradeExamBenchmarkSpike.ts",
+    "spike:grade-exam-full-pipeline": "tsx --tsconfig tsconfig.app.json scripts/gradeExamFullPipelineSpike.ts",
     "spike:routing": "tsx --tsconfig tsconfig.app.json scripts/routingSpike.ts",
     "spike:routing-validation": "tsx --tsconfig tsconfig.app.json scripts/routingValidationSpike.ts",
     "spike:ocr-gate-loop": "tsx --tsconfig tsconfig.app.json scripts/ocrGateLoopSpike.ts",

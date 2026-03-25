@@ -1,6 +1,6 @@
 # Estat del projecte (operatiu)
 
-**Darrera actualització:** 2026-03-24 (Feature 4 definida — OCR fallback server-side efímer)
+**Darrera actualització:** 2026-03-25 (Spike D — wiring Feature 4 → Feature 3 DONE)
 
 Només **estat i verificació**. Normativa: **`AGENTS_ARQUITECTURA.md`**. Ordre de lectura: **`llm.txt`**.
 
@@ -14,7 +14,7 @@ Només **estat i verificació**. Normativa: **`AGENTS_ARQUITECTURA.md`**. Ordre 
 | **Feature 1** — Question-answer extraction (OCR) | **DONE** | OCR + segmentació per marcadors. 4 alumnes reals. Limitació: scans de molt baixa qualitat fora d’abast. |
 | **Feature 2** — Assessment Spec Builder | **DONE / CONGELADA** | Dues passades LLM (MODE OPERATIU + MODE PEDAGÒGIC) + `examDocumentContext`. Prerequisit de Feature 3. |
 | **Feature 3** — Answer Evaluator | **MVP implementat — VIA MORTA gate (iter 2/4)** | Router + gate semàntic. 327 tests. Gate pre-LLM no arriba a precision ≥ 70%. Pròxim: Feature 4. |
-| **Feature 4** — OCR Fallback Server-side | **DEFINICIÓ + Spike B0 definit** | Servei Python Docker separat, efímer, privacy-first. Spike B0 (preprocessing mínim) definit i harness implementat. Pendent: execució + validació manual. |
+| **Feature 4** — OCR Fallback Server-side | **SPIKE D DONE — wiring Feature 4 → Feature 3 validat** | Motor seleccionat: PaddleOCR-VL-1.5 (9/13 spike, 15/15 ex_alumne2). Pipeline complet PDF→OCR→grade operatiu. Harness: `npm run spike:grade-exam-full-pipeline`. |
 
 **Validació canònica:** `./scripts/run_frontend.sh lint|typecheck|test|build` (Docker `frontend-check`). 327 tests passant.
 
@@ -208,18 +208,18 @@ Evidència completa: `docs/spikes/ocr-gate-loop/`
 
 ---
 
-## Següent pas
+## Seguent pas
 
-**Feature 0, 1, 2 tancades. Feature 3 MVP funcional. Feature 4A: VALIDATED. Motor OCR seleccionat: PaddleOCR-VL-1.5.**
+**Feature 0, 1, 2 tancades. Feature 3 MVP funcional. Feature 4: Spike D DONE.**
 
-**Proper pas: → TASCA wiring Feature 4 → Feature 3.**
+**Motor OCR seleccionat: PaddleOCR-VL-1.5. Wiring Feature 4 → Feature 3: VALIDAT.**
 
-- **Spike B0:** harness implementat, pendent d'execució i validació manual.
-- **Spike B1 (engine-agnostic, pàgina sencera):** ✅ **TANCAT** — PaddleOCR 3.x 0/39 deteccions, Tesseract baseline 5/13. Documentat a `docs/spikes/feature4/spike-b1-engine-agnostic-benchmark.md`.
-- **Spike B1 (crop-based):** ⚠️ **BLOQUEJAT** — dependència circular. Documentat a `docs/spikes/feature4/spike-b1-crop-ocr-benchmark.md`.
-- **Spike 4A (PaddleOCR-VL-1.5, transformers):** ⚠️ **VIA MORTA** — inferència >8h CPU. Documentat a `docs/spikes/feature4/paddleocr-vl-spike-a.md`.
-- **Spike VL-GGUF (PaddleOCR-VL-1.5 via llama.cpp):** ✅ **VALIDATED** — 9/13, ~15s/pàg. Documentat a `docs/spikes/feature4/spike-vl-gguf.md`.
+- **Spike D (wiring):** ✅ **DONE** — `paddleVlOcrClient.ts` + `gradeExamFullPipelineSpike.ts`. Pipeline PDF→OCR(PaddleVL)→buildTemplateMappedAnswers→gradeExam validat sobre `ex_alumne2.pdf` (15/15 detectades, ~57s/pàg CPU fred). `npm run spike:grade-exam-full-pipeline`.
 - **Spike C (comparativa final):** ✅ **TANCAT** — TrOCR 0/13 (fora de domini), Qwen2.5-VL VIA MORTA CPU (>1h/pàg). **Decisió: mantenir PaddleOCR-VL-1.5.** Documentat a `docs/spikes/feature4/spike-c-comparativa-final.md`.
+- **Spike VL-GGUF (PaddleOCR-VL-1.5 via llama.cpp):** ✅ **VALIDATED** — 9/13, ~15s/pàg. Documentat a `docs/spikes/feature4/spike-vl-gguf.md`.
+- **Spike B1 (crop-based):** ⚠️ **BLOQUEJAT** — dependència circular. Documentat a `docs/spikes/feature4/spike-b1-crop-ocr-benchmark.md`.
 - **Evidència VIA MORTA Feature 3:** `docs/spikes/ocr-gate-loop/iteration-02.md`.
+
+**Proper pas: → millorar UX i latència (Feature 4 optimització) o integrar al producte real.**
 
 Validació habitual: `./scripts/run_frontend.sh …` (Docker).
