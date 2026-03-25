@@ -35,46 +35,6 @@ export function App() {
     return <TemplateDebugPage onBack={() => navigate('/')} />
   }
 
-  if (path === '/demo/grade') {
-    return <GradeExamPage onBack={() => navigate('/')} />
-  }
-
-  return (
-    <main className="app-shell">
-      <h1>Laboratori Profes</h1>
-      <p>Frontend canònic (foundations).</p>
-      <p>
-        <button
-          type="button"
-          className="app-shell__linkbtn"
-          onClick={() => navigate('/demo/feature0')}
-        >
-          Demo Feature 0 (template-inference, stub local)
-        </button>
-      </p>
-      <p>
-        <button type="button" className="app-shell__linkbtn" onClick={() => navigate('/demo/qae')}>
-          Demo QAE (question-answer-extraction, servidor Node local)
-        </button>
-      </p>
-      <p>
-        <button
-          type="button"
-          className="app-shell__linkbtn"
-          onClick={() => navigate('/demo/grade')}
-        >
-          Corrector d'examen (Feature 4+3 · Hospital DAW · MVP)
-        </button>
-      </p>
-      <p>
-        <button
-          type="button"
-          className="app-shell__linkbtn"
-          onClick={() => navigate('/debug/template')}
-        >
-          Template Debug (pipeline inspector intern)
-        </button>
-      </p>
-    </main>
-  )
+  // / i /demo/grade → corrector principal
+  return <GradeExamPage onBack={() => navigate('/')} />
 }

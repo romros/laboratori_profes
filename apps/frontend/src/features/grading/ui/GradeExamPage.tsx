@@ -16,7 +16,7 @@ type Phase =
   | 'error'
 
 type Props = {
-  onBack: () => void
+  onBack?: () => void
 }
 
 function getApiUrl(): string {
@@ -354,9 +354,11 @@ export function GradeExamPage({ onBack }: Props) {
       style={{ fontFamily: 'system-ui, sans-serif', maxWidth: 860, margin: '0 auto', padding: 24 }}
     >
       <div style={{ marginBottom: 20, display: 'flex', alignItems: 'center', gap: 12 }}>
-        <button type="button" onClick={onBack} style={{ cursor: 'pointer' }}>
-          ← Tornar
-        </button>
+        {onBack && (
+          <button type="button" onClick={onBack} style={{ cursor: 'pointer' }}>
+            ← Tornar
+          </button>
+        )}
         <h1 style={{ margin: 0, fontSize: 20 }}>Corrector d'examen — MVP</h1>
         <span style={{ color: '#888', fontSize: 12 }}>Hospital DAW · examen LDD</span>
       </div>
