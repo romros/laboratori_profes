@@ -35,9 +35,12 @@ const API_KEY =
   process.env['OPENAI_API_KEY'] ??
   process.env['FEATURE0_OPENAI_API_KEY']
 
-if (!API_KEY) {
-  console.error('Cal ASSESSMENT_SPEC_OPENAI_API_KEY (o OPENAI_API_KEY). Atura.')
-  process.exit(1)
+const MAPPING_ONLY = !API_KEY
+
+if (MAPPING_ONLY) {
+  console.warn(
+    "[AVÍS] Cap API key detectada. S'executa en mode mapping-only (pas 1-3, sense gradeExam).",
+  )
 }
 
 const TEMPLATE_PATH = resolve(
@@ -175,6 +178,18 @@ for (const q of mappedResult.questions) {
 }
 
 // ── Pas 4: gradeExam ──────────────────────────────────────────────────────────
+if (MAPPING_ONLY) {
+  console.log('\n[4/4] Grading OMÈS (mode mapping-only, sense API key).')
+  console.log('\n' + '='.repeat(70))
+  console.log('RESULTATS (mapping-only)')
+  console.log('='.repeat(70))
+  console.log(`  OCR detectades:  ${detected.length}/${mappedResult.questions.length}`)
+  console.log(`  is_match:        ${mappedResult.is_match}`)
+  console.log(`  confidence:      ${mappedResult.confidence.toFixed(2)}`)
+  console.log(`  TOTAL:           ${((Date.now() - t0_total) / 1000).toFixed(1)}s`)
+  console.log('='.repeat(70))
+  process.exit(0)
+}
 console.log('\n[4/4] Avaluant respostes (gradeExam + LLM)…')
 
 const answers: AnswerForEvaluation[] = mappedResult.questions.map(toAnswerForEvaluation)

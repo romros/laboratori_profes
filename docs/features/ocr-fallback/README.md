@@ -1,8 +1,21 @@
 # Feature 4 — OCR Fallback Server-side Efímer (Privacy-first)
 
-**Estat: DEFINICIÓ** — no implementada
+**Estat: SPIKE D DONE** — wiring Feature 4 → Feature 3 validat
 **Data definició:** 2026-03-24
+**Data implementació:** 2026-03-25
 **Prerequisit:** Feature 1 (QAE, DONE) · Feature 3 (Answer Evaluator, MVP)
+
+### Resum d'implementació
+
+- **Motor seleccionat:** PaddleOCR-VL-1.5 via `llama.cpp` + GGUF (CPU, Docker `apps/ocr-fallback/`)
+- **Client TS:** `apps/frontend/src/infrastructure/ocr/paddleVlOcrClient.ts`
+- **Pipeline complet:** `apps/frontend/scripts/gradeExamFullPipelineSpike.ts` (`npm run spike:grade-exam-full-pipeline`)
+- **Resultats validació:** 15/15 preguntes detectades sobre `ex_alumne2.pdf`, `is_match: true`, `confidence: 0.84`
+- **Evidència spikes:** `docs/spikes/feature4/spike-vl-gguf.md` · `docs/spikes/feature4/spike-c-comparativa-final.md`
+
+### Proper pas
+
+→ Millorar UX i latència (Feature 4 optimització) o integrar al producte real
 
 ---
 
@@ -49,6 +62,7 @@ AND ocr_status ∈ { 'uncertain', 'not_detected', 'semantically_unreadable' }
 On `route` ve del router de Feature 3 (`routeQuestionForEvaluation`) i `ocr_status` és el camp del `AnswerForEvaluation`.
 
 **Quan NO s'activa:**
+
 - `route === 'text'` — el text base és prou bo, no cal fallback
 - `route === 'skip'` — el text és il·legible fins al punt que el fallback tampoc ajudarà; no enviar
 - Mida del crop > límit màxim (veure §Límits operatius)
@@ -71,12 +85,12 @@ On `route` ve del router de Feature 3 (`routeQuestionForEvaluation`) i `ocr_stat
 
 ```typescript
 type OcrFallbackResult = {
-  extracted_text: string
-  engine: string          // identificador del motor utilitzat (engine-agnostic)
-  elapsed_ms: number
-  confidence?: number     // [0, 1] si el motor ho suporta — necessari per orquestrar
-  warnings?: string[]
-}
+  extracted_text: string;
+  engine: string; // identificador del motor utilitzat (engine-agnostic)
+  elapsed_ms: number;
+  confidence?: number; // [0, 1] si el motor ho suporta — necessari per orquestrar
+  warnings?: string[];
+};
 ```
 
 **Per què `confidence` és necessari:** sense una mesura de confiança del motor, el caller no pot decidir si usar el text millorat o caure de nou al baseline. Un `confidence` baix indica que el fallback tampoc ha pogut extreure res útil.
@@ -87,12 +101,12 @@ type OcrFallbackResult = {
 
 Explícits i no negociables:
 
-| Límit | Valor (configurable) | Motiu |
-|-------|---------------------|-------|
-| Mida màxima del crop | 5 MB | Evitar abús i temps de procés excessiu |
-| Timeout màxim per petició | 30 s | No bloquejar el grader |
-| Retries | **0** — un sol intent | Evitar acumulació de càrrega i latència |
-| Concurrència màxima | A definir al Spike A | Evitar saturació del servei |
+| Límit                     | Valor (configurable)  | Motiu                                   |
+| ------------------------- | --------------------- | --------------------------------------- |
+| Mida màxima del crop      | 5 MB                  | Evitar abús i temps de procés excessiu  |
+| Timeout màxim per petició | 30 s                  | No bloquejar el grader                  |
+| Retries                   | **0** — un sol intent | Evitar acumulació de càrrega i latència |
+| Concurrència màxima       | A definir al Spike A  | Evitar saturació del servei             |
 
 Si es supera el timeout o la mida, el servei retorna error HTTP 4xx/5xx i el caller usa el text base. **Mai bloquejar.**
 
@@ -116,16 +130,16 @@ No cal mètrica numèrica al Spike C. Criteri binari: **millor / no millor** per
 
 ### A. Privacy-first (obligatori)
 
-| Requisit | Descripció |
-|----------|------------|
-| Crops mínims | Només el fragment estrictament necessari |
-| Sense persistència d'imatges | Cap fitxer temporal persistent |
-| Sense persistència de text OCR | El resultat no es guarda al servidor |
-| Processament efímer | Memòria → resultat → descarta |
-| Sense tercers | Tot el processament al servidor del professor |
-| Sense logs amb contingut | Els logs registren mètriques tècniques, mai contingut |
-| Transport segur | HTTPS intern Docker |
-| Responsabilitat caller | L'anonimització és responsabilitat del caller, igual que Feature 3 |
+| Requisit                       | Descripció                                                         |
+| ------------------------------ | ------------------------------------------------------------------ |
+| Crops mínims                   | Només el fragment estrictament necessari                           |
+| Sense persistència d'imatges   | Cap fitxer temporal persistent                                     |
+| Sense persistència de text OCR | El resultat no es guarda al servidor                               |
+| Processament efímer            | Memòria → resultat → descarta                                      |
+| Sense tercers                  | Tot el processament al servidor del professor                      |
+| Sense logs amb contingut       | Els logs registren mètriques tècniques, mai contingut              |
+| Transport segur                | HTTPS intern Docker                                                |
+| Responsabilitat caller         | L'anonimització és responsabilitat del caller, igual que Feature 3 |
 
 > ⚠️ Qualsevol canvi que impliqui enviar imatges a serveis externs requereix **decisió explícita de PM** i actualització de `docs/privacy/PRIVACY_ARCHITECTURE.md §8`.
 
@@ -152,13 +166,13 @@ Servei Python **separat**, en Docker **separat**. No al mateix backend que serve
 
 ### Justificació
 
-| Motiu | Detall |
-|-------|--------|
-| Dependències pesades | Kraken, PaddleOCR, PyTorch/ONNX — incompatibles amb stack Node |
-| CPU/RAM diferents | Processos OCR/ML amb perfil de recursos propi |
-| Aïllament de seguretat | Superfície d'atac limitada al servei concret |
-| Operació independent | Es pot aturar, escalar o substituir sense tocar la resta |
-| Conteniment de dades | Garantia addicional que el payload no travessa altres serveis |
+| Motiu                  | Detall                                                         |
+| ---------------------- | -------------------------------------------------------------- |
+| Dependències pesades   | Kraken, PaddleOCR, PyTorch/ONNX — incompatibles amb stack Node |
+| CPU/RAM diferents      | Processos OCR/ML amb perfil de recursos propi                  |
+| Aïllament de seguretat | Superfície d'atac limitada al servei concret                   |
+| Operació independent   | Es pot aturar, escalar o substituir sense tocar la resta       |
+| Conteniment de dades   | Garantia addicional que el payload no travessa altres serveis  |
 
 ### Flux
 
@@ -190,25 +204,25 @@ El router de Feature 3 (`routeQuestionForEvaluation`) ja retorna `route` i `ocr_
 
 ### Obligatori
 
-| Requisit | Detall |
-|----------|--------|
-| Python | Ecosistema OCR/ML natiu |
-| API simple | FastAPI (lleugera, async, OpenAPI automàtic) |
-| Docker separat | Contenidor independent al `docker-compose.yml` |
-| Engine-agnostic | Interfície única per a múltiples motors OCR |
-| Memòria o temporal efímer | Cap persistència de payload |
-| Timeout curt | 30s màxim per crop (configurable) |
-| Límit mida fitxer | 5MB per crop |
-| Formats permesos | PNG, JPEG, WEBP — rebuig explícit de la resta |
-| 0 retries | Un sol intent; error → caller decideix |
-| Observabilitat | Mètriques tècniques (temps, motor, warnings) sense contingut |
+| Requisit                  | Detall                                                       |
+| ------------------------- | ------------------------------------------------------------ |
+| Python                    | Ecosistema OCR/ML natiu                                      |
+| API simple                | FastAPI (lleugera, async, OpenAPI automàtic)                 |
+| Docker separat            | Contenidor independent al `docker-compose.yml`               |
+| Engine-agnostic           | Interfície única per a múltiples motors OCR                  |
+| Memòria o temporal efímer | Cap persistència de payload                                  |
+| Timeout curt              | 30s màxim per crop (configurable)                            |
+| Límit mida fitxer         | 5MB per crop                                                 |
+| Formats permesos          | PNG, JPEG, WEBP — rebuig explícit de la resta                |
+| 0 retries                 | Un sol intent; error → caller decideix                       |
+| Observabilitat            | Mètriques tècniques (temps, motor, warnings) sense contingut |
 
 ### Recomanat
 
-| Requisit | Detall |
-|----------|--------|
-| CPU primer | GPU com a optimització futura, no prerequisit |
-| Suport multi-motor | Kraken, PaddleOCR, i espai per a un tercer |
+| Requisit               | Detall                                                     |
+| ---------------------- | ---------------------------------------------------------- |
+| CPU primer             | GPU com a optimització futura, no prerequisit              |
+| Suport multi-motor     | Kraken, PaddleOCR, i espai per a un tercer                 |
 | `confidence` per motor | Si el motor ho suporta, retornar-lo al `OcrFallbackResult` |
 
 ---
@@ -217,15 +231,15 @@ El router de Feature 3 (`routeQuestionForEvaluation`) ja retorna `route` i `ocr_
 
 La feature s'ha de dissenyar com si hagués de passar una revisió de privadesa seriosa.
 
-| Principi | Implementació |
-|----------|--------------|
-| Processament temporal | Cap dada persisteix més del necessari per retornar la resposta |
-| Minimització de dades | Crop mínim, no pàgina completa ni PDF |
-| Sense persistència | Ni imatge ni text OCR es guarden al disc |
-| Sense tercers | Processament 100% local al servidor del professor |
-| Crops mínims | La zona de resposta derivada és el límit; res fora |
+| Principi                    | Implementació                                                                                  |
+| --------------------------- | ---------------------------------------------------------------------------------------------- |
+| Processament temporal       | Cap dada persisteix més del necessari per retornar la resposta                                 |
+| Minimització de dades       | Crop mínim, no pàgina completa ni PDF                                                          |
+| Sense persistència          | Ni imatge ni text OCR es guarden al disc                                                       |
+| Sense tercers               | Processament 100% local al servidor del professor                                              |
+| Crops mínims                | La zona de resposta derivada és el límit; res fora                                             |
 | Anonimització és del caller | Feature 4 no sanititza; el caller assegura que el crop no conté dades personals identificables |
-| No camí per defecte | El flux normal no ha de passar per aquí; és el fallback per casos difícils |
+| No camí per defecte         | El flux normal no ha de passar per aquí; és el fallback per casos difícils                     |
 
 ---
 
@@ -265,6 +279,7 @@ Aquesta definició deixa explícitament obertes:
 **Candidates:** Tesseract base (baseline) · Kraken · PaddleOCR · (opcional: EasyOCR o similar)
 
 **Mètode:**
+
 - Mateixos crops de `docs/spikes/ocr-gate-loop/dataset.json` que van causar la VIA MORTA
 - Cada motor processa cada crop via la interfície engine-agnostic del Spike A
 - Output: text cru per motor per crop (+ `confidence` si disponible)
@@ -278,14 +293,15 @@ Aquesta definició deixa explícitament obertes:
 **Objectiu:** determinar si algun motor millora substancialment el baseline.
 
 **Criteri de millora** (veure §Definició de "millor OCR"):
+
 - Paraules clau recuperables
 - Intenció tècnica reconstruïble
 - Menys ambigüitat
 
 **Mètode manual:**
 
-| Crop | OCR base | OCR nou | Millor? |
-|------|----------|---------|---------|
+| Crop        | OCR base        | OCR nou         | Millor? |
+| ----------- | --------------- | --------------- | ------- |
 | alumne-1_Q1 | `YPACHAR(A)...` | `VARCHAR(4)...` | sí / no |
 
 **Entregable:** taula de valoració manual + conclusió de si la línia val la pena.
@@ -301,6 +317,7 @@ Aquesta definició deixa explícitament obertes:
 **Prerequisit:** Spike C ha demostrat que almenys un motor millora el baseline.
 
 **Abast:**
+
 - Integrar a `gradeExam` seguint el trigger definit (`route !== 'text'` AND `ocr_status` adequat)
 - Respectar límits operatius (timeout 30s, 0 retries, fallback a text base si error)
 - Comparar veredicte del grader amb text base vs text millorat
