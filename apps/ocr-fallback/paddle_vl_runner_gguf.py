@@ -82,7 +82,7 @@ def main() -> None:
                         ],
                     }
                 ],
-                max_tokens=800,
+                max_tokens=1200,
                 temperature=0,
                 extra_body={"repeat_penalty": 1.15},
             )

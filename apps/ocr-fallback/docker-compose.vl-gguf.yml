@@ -27,6 +27,9 @@ services:
       --host 0.0.0.0
       --temp 0
       --threads 8
+      --ctx-size 4096
+      --batch-size 512
+      --ubatch-size 512
     restart: unless-stopped
 
   vl-client:

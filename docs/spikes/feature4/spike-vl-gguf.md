@@ -39,10 +39,13 @@ Browser (Frontend)
 |-----------|-------|-------------|
 | Prompt | `"OCR:"` | Prompt d'entrenament oficial del model (4-5x més ràpid) |
 | `repeat_penalty` | `1.15` | Evita alucinació en pàgines amb poc text |
-| `max_tokens` | `800` | Suficient per pàgina sencera, evita loops |
+| `max_tokens` | `1200` | Suficient per pàgina sencera amb SQL llarg, evita truncar CREATE TABLE complexes |
 | `temperature` | `0` | Determinista |
 | DPI rasterització | `200` | Millor que 150 sense penalitzar temps |
-| `--threads` llama-server | `8` | AMD EPYC-Rome, 6 cores al 100% |
+| `--threads` llama-server | `8` | AMD EPYC-Rome, 8 cores (màxim disponible) |
+| `--ctx-size` llama-server | `4096` | Context suficient per pàgina A4 (tokens imatge + text generat) |
+| `--batch-size` llama-server | `512` | Throughput òptim CPU prefill |
+| `--ubatch-size` llama-server | `512` | Micro-batch consistent amb batch-size |
 
 ---
 
@@ -123,20 +126,18 @@ Pàgines amb poc text (alumne-2 pàg.3, alumne-3 pàg.6) generaven repeticions e
 |-------|---------|-----------|------|-----------|---------------|
 | GPT-4o | 1.69% | No (API) | ~$10/1K pàg | ❌ dades surten | Màxima qualitat |
 | Mistral OCR 3 | ~2.1% | No (API) | ~$2/1K pàg | ❌ dades surten | Valor/qualitat |
-| TrOCR-Large | 2.89% | Sí (GPU recomanat) | $0 | ✅ local | Local privacy, linia |
+| TrOCR-Large | 2.89% | Sí (GPU recomanat) | $0 | ✅ local | Local privacy, línia — ⚠️ **0/13 en el nostre dataset** (fora de domini: SQL en català) |
 | GOT-OCR 2.0 | ~3.4% | Parcial | $0 | ✅ local | Bbox caràcter |
-| **PaddleOCR-VL-0.9B (GGUF)** | **~5.8%** | **✅ CPU 15s/pàg** | **$0** | **✅ local** | **El nostre cas** |
-| Qwen2.5-VL | ~3.8% | Parcial (>1GB) | $0 | ✅ local | Multilingüe |
+| **PaddleOCR-VL-0.9B (GGUF)** | **~5.8%** | **✅ CPU 15s/pàg** | **$0** | **✅ local** | **El nostre cas — SELECCIONAT** |
+| Qwen2.5-VL | ~3.8% | ❌ CPU >1h/pàg | $0 | ✅ local | ⚠️ **VIA MORTA CPU** — ~4K tokens imatge/pàg |
 | Tesseract 5 | 12.5% | ✅ | $0 | ✅ local | Text imprès |
 
 > **Nota:** CER sobre IAM (anglès, cursiva). El nostre cas (SQL manuscrit català/castellà) és diferent — els resultats relatius es mantenen però els absoluts varien.
 
-### Propera alternativa a provar: Qwen2.5-VL-2B
+### Propera alternativa provada: Qwen2.5-VL-2B → VIA MORTA CPU
 
-- CER ~3.8% (millor que PaddleOCR-VL-0.9B ~5.8%)
-- Models GGUF disponibles a HuggingFace
-- Pot ser superior en text mixt SQL + català
-- Estimació CPU: similar a VL-GGUF (~15-30s/pàg)
+Provat al Spike C. Resultat: **VIA MORTA en CPU** (~4K tokens d'imatge per pàgina A4 → >1h per pàgina).
+Veure `docs/spikes/feature4/spike-c-comparativa-final.md`.
 
 ---
 
@@ -219,10 +220,9 @@ L'examen escanejat es processa localment al servidor de l'escola. El model d'IA 
 
 ### Properes decisions pendents (PM)
 
-- Aprovar el **llindar de qualitat**: 9/13 és suficient per activar Feature 3 (grader), o cal millorar primer?
+- Aprovar el **llindar de qualitat**: 9/13 és suficient per activar Feature 3 (grader)?
 - Decidir **origen del crop**: pàgina sencera (actual) vs franja proporcional vs coordenades de plantilla (veure `spike-b1-crop-ocr-benchmark.md §BLOQUEIG`)
 - Decidir **nivell de scrubbing PII**: fort (elimina tot PII incl. noms propis) vs dèbil (només DNI+telèfon)
-- Explorar **Qwen2.5-VL-2B** (CER estimat ~3.8% vs 5.8% actual) si el llindar 9/13 no és suficient
 
 ---
 
@@ -230,4 +230,5 @@ L'examen escanejat es processa localment al servidor de l'escola. El model d'IA 
 
 > [x] **VIABLE (CPU, 15s/pàg)** — 9/13 deteccions vs 5/13 baseline Tesseract. Arquitectura Docker `llama-server + client Python` funcional. Errors residuals atribuïts a lletra manuscrita ambigua, no a l'escàner ni al motor.
 >
-> **Pròxim pas:** decisió PM sobre llindar + wiring a Feature 3/4, o Spike Qwen2.5-VL si cal millorar qualitat.
+> **Motor seleccionat per Feature 4 (Spike C):** PaddleOCR-VL-1.5 GGUF. Cap alternativa (TrOCR, Qwen2.5-VL) supera el threshold ≥11/13.
+> **Pròxim pas:** wiring Feature 4 → Feature 3 (Spike D).
